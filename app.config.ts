@@ -38,7 +38,8 @@ const config: ExpoConfig = {
             LSApplicationQueriesSchemes: ['nextcloudtalk'],
             ITSAppUsesNonExemptEncryption: false,
             NSAppTransportSecurity: {
-                NSAllowsArbitraryLoads: true,
+                NSAllowsArbitraryLoads: false,
+                NSAllowsLocalNetworking: true,
             },
         },
         entitlements: {
