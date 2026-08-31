@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { View, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'expo-router';
@@ -41,6 +41,14 @@ export function FindTimeSheet({
   const { width: screenWidth } = useWindowDimensions();
   const [draftSlot, setDraftSlot] = useState<SuggestedSlot | null>(null);
 
+  const sheetScrollRef = useRef<ScrollView>(null);
+  const scrollY = useRef(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const maxScrollY = Math.max(0, contentHeight - viewportHeight);
+
+
+
   const currentStart = draftSlot?.start ?? start;
   const currentEnd = draftSlot?.end ?? end;
 
@@ -75,8 +83,13 @@ export function FindTimeSheet({
   return (
     <Sheet visible={visible} onClose={handleClose} title={t('event.findTimeTitle')}>
       <ScrollView
+        ref={sheetScrollRef}
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
+        scrollEventThrottle={16}
+        onScroll={(event) => { scrollY.current = event.nativeEvent.contentOffset.y; }}
+        onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)}
+        onContentSizeChange={(_, h) => setContentHeight(h)}
       >
           {loading && (
             <View style={styles.center}>
@@ -110,6 +123,9 @@ export function FindTimeSheet({
                   <Typography variant="body2" color="secondary" style={styles.sectionLabel}>
                     {t('event.findTimeTimeline')}
                   </Typography>
+                  <Typography variant="caption" color="secondary" style={styles.timelineTip}>
+                    {t('event.findTimeTimelineTip')}
+                  </Typography>
                   <AvailabilityTimeline
                     mergedBusy={mergedBusy}
                     searchStart={searchStart}
@@ -120,6 +136,10 @@ export function FindTimeSheet({
                     days={days}
                     columnWidth={columnWidth}
                     hourRowHeight={hourRowHeight}
+                    scrollRef={sheetScrollRef}
+                    scrollY={scrollY}
+                    viewportHeight={viewportHeight}
+                    maxScrollY={maxScrollY}
                     onApplySlot={(slot) => {
                       setDraftSlot(slot);
                       onApplySlot(slot);
@@ -184,6 +204,7 @@ export function FindTimeSheet({
 const styles = StyleSheet.create({
   scroll: { maxHeight: 600 },
   scrollContent: { paddingHorizontal: 4, paddingBottom: 16 },
+  timelineTip: { marginBottom: 8, opacity: 0.7 },
   center: { alignItems: 'center', paddingVertical: 24 },
   marginTop: { marginTop: 8 },
   sectionLabel: { marginBottom: 8 },

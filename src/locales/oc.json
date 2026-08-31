@@ -160,6 +160,7 @@
     "findTimeTimelineBusy": "Ocupat",
     "findTimeTimelineUnavailable": "Indisponible",
     "findTimeTimelineDragHint": "Lisatz la maneta per replanificar l’eveniment",
+    "findTimeTimelineTip": "Lisatz la maneta o mantenetz una zòna verda per replanificar",
     "findTimeTimelineEvent": "Eveniment",
     "findTimePrevDay": "Jorn precedent",
     "findTimeNextDay": "Jorn seguent"

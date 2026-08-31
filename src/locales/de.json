@@ -165,6 +165,7 @@
     "findTimeTimelineBusy": "Beschäftigt",
     "findTimeTimelineUnavailable": "Nicht verfügbar",
     "findTimeTimelineDragHint": "Ziehe den Griff, um das Ereignis neu zu planen",
+    "findTimeTimelineTip": "Ziehe den Griff oder halte eine grüne Zone gedrückt, um neu zu planen",
     "findTimeTimelineEvent": "Ereignis",
     "findTimePrevDay": "Vorheriger Tag",
     "findTimeNextDay": "Nächster Tag"

@@ -162,6 +162,7 @@
     "findTimeLoading": "Checking availability…",
     "findTimeError": "Could not fetch availability. The server may have free/busy disabled.",
     "findTimeTimeline": "Availability timeline",
+    "findTimeTimelineTip": "Drag the handle or long-press a green zone to reschedule",
     "findTimeTimelineBusy": "Busy",
     "findTimeTimelineUnavailable": "Unavailable",
     "findTimeTimelineDragHint": "Drag the handle to reschedule",

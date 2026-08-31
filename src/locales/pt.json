@@ -165,6 +165,7 @@
     "findTimeTimelineBusy": "Ocupado",
     "findTimeTimelineUnavailable": "Indisponível",
     "findTimeTimelineDragHint": "Arraste a alça para reagendar o evento",
+    "findTimeTimelineTip": "Arraste a alça ou mantenha pressionada uma zona verde para reagendar",
     "findTimeTimelineEvent": "Evento",
     "findTimePrevDay": "Dia anterior",
     "findTimeNextDay": "Próximo dia"

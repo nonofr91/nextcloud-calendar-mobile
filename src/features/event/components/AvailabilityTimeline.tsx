@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useCallback } from 'react';
+import { memo, useEffect, useMemo, useRef, useCallback, type RefObject } from 'react';
 import { View, StyleSheet, Pressable, ScrollView, type GestureResponderEvent } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import dayjs from 'dayjs';
@@ -26,6 +26,10 @@ interface Props {
   days: Date[];
   columnWidth: number;
   hourRowHeight: number;
+  scrollRef?: RefObject<ScrollView | null>;
+  scrollY?: RefObject<number>;
+  viewportHeight?: number;
+  maxScrollY?: number;
   onApplySlot: (slot: SuggestedSlot) => void;
 }
 
@@ -37,6 +41,10 @@ function AvailabilityTimelineImpl({
   days,
   columnWidth,
   hourRowHeight,
+  scrollRef,
+  scrollY,
+  viewportHeight,
+  maxScrollY,
   onApplySlot,
 }: Props) {
   const theme = useTheme();
@@ -96,10 +104,29 @@ function AvailabilityTimelineImpl({
   }, [durationMs]);
 
   const gridHeight = hourRowHeight * 24;
+  const brickHeightPx = (brickHeightPct / 100) * gridHeight;
+  const dragHitSlop = useMemo(() => {
+    const vertical = Math.max(0, (44 - brickHeightPx) / 2);
+    return { top: vertical, bottom: vertical, left: 8, right: 8 };
+  }, [brickHeightPx]);
+
   const totalWidth = columnWidth * days.length;
   const headerScrollRef = useRef<ScrollView>(null);
   const gridScrollRef = useRef<ScrollView>(null);
   const syncingScroll = useRef(false);
+
+  const brickRef = useRef<React.ElementRef<typeof Animated.View> | null>(null);
+
+  const handleAutoScroll = useCallback((delta: number) => {
+    if (!scrollRef?.current || !scrollY) return 0;
+    const current = scrollY.current ?? 0;
+    const max = Math.max(0, maxScrollY ?? 0);
+    const next = Math.max(0, Math.min(max, current + delta));
+    const applied = next - current;
+    scrollY.current = next;
+    scrollRef.current.scrollTo({ y: next, animated: false });
+    return applied;
+  }, [scrollRef, scrollY, maxScrollY]);
 
   const handleCommit = useCallback((start: Date, end: Date) => {
     onApplySlot({ start, end });
@@ -113,6 +140,9 @@ function AvailabilityTimelineImpl({
     daysCount: days.length,
     initialColumnIndex: Math.max(0, initialColumnIndex),
     mergedBusy,
+    brickRef,
+    viewportHeight,
+    onAutoScroll: handleAutoScroll,
     onCommit: handleCommit,
     onReject: () => {},
   });
@@ -275,6 +305,7 @@ function AvailabilityTimelineImpl({
 
                 {/* Event brick (draggable ghost) */}
                 <Animated.View
+                  ref={brickRef}
                   testID="event-brick"
                   style={[
                     styles.brick,
@@ -301,6 +332,7 @@ function AvailabilityTimelineImpl({
                   <View
                     testID="event-brick-drag-handle"
                     {...panHandlers}
+                    hitSlop={dragHitSlop}
                     accessible
                     accessibilityRole="adjustable"
                     accessibilityLabel={t('event.findTimeTimelineDragHint')}

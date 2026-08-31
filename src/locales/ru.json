@@ -165,6 +165,7 @@
     "findTimeTimelineBusy": "Занят",
     "findTimeTimelineUnavailable": "Недоступно",
     "findTimeTimelineDragHint": "Перетащите маркер, чтобы изменить время события",
+    "findTimeTimelineTip": "Перетащите маркер или долго нажмите на зелёную зону, чтобы изменить время",
     "findTimeTimelineEvent": "Событие",
     "findTimePrevDay": "Предыдущий день",
     "findTimeNextDay": "Следующий день"

@@ -165,6 +165,7 @@
     "findTimeTimelineBusy": "Ocupado",
     "findTimeTimelineUnavailable": "No disponible",
     "findTimeTimelineDragHint": "Arrastra el control para reprogramar el evento",
+    "findTimeTimelineTip": "Arrastra el control o mantén presionada una zona verde para reprogramar",
     "findTimeTimelineEvent": "Evento",
     "findTimePrevDay": "Día anterior",
     "findTimeNextDay": "Día siguiente"

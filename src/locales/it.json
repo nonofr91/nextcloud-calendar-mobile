@@ -165,6 +165,7 @@
     "findTimeTimelineBusy": "Impegnato",
     "findTimeTimelineUnavailable": "Non disponibile",
     "findTimeTimelineDragHint": "Trascina la maniglia per riprogrammare l’evento",
+    "findTimeTimelineTip": "Trascina la maniglia o tieni premuta una zona verde per riprogrammare",
     "findTimeTimelineEvent": "Evento",
     "findTimePrevDay": "Giorno precedente",
     "findTimeNextDay": "Giorno successivo"
