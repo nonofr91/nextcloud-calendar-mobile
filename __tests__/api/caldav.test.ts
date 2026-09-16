@@ -191,7 +191,7 @@ describe('fetchEventsByHrefs', () => {
     const xml = `<d:multistatus xmlns:d="DAV:" xmlns:cal="urn:ietf:params:xml:ns:caldav">${respFor('/p/a.ics', 'a')}</d:multistatus>`;
     mockFetch.mockResolvedValue({ status: 207, text: async () => xml });
 
-    const events = await fetchEventsByHrefs(
+    const { events, returnedHrefs } = await fetchEventsByHrefs(
       account, cal, ['https://cloud.example.com/p/a.ics'], range.s, range.e,
     );
 
@@ -200,6 +200,7 @@ describe('fetchEventsByHrefs', () => {
     expect(body).toContain('calendar-multiget');
     expect(body).toContain('<d:href>/p/a.ics</d:href>');
     expect(events.map((e) => e.uid)).toEqual(['a']);
+    expect(returnedHrefs).toEqual(new Set(['https://cloud.example.com/p/a.ics']));
   });
 
   it('splits into multiple requests above MULTIGET_BATCH', async () => {
@@ -212,10 +213,11 @@ describe('fetchEventsByHrefs', () => {
     expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
-  it('returns [] for an empty href list without hitting the network', async () => {
-    const events = await fetchEventsByHrefs(account, cal, [], range.s, range.e);
+  it('returns no events for an empty href list without hitting the network', async () => {
+    const { events, returnedHrefs } = await fetchEventsByHrefs(account, cal, [], range.s, range.e);
     expect(mockFetch).not.toHaveBeenCalled();
     expect(events).toEqual([]);
+    expect(returnedHrefs.size).toBe(0);
   });
 });
 
@@ -489,7 +491,7 @@ describe('Nextcloud installed in a subdirectory', () => {
     const xml = `<d:multistatus xmlns:d="DAV:" xmlns:cal="urn:ietf:params:xml:ns:caldav"><d:response><d:href>/nextcloud/remote.php/dav/calendars/john/personal/a.ics</d:href><d:propstat><d:prop><cal:calendar-data>${ics}</cal:calendar-data></d:prop></d:propstat></d:response></d:multistatus>`;
     mockFetch.mockResolvedValue({ status: 207, text: async () => xml });
 
-    const events = await fetchEventsByHrefs(
+    const { events } = await fetchEventsByHrefs(
       subAccount, subCal,
       ['https://cloud.example.com/nextcloud/remote.php/dav/calendars/john/personal/a.ics'],
       new Date('2026-01-01T00:00:00Z'), new Date('2026-12-31T00:00:00Z'),
