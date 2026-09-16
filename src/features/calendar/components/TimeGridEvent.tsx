@@ -3,7 +3,7 @@ import { TouchableOpacity, View, StyleSheet, type ViewStyle } from 'react-native
 import dayjs from 'dayjs';
 import { Typography } from '@/ui/components';
 import type { GridEvent } from '../utils/toGridEvents';
-import { contrastFor } from '../utils/eventInk';
+import { contrastFor } from '@/utils/colors';
 
 interface Props {
   event: GridEvent;
