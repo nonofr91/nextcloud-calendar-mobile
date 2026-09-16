@@ -10,6 +10,7 @@ import {
 import type { Account, CalendarEvent, CalendarMeta } from '@/types';
 import type { SyncCollectionResult } from '@/services/nextcloud/caldav';
 import { expansionHorizon, needsHorizonReset } from '@/features/calendar/utils/horizon';
+import { settleAll } from '@/utils/settle';
 
 import { getDatabaseInstance } from './DatabaseProvider';
 import Calendar from './models/Calendar';
@@ -236,6 +237,67 @@ export async function syncEvents(
 
     if (ops.length > 0) await db.batch(ops);
   }, 30000, 'syncEvents');
+}
+
+const DELTA_SYNC_MIN_INTERVAL_MS = 10_000;
+const lastDeltaSyncAt = new Map<string, number>();
+
+/** Test-only: reset the throttle between syncVisibleRange calls. */
+export function resetDeltaSyncThrottle(): void {
+  lastDeltaSyncAt.clear();
+}
+
+/**
+ * Syncs the data needed to display a range: incremental `sync-collection` for
+ * CalDAV calendars inside the expansion horizon, full range fetch for
+ * subscribed (webcal) calendars and for ranges beyond the horizon.
+ *
+ * Delta checks are throttled per account: within DELTA_SYNC_MIN_INTERVAL_MS of
+ * a previous check they are skipped — the local DB already covers the horizon.
+ * Subscribed calendars are never throttled: their fetch is range-scoped, so
+ * skipping it would leave the newly visible range empty.
+ */
+export async function syncVisibleRange(
+  account: Account,
+  calendars: CalendarMeta[],
+  start: Date,
+  end: Date,
+  deleteMissing = true,
+): Promise<void> {
+  if (calendars.length === 0) return;
+
+  const horizon = expansionHorizon(new Date());
+  const inHorizon =
+    start.getTime() >= horizon.start.getTime() && end.getTime() <= horizon.end.getTime();
+
+  const throttled =
+    Date.now() - (lastDeltaSyncAt.get(account.id) ?? 0) < DELTA_SYNC_MIN_INTERVAL_MS;
+  if (inHorizon && !throttled) lastDeltaSyncAt.set(account.id, Date.now());
+
+  const deltaCals =
+    inHorizon && !throttled ? calendars.filter((c) => !c.isSubscribed) : [];
+  const fullCals = calendars.filter((c) => c.isSubscribed || !inHorizon);
+
+  if (deltaCals.length === 0 && fullCals.length === 0) return;
+
+  const { failures, fulfilledIndexes } = await settleAll(
+    deltaCals.map((cal) => () => syncCalendarDelta(account, cal).then((): never[] => [])),
+  );
+
+  let fullOk = false;
+  if (fullCals.length > 0) {
+    try {
+      await syncEvents(account, fullCals, start, end, deleteMissing);
+      fullOk = true;
+    } catch (e) {
+      failures.push(e);
+    }
+  }
+
+  const deltaOk = deltaCals.length === 0 ? false : fulfilledIndexes.length > 0;
+  if (!deltaOk && !fullOk) {
+    throw new Error(`[syncVisibleRange] all ${calendars.length} calendar sync(s) failed`);
+  }
 }
 
 async function collectByHref(events: Collection<Event>, accountId: string, hrefs: Set<string>) {
