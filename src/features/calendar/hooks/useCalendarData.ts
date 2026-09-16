@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import dayjs from 'dayjs';
 
-import { syncEvents } from '@/database/sync';
+import { syncVisibleRange } from '@/database/sync';
 import { useEventsForRange } from '@/database/useEvents';
 import { useAccountStore } from '@/stores/accountStore';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useCalendars } from '@/hooks/useCalendars';
 import { normalizeEvents } from '@/utils/normalizeEvent';
-import { monthRange, monthRangeAt } from '../utils/range';
+import { monthRange } from '../utils/range';
 
 export function useCalendarData(date: Date) {
   const activeAccountId = useAccountStore((s) => s.activeAccountId);
@@ -38,20 +38,12 @@ export function useCalendarData(date: Date) {
     setSyncing(true);
     (async () => {
       try {
-        await syncEvents(activeAccount, calendars, start, end);
+        await syncVisibleRange(activeAccount, calendars, start, end);
       } catch (error) {
-        console.warn('[useCalendarData] syncEvents failed:', String(error));
+        console.warn('[useCalendarData] syncVisibleRange failed:', String(error));
       } finally {
         if (active) setSyncing(false);
       }
-      const prev = monthRangeAt(date, -1);
-      const next = monthRangeAt(date, 1);
-      void syncEvents(activeAccount, calendars, prev.start, prev.end, false).catch((e) => {
-        console.warn('[useCalendarData] prev syncEvents failed:', String(e));
-      });
-      void syncEvents(activeAccount, calendars, next.start, next.end, false).catch((e) => {
-        console.warn('[useCalendarData] next syncEvents failed:', String(e));
-      });
     })();
     return () => {
       active = false;

@@ -354,8 +354,10 @@ export async function fetchEvents(
             .map((e) => ({ ...e, uid: stableSubscriptionUid(e) }));
     }
 
-    const vevents = await reportCalendarObjects(account, calendar, 'VEVENT', start, end, true);
-    const vtodos = await reportCalendarObjects(account, calendar, 'VTODO', start, end, false);
+    const [vevents, vtodos] = await Promise.all([
+        reportCalendarObjects(account, calendar, 'VEVENT', start, end, true),
+        reportCalendarObjects(account, calendar, 'VTODO', start, end, false),
+    ]);
     return [...vevents, ...vtodos];
 }
 
