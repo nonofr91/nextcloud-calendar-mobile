@@ -474,14 +474,20 @@ function toPath(account: Account, absHref: string): string {
   return absHref.startsWith(account.baseUrl) ? absHref.slice(account.baseUrl.length) : absHref;
 }
 
+export interface MultigetResult {
+  events: CalendarEvent[];
+  returnedHrefs: Set<string>;
+}
+
 export async function fetchEventsByHrefs(
   account: Account,
   calendar: CalendarMeta,
   hrefs: string[],
   rangeStart: Date,
   rangeEnd: Date,
-): Promise<CalendarEvent[]> {
-  if (hrefs.length === 0) return [];
+): Promise<MultigetResult> {
+  const returnedHrefs = new Set<string>();
+  if (hrefs.length === 0) return { events: [], returnedHrefs };
 
   const out: CalendarEvent[] = [];
   for (let i = 0; i < hrefs.length; i += MULTIGET_BATCH) {
@@ -504,6 +510,7 @@ export async function fetchEventsByHrefs(
     const items: { ics: string; href: string }[] = [];
     for (const chunk of splitResponses(xml)) {
       const hrefMatch = chunk.match(/<d:href>([^<]+)<\/d:href>/);
+      if (hrefMatch?.[1]) returnedHrefs.add(absUrl(account, hrefMatch[1]));
       const dataMatch = chunk.match(/<cal:calendar-data[^>]*>([\s\S]*?)<\/cal:calendar-data>/);
       if (dataMatch?.[1] && hrefMatch?.[1]) {
         items.push({ ics: decodeXmlEntities(dataMatch[1].trim()), href: absUrl(account, hrefMatch[1]) });
@@ -517,5 +524,5 @@ export async function fetchEventsByHrefs(
     );
     out.push(...parsed);
   }
-  return out;
+  return { events: out, returnedHrefs };
 }

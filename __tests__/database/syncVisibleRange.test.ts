@@ -97,7 +97,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   resetDeltaSyncThrottle();
   mockSyncCollection.mockResolvedValue({ changed: [], deleted: [], newToken: 't2', reset: false });
-  mockFetchByHrefs.mockResolvedValue([]);
+  mockFetchByHrefs.mockResolvedValue({ events: [], returnedHrefs: new Set() });
   mockFetchForCalendars.mockResolvedValue({ events: [], syncedCalendarIds: [subscribed.id], failures: [] });
 });
 
@@ -203,6 +203,27 @@ describe('syncVisibleRange — throttle', () => {
 
     expect(mockSyncCollection).toHaveBeenCalledTimes(2);
   });
+
+  it('does not consume the throttle when only subscribed calendars were synced', async () => {
+    const { db } = makeDb();
+    mockGetDb.mockReturnValue(db);
+
+    await syncVisibleRange(account, [subscribed], start, end);
+    await syncVisibleRange(account, [calendar], start, end);
+
+    expect(mockSyncCollection).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears the throttle after a total failure so an immediate retry runs', async () => {
+    const { db } = makeDb();
+    mockGetDb.mockReturnValue(db);
+    mockSyncCollection.mockRejectedValueOnce(new Error('syncCollection HTTP 500'));
+
+    await expect(syncVisibleRange(account, [calendar], start, end)).rejects.toThrow();
+    await syncVisibleRange(account, [calendar], start, end);
+
+    expect(mockSyncCollection).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('syncVisibleRange — failure semantics', () => {
@@ -238,7 +259,7 @@ describe('syncVisibleRange — failure semantics', () => {
 describe('syncVisibleRange — delta path applies remote changes', () => {
   it('recreates fetched events and stores the new sync token', async () => {
     mockSyncCollection.mockResolvedValue({ changed: ['h1'], deleted: [], newToken: 't9', reset: false });
-    mockFetchByHrefs.mockResolvedValue([evt('h1')]);
+    mockFetchByHrefs.mockResolvedValue({ events: [evt('h1')], returnedHrefs: new Set(['h1']) });
     const row = { syncToken: 'tok', expandedCenter: Date.now(), prepareUpdate: jest.fn(() => ({ _op: 'upd' })) };
     const batch = jest.fn(async () => {});
     const eventsCol = {
@@ -256,5 +277,58 @@ describe('syncVisibleRange — delta path applies remote changes', () => {
     expect(eventsCol.prepareCreate).toHaveBeenCalledTimes(1);
     expect(row.prepareUpdate).toHaveBeenCalled();
     expect(batch).toHaveBeenCalled();
+  });
+});
+
+describe('syncVisibleRange — deleteMissing scoping', () => {
+  it('does not delete delta-managed rows while syncing subscribed calendars', async () => {
+    const caldavRow = {
+      id: 'r1',
+      uid: 'caldav-uid',
+      href: 'h-cal',
+      accountId: account.id,
+      calendarId: calendar.id,
+      summary: 's',
+      prepareMarkAsDeleted: jest.fn(() => ({ _op: 'del' })),
+      prepareUpdate: jest.fn(() => ({ _op: 'upd' })),
+    };
+    const staleSubRow = {
+      id: 'r2',
+      uid: 'sub-gone',
+      href: 'h-sub',
+      accountId: account.id,
+      calendarId: subscribed.id,
+      summary: 's',
+      prepareMarkAsDeleted: jest.fn(() => ({ _op: 'del' })),
+      prepareUpdate: jest.fn(() => ({ _op: 'upd' })),
+    };
+    const subEvent = { ...evt('h-sub-new'), calendarId: subscribed.id, uid: 'sub-new' };
+    mockFetchForCalendars.mockResolvedValue({
+      events: [subEvent],
+      syncedCalendarIds: [subscribed.id],
+      failures: [],
+    });
+
+    const eventsCol = {
+      query: jest.fn(() => ({ fetch: jest.fn(async () => [caldavRow, staleSubRow]) })),
+      prepareCreate: jest.fn(() => ({ _op: 'create' })),
+    };
+    const calendarsCol = {
+      query: jest.fn(() => ({
+        fetch: jest.fn(async () => [
+          { syncToken: 'tok', expandedCenter: Date.now(), prepareUpdate: jest.fn(() => ({ _op: 'upd' })) },
+        ]),
+      })),
+    };
+    const db = {
+      get: jest.fn((t: string) => (t === 'events' ? eventsCol : calendarsCol)),
+      batch: jest.fn(async () => {}),
+    };
+    mockGetDb.mockReturnValue(db);
+
+    await syncVisibleRange(account, [calendar, subscribed], start, end);
+
+    expect(caldavRow.prepareMarkAsDeleted).not.toHaveBeenCalled();
+    expect(staleSubRow.prepareMarkAsDeleted).toHaveBeenCalled();
   });
 });
