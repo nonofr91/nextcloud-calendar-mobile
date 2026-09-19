@@ -7,12 +7,16 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from 'expo-router';
 import { TalkToggle } from './TalkToggle';
 import { AttendeesField } from './AttendeesField';
+import { AttachmentsField } from './AttachmentsField';
 import { requestAlertPermission } from '@/features/notifications/scheduleAlerts';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { AlertPicker } from './AlertPicker';
 import { RecurrencePicker } from './RecurrencePicker';
 import { Stack, Typography, TextField, DateField, Button, Chip, Toggle } from '@/ui/components';
-import type { CalendarMeta, Attendee, CreateEventInput, RecurrenceRule, TalkRoomType, Account } from '@/types';
+import type {
+  CalendarMeta, Attendee, CreateEventInput, EventAttachment, PendingAttachment,
+  RecurrenceRule, TalkRoomType, Account,
+} from '@/types';
 
 dayjs.extend(localizedFormat);
 
@@ -27,6 +31,7 @@ interface InitialValues {
   attendees?: Attendee[];
   rrule?: RecurrenceRule;
   alarms?: number[];
+  attachments?: EventAttachment[];
 }
 
 interface Props {
@@ -76,6 +81,8 @@ export function EventForm({
   const [attendees, setAttendees] = useState<Attendee[]>(initialValues?.attendees ?? []);
   const [rrule, setRrule] = useState<RecurrenceRule | undefined>(initialValues?.rrule);
   const [alarms, setAlarms] = useState<number[] | undefined>(initialValues?.alarms);
+  const [removedAttachments, setRemovedAttachments] = useState<EventAttachment[]>([]);
+  const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [calendarError, setCalendarError] = useState<string | null>(null);
   const [endError, setEndError] = useState<string | null>(null);
@@ -192,6 +199,8 @@ export function EventForm({
       summary: summary.trim(), calendarId, dtstart, dtend, allDay,
       description, location, attendees, withTalkRoom, talkRoomType,
       organizerEmail, organizerName, rrule, alarms,
+      pendingAttachments: pendingAttachments.length ? pendingAttachments : undefined,
+      removedAttachments: removedAttachments.length ? removedAttachments : undefined,
     });
   }
 
@@ -370,6 +379,18 @@ export function EventForm({
           account={account}
           onInputLayout={(e) => onFieldLayout('attendee', e)}
           onInputFocus={() => scrollToField('attendee')}
+        />
+
+        <AttachmentsField
+          existing={(initialValues?.attachments ?? []).filter(
+            (a) => !removedAttachments.includes(a),
+          )}
+          pending={pendingAttachments}
+          onAdd={(f) => setPendingAttachments((prev) => [...prev, f])}
+          onRemoveExisting={(a) => setRemovedAttachments((prev) => [...prev, a])}
+          onRemovePending={(i) =>
+            setPendingAttachments((prev) => prev.filter((_, idx) => idx !== i))
+          }
         />
 
         <TalkToggle
