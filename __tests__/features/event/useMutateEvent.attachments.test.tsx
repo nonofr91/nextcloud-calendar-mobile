@@ -85,6 +85,7 @@ const occurrence: CalendarEvent = {
   isRecurring: true,
   rrule: 'RRULE:FREQ=WEEKLY',
   attendees: [],
+  color: '#fff',
 } as CalendarEvent;
 
 const masterIcs = [
@@ -113,6 +114,7 @@ const input: CreateEventInput = {
   organizerName: 'A',
   attendees: [],
   alarms: [],
+  withTalkRoom: false,
   removedAttachments: [
     { uri: 'https://srv/remote.php/dav/files/alice/Calendar/old.pdf', filename: 'old.pdf' },
   ],
