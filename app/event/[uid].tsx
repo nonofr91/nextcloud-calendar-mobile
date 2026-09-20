@@ -42,6 +42,7 @@ import {
 } from '@/features/event/utils/attachments';
 import { useEventAttachments } from '@/features/event/hooks/useEventAttachments';
 import { isOwnDavFile } from '@/services/nextcloud/files';
+import { isOwnFileRef } from '@/services/nextcloud/fileLinks';
 import { askRecurrenceScope, type RecurrenceScopeStrings } from '@/features/event/recurrenceScope';
 import { decideMoveEventScope } from '@/features/calendar/utils/moveEventScope';
 import {
@@ -142,7 +143,9 @@ export default function EventDetailScreen() {
   }, [attachments, t]);
 
   const handleRemoveAttachment = useCallback((att: EventAttachment) => {
-    const deletable = !!activeAccount && isOwnDavFile(activeAccount, att);
+    const deletable =
+      !!activeAccount &&
+      (isOwnDavFile(activeAccount, att) || isOwnFileRef(activeAccount, att));
     Alert.alert(
       t('event.attachmentRemove'),
       deletable
