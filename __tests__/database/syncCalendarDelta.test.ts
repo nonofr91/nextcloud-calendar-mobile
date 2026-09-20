@@ -61,6 +61,23 @@ function outcome(
   return { events, syncedCalendarIds, failures };
 }
 
+/**
+ * Mocks fetchEventsByHrefs: returns `events` and reports `responded` hrefs via
+ * the out-param (defaults to the hrefs of the returned events — i.e. every
+ * href that produced an event is assumed to have answered the multiget).
+ */
+function mockMultiget(events: CalendarEvent[], responded?: string[]) {
+  mockFetchByHrefs.mockImplementation(
+    async (
+      _a: unknown, _c: unknown, _h: string[], _s: Date, _e: Date,
+      respondedHrefs?: Set<string>,
+    ) => {
+      for (const h of responded ?? events.map((e) => e.href)) respondedHrefs?.add(h);
+      return events;
+    },
+  );
+}
+
 function makeDb(opts: { calendarRow?: any; eventRows?: any[] }) {
   const eventRows = opts.eventRows ?? [];
   const calendarRows = opts.calendarRow ? [opts.calendarRow] : [];
@@ -87,9 +104,9 @@ const tokenRow = () => ({ syncToken: 'tok', expandedCenter: Date.now(), prepareU
 beforeEach(() => jest.clearAllMocks());
 
 describe('syncCalendarDelta — non-destructive guards', () => {
-  it('does NOT wipe when a full sync enumerates hrefs but parses zero events', async () => {
+  it('does NOT wipe when the multiget returns no data for the changed hrefs', async () => {
     mockSyncCollection.mockResolvedValue({ changed: ['h1', 'h2'], deleted: [], newToken: 't2', reset: false });
-    mockFetchByHrefs.mockResolvedValue([]);
+    mockMultiget([], []);
     const existing = [makeRow('h1'), makeRow('h2')];
     const { db, batch } = makeDb({ calendarRow: noTokenRow(), eventRows: existing });
     mockGetDb.mockReturnValue(db);
@@ -100,9 +117,27 @@ describe('syncCalendarDelta — non-destructive guards', () => {
     existing.forEach((r) => expect(r.prepareMarkAsDeleted).not.toHaveBeenCalled());
   });
 
+  it('drops stale rows for a changed href that responds but parses to zero events', async () => {
+    // A standalone exception resource or a recurring event outside the horizon
+    // legitimately yields zero events — the write must proceed, the stale rows
+    // must be dropped and the syncToken saved, or the delta would wedge forever.
+    mockSyncCollection.mockResolvedValue({ changed: ['h1'], deleted: [], newToken: 't2', reset: false });
+    mockMultiget([], ['h1']);
+    const h1 = makeRow('h1');
+    const h9 = makeRow('h9');
+    const { db, batch } = makeDb({ calendarRow: tokenRow(), eventRows: [h1, h9] });
+    mockGetDb.mockReturnValue(db);
+
+    await syncCalendarDelta(account, calendar);
+
+    expect(h1.prepareMarkAsDeleted).toHaveBeenCalled();
+    expect(h9.prepareMarkAsDeleted).not.toHaveBeenCalled();
+    expect(batch).toHaveBeenCalled();
+  });
+
   it('does NOT delete when a full sync parses fewer events than expected', async () => {
     mockSyncCollection.mockResolvedValue({ changed: ['h1', 'h2', 'h3'], deleted: [], newToken: 't2', reset: false });
-    mockFetchByHrefs.mockResolvedValue([evt('h1')]);
+    mockMultiget([evt('h1')]);
     const h1 = makeRow('h1');
     const h2 = makeRow('h2');
     const h3 = makeRow('h3');
@@ -120,7 +155,7 @@ describe('syncCalendarDelta — non-destructive guards', () => {
 
   it('does NOT delete when a delta sync parses fewer events than expected', async () => {
     mockSyncCollection.mockResolvedValue({ changed: ['h1', 'h2'], deleted: ['h3'], newToken: 't2', reset: false });
-    mockFetchByHrefs.mockResolvedValue([evt('h1')]);
+    mockMultiget([evt('h1')]);
     const h1 = makeRow('h1');
     const h2 = makeRow('h2');
     const h3 = makeRow('h3');
@@ -136,7 +171,7 @@ describe('syncCalendarDelta — non-destructive guards', () => {
 
   it('does NOT delete existing rows when a full sync enumerates zero members (untrusted empty)', async () => {
     mockSyncCollection.mockResolvedValue({ changed: [], deleted: [], newToken: 't2', reset: false });
-    mockFetchByHrefs.mockResolvedValue([]);
+    mockMultiget([]);
     const existing = [makeRow('h1')];
     const { db, batch } = makeDb({ calendarRow: noTokenRow(), eventRows: existing });
     mockGetDb.mockReturnValue(db);
@@ -149,7 +184,7 @@ describe('syncCalendarDelta — non-destructive guards', () => {
 
   it('full sync reconcile: replaces fetched hrefs and removes stale ones', async () => {
     mockSyncCollection.mockResolvedValue({ changed: ['h1', 'h2'], deleted: [], newToken: 't2', reset: false });
-    mockFetchByHrefs.mockResolvedValue([evt('h1'), evt('h2')]);
+    mockMultiget([evt('h1'), evt('h2')]);
     const h1old = makeRow('h1');
     const h3stale = makeRow('h3');
     const { db, batch, prepareCreate } = makeDb({ calendarRow: noTokenRow(), eventRows: [h1old, h3stale] });
@@ -167,7 +202,7 @@ describe('syncCalendarDelta — non-destructive guards', () => {
     // A recurring ICS yields multiple CalendarEvent rows for a single href —
     // fetched.length > changed.length must not be treated as a bad response.
     mockSyncCollection.mockResolvedValue({ changed: ['h1'], deleted: [], newToken: 't4', reset: false });
-    mockFetchByHrefs.mockResolvedValue([
+    mockMultiget([
       evt('h1'),
       { ...evt('h1'), uid: 'h1-uid_occ_1', dtstart: new Date('2026-07-02T09:00:00Z') },
       { ...evt('h1'), uid: 'h1-uid_occ_2', dtstart: new Date('2026-07-03T09:00:00Z') },
@@ -190,7 +225,7 @@ describe('syncCalendarDelta — non-destructive guards', () => {
     // that churn held the write lock and briefly hid open detail screens.
     mockSyncCollection.mockResolvedValue({ changed: ['h1'], deleted: [], newToken: 't5', reset: false });
     const ev = evt('h1');
-    mockFetchByHrefs.mockResolvedValue([ev]);
+    mockMultiget([ev]);
     const unchanged = {
       href: 'h1',
       uid: ev.uid,
@@ -218,7 +253,7 @@ describe('syncCalendarDelta — non-destructive guards', () => {
 
   it('incremental: deletes explicit removals + replaces fetched, leaves untouched hrefs intact', async () => {
     mockSyncCollection.mockResolvedValue({ changed: ['h1'], deleted: ['h2'], newToken: 't3', reset: false });
-    mockFetchByHrefs.mockResolvedValue([evt('h1')]);
+    mockMultiget([evt('h1')]);
     const h1old = makeRow('h1');
     const h2gone = makeRow('h2');
     const h9other = makeRow('h9');

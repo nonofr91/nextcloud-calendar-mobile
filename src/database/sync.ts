@@ -273,17 +273,20 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
   }
   const fullSync = result.reset || forceFull || !storedToken;
 
+  const respondedHrefs = new Set<string>();
   const fetched = await fetchEventsByHrefs(
-    account, calendar, result.changed, horizon.start, horizon.end,
+    account, calendar, result.changed, horizon.start, horizon.end, respondedHrefs,
   );
   const fetchedHrefs = new Set(fetched.map((e) => e.href));
 
-  // `changed` counts hrefs while `fetched` counts parsed events — a single ICS
-  // can expand to several occurrences, so compare unique hrefs, not lengths.
-  const missing = result.changed.filter((h) => !fetchedHrefs.has(h));
+  // An href that answered but parses to zero events is legitimate (standalone
+  // exception resource, recurring event outside the horizon…) — its rows are
+  // simply stale. Only an absent multiget response means the server silently
+  // dropped the href, in which case wiping local rows would be unsafe.
+  const missing = result.changed.filter((h) => !respondedHrefs.has(h));
   if (missing.length > 0) {
     console.warn(
-      `[syncCalendarDelta] multiget returned no events for ${missing.length}/${result.changed.length} hrefs; skipping write`
+      `[syncCalendarDelta] multiget returned no data for ${missing.length}/${result.changed.length} hrefs; skipping write`
     );
     return;
   }
@@ -309,27 +312,30 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
     };
 
     if (fullSync) {
-      const changedSet = new Set(result.changed);
       const existing = await events
         .query(Q.where('account_id', account.id), Q.where('calendar_id', calendar.id))
         .fetch();
       if (result.changed.length > 0) {
         for (const r of existing) {
-          if (!changedSet.has(r.href)) {
-            ops.push(r.prepareMarkAsDeleted());
-          } else if (fetchedHrefs.has(r.href)) {
+          // In a full sync every live href is in `changed`; a row whose href
+          // produced no parsed event (unchanged-or-empty resource) is stale.
+          if (fetchedHrefs.has(r.href)) {
             keepOrDrop(r);
+          } else {
+            ops.push(r.prepareMarkAsDeleted());
           }
         }
       }
     } else {
-      const touched = new Set<string>([...result.deleted, ...fetchedHrefs]);
+      const changedSet = new Set(result.changed);
+      const touched = new Set<string>([...result.deleted, ...result.changed, ...fetchedHrefs]);
       const existing = await collectByHref(events, account.id, touched);
       for (const r of existing) {
-        if (deletedSet.has(r.href)) {
-          ops.push(r.prepareMarkAsDeleted());
-        } else if (fetchedHrefs.has(r.href)) {
+        if (fetchedHrefs.has(r.href)) {
           keepOrDrop(r);
+        } else if (deletedSet.has(r.href) || changedSet.has(r.href)) {
+          // Deleted remotely, or the resource now expands to zero events.
+          ops.push(r.prepareMarkAsDeleted());
         }
       }
     }
