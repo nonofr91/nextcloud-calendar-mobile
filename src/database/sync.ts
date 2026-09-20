@@ -291,6 +291,22 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
   await safeWrite(db, async () => {
     const ops = [];
     const deletedSet = new Set(result.deleted);
+    const fetchedByKey = new Map(
+      fetched.map((ev) => [eventKey(ev.accountId, ev.calendarId, ev.uid), ev]),
+    );
+    // Rows kept because the fetched event is identical — avoids churning a
+    // delete+recreate (bridge ops + observer re-queries) on every delta sync,
+    // and keeps rows alive under screens currently observing them.
+    const keptKeys = new Set<string>();
+    const keepOrDrop = (r: Event) => {
+      const k = rowKey(r);
+      const fresh = fetchedByKey.get(k);
+      if (fresh && eventUnchanged(r, fresh) && !keptKeys.has(k)) {
+        keptKeys.add(k);
+      } else {
+        ops.push(r.prepareMarkAsDeleted());
+      }
+    };
 
     if (fullSync) {
       const changedSet = new Set(result.changed);
@@ -299,8 +315,10 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
         .fetch();
       if (result.changed.length > 0) {
         for (const r of existing) {
-          if (!changedSet.has(r.href) || fetchedHrefs.has(r.href)) {
+          if (!changedSet.has(r.href)) {
             ops.push(r.prepareMarkAsDeleted());
+          } else if (fetchedHrefs.has(r.href)) {
+            keepOrDrop(r);
           }
         }
       }
@@ -308,13 +326,21 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
       const touched = new Set<string>([...result.deleted, ...fetchedHrefs]);
       const existing = await collectByHref(events, account.id, touched);
       for (const r of existing) {
-        if (deletedSet.has(r.href) || fetchedHrefs.has(r.href)) {
+        if (deletedSet.has(r.href)) {
           ops.push(r.prepareMarkAsDeleted());
+        } else if (fetchedHrefs.has(r.href)) {
+          keepOrDrop(r);
         }
       }
     }
 
-    for (const ev of fetched) ops.push(prepareCreateEvent(events, ev));
+    const createdKeys = new Set<string>();
+    for (const ev of fetched) {
+      const k = eventKey(ev.accountId, ev.calendarId, ev.uid);
+      if (keptKeys.has(k) || createdKeys.has(k)) continue;
+      createdKeys.add(k);
+      ops.push(prepareCreateEvent(events, ev));
+    }
 
     if (row) {
       ops.push(row.prepareUpdate((r: Calendar) => {
