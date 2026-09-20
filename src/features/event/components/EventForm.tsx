@@ -44,7 +44,7 @@ interface Props {
   initialValues?: InitialValues;
   submitLabel?: string;
   disableCalendarChange?: boolean;
-  account?: Pick<Account, 'id' | 'baseUrl' | 'username' | 'appPassword'> | null;
+  account?: Pick<Account, 'id' | 'baseUrl' | 'username' | 'appPassword' | 'davUserId'> | null;
 }
 
 
@@ -83,6 +83,7 @@ export function EventForm({
   const [alarms, setAlarms] = useState<number[] | undefined>(initialValues?.alarms);
   const [removedAttachments, setRemovedAttachments] = useState<EventAttachment[]>([]);
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
+  const [remoteAttachments, setRemoteAttachments] = useState<EventAttachment[]>([]);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [calendarError, setCalendarError] = useState<string | null>(null);
   const [endError, setEndError] = useState<string | null>(null);
@@ -200,6 +201,7 @@ export function EventForm({
       description, location, attendees, withTalkRoom, talkRoomType,
       organizerEmail, organizerName, rrule, alarms,
       pendingAttachments: pendingAttachments.length ? pendingAttachments : undefined,
+      remoteAttachments: remoteAttachments.length ? remoteAttachments : undefined,
       removedAttachments: removedAttachments.length ? removedAttachments : undefined,
     });
   }
@@ -386,10 +388,26 @@ export function EventForm({
             (a) => !removedAttachments.includes(a),
           )}
           pending={pendingAttachments}
+          remote={remoteAttachments}
+          account={account}
           onAdd={(f) => setPendingAttachments((prev) => [...prev, f])}
+          onAddRemote={(att) =>
+            // Skip if the same file is already attached to the event.
+            setRemoteAttachments((prev) =>
+              prev.some((r) => r.uri === att.uri) ||
+              (initialValues?.attachments ?? []).some(
+                (e) => e.uri === att.uri && !removedAttachments.includes(e),
+              )
+                ? prev
+                : [...prev, att],
+            )
+          }
           onRemoveExisting={(a) => setRemovedAttachments((prev) => [...prev, a])}
           onRemovePending={(i) =>
             setPendingAttachments((prev) => prev.filter((_, idx) => idx !== i))
+          }
+          onRemoveRemote={(i) =>
+            setRemoteAttachments((prev) => prev.filter((_, idx) => idx !== i))
           }
         />
 

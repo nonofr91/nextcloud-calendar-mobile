@@ -41,8 +41,9 @@ import {
   openAttachment,
 } from '@/features/event/utils/attachments';
 import { useEventAttachments } from '@/features/event/hooks/useEventAttachments';
-import { isOwnDavFile } from '@/services/nextcloud/files';
+import { fileDavUrl, isOwnDavFile } from '@/services/nextcloud/files';
 import { isOwnFileRef } from '@/services/nextcloud/fileLinks';
+import { DavFilePicker } from '@/features/event/components/DavFilePicker';
 import { askRecurrenceScope, type RecurrenceScopeStrings } from '@/features/event/recurrenceScope';
 import { decideMoveEventScope } from '@/features/calendar/utils/moveEventScope';
 import {
@@ -109,7 +110,7 @@ export default function EventDetailScreen() {
     await openMaps(event.location, coordinates?.lat, coordinates?.lon);
   }, [event?.location, coordinates]);
 
-  const handleAddAttachment = useCallback(async () => {
+  const pickDeviceFile = useCallback(async () => {
     try {
       const picked = await DocumentPicker.getDocumentAsync({
         type: '*/*',
@@ -141,6 +142,26 @@ export default function EventDetailScreen() {
       Alert.alert(t('event.attachmentAddError'));
     }
   }, [attachments, t]);
+
+  const [davPickerOpen, setDavPickerOpen] = useState(false);
+
+  const handleAddAttachment = useCallback(() => {
+    Alert.alert(
+      t('event.addAttachment'),
+      undefined,
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('event.attachFromDevice'),
+          onPress: () => void pickDeviceFile(),
+        },
+        {
+          text: t('event.attachFromNextcloud'),
+          onPress: () => setDavPickerOpen(true),
+        },
+      ],
+    );
+  }, [pickDeviceFile, t]);
 
   const handleRemoveAttachment = useCallback((att: EventAttachment) => {
     const deletable =
@@ -386,6 +407,22 @@ export default function EventDetailScreen() {
                 coordinates={coordinates}
               />
             )}
+
+            <DavFilePicker
+              visible={davPickerOpen && !!activeAccount}
+              account={activeAccount}
+              onClose={() => setDavPickerOpen(false)}
+              onSelect={(entry) => {
+                setDavPickerOpen(false);
+                if (!activeAccount) return;
+                void attachments.addRemote({
+                  uri: fileDavUrl(activeAccount, entry.path),
+                  filename: entry.name,
+                  fmttype: entry.mime,
+                  size: entry.size,
+                });
+              }}
+            />
 
             {event.talkUrl && (
               <Button
