@@ -278,9 +278,12 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
   );
   const fetchedHrefs = new Set(fetched.map((e) => e.href));
 
-  if (result.changed.length > 0 && fetched.length !== result.changed.length) {
+  // `changed` counts hrefs while `fetched` counts parsed events — a single ICS
+  // can expand to several occurrences, so compare unique hrefs, not lengths.
+  const missing = result.changed.filter((h) => !fetchedHrefs.has(h));
+  if (missing.length > 0) {
     console.warn(
-      `[syncCalendarDelta] multiget returned ${fetched.length}/${result.changed.length} events; skipping write`
+      `[syncCalendarDelta] multiget returned no events for ${missing.length}/${result.changed.length} hrefs; skipping write`
     );
     return;
   }
