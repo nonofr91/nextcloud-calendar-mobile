@@ -149,14 +149,18 @@ export function seriesBaseUid(uid: string): string {
   return i === -1 ? uid : uid.slice(0, i);
 }
 
+export interface SyncEventsResult {
+  failedCount: number;
+}
+
 export async function syncEvents(
   account: Account,
   calendars: CalendarMeta[],
   start: Date,
   end: Date,
   deleteMissing = true,
-): Promise<void> {
-  if (calendars.length === 0) return;
+): Promise<SyncEventsResult> {
+  if (calendars.length === 0) return { failedCount: 0 };
 
   const epoch = localWriteEpoch();
   const {
@@ -236,6 +240,8 @@ export async function syncEvents(
 
     if (ops.length > 0) await db.batch(ops);
   }, 30000, 'syncEvents');
+
+  return { failedCount: failures.length };
 }
 
 async function collectByHref(events: Collection<Event>, accountId: string, hrefs: Set<string>) {
