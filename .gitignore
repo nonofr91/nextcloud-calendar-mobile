@@ -61,3 +61,4 @@ android/*
 
 .idea
 .env
+.fdroid/
