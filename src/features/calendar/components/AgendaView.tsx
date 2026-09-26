@@ -123,11 +123,6 @@ export interface AgendaViewHandle {
   scrollToToday: () => void;
 }
 
-// The agenda renders as a FlatList of flattened rows (a header row per day,
-// then one row per event) with stickyHeaderIndices. This replaces SectionList
-// because scrollToLocation / getScrollResponder / maintainVisibleContentPosition
-// are unreliable on SectionList with this React Native version, while FlatList
-// exposes scrollToIndex and scrollToOffset that actually work.
 type Row =
   | { type: 'header'; key: string; date: Date; hasEvents: boolean }
   | { type: 'item'; key: string; date: Date; event: CalendarEvent };
@@ -138,9 +133,6 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
   const theme = useTheme();
   const listRef = useRef<FlatList<Row>>(null);
 
-  // The window starts at today and extends into the future; the past is grown
-  // lazily in small chunks when the earliest rendered day reaches the top of
-  // the viewport, re-anchoring the visible day around the prepend.
   const [pastDays, setPastDays] = useState(0);
   const [futureDays, setFutureDays] = useState(FUTURE_DAYS_INITIAL);
   const [positioned, setPositioned] = useState(false);
@@ -174,9 +166,6 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
   }, [sections]);
   rowsRef.current = rows;
 
-  // scrollToIndex can't reach rows that were never laid out; homing in on the
-  // target day by hopping through nearby rows converges anyway, since each
-  // landing lays out a new region.
   const rowIndexOfDay = useCallback((key: string | null): number => {
     if (!key) return -1;
     return rowsRef.current.findIndex((r) => r.type === 'header' && r.key === key);
@@ -211,9 +200,6 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
     snapRef.current = { key, attempts: 0 };
     const idx = rowIndexOfDay(key);
     if (idx < 0) return;
-    // The row indices may have just shifted (prepend) or not be laid out yet:
-    // forget the last known position so the next viewability update
-    // re-evaluates where the viewport really is.
     firstVisibleKeyRef.current = null;
     lastSnapRef.current = Date.now();
     listRef.current?.scrollToIndex({ index: idx, viewOffset: 0, viewPosition: 0, animated });
@@ -226,8 +212,6 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
   const onScrollToIndexFailed = useCallback(
     (info: { index: number; highestMeasuredFrameIndex: number; averageItemLength: number }) => {
       if (!snapRef.current) return;
-      // The target row wasn't laid out: jump to its estimated offset so the
-      // region gets rendered, then the snap machinery homes in precisely.
       listRef.current?.scrollToOffset({
         offset: info.averageItemLength * info.index,
         animated: false,
@@ -237,9 +221,6 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
     [stepTowardSnap],
   );
 
-  // After a past growth, scroll back to the day that was on top so the prepend
-  // doesn't yank the viewport to the new earliest day. The snap machinery
-  // keeps homing in on the anchor if this scroll missed.
   useEffect(() => {
     const anchor = pastAnchorRef.current;
     if (!anchor) return;
@@ -255,7 +236,6 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
     return () => clearTimeout(t);
   }, [rows, rowIndexOfDay]);
 
-  // Reveal fallback in case viewability never reports today.
   useEffect(() => {
     const t = setTimeout(() => setPositioned(true), REVEAL_TIMEOUT_MS);
     return () => clearTimeout(t);
@@ -275,9 +255,6 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
     const row = first?.item as Row | undefined;
     if (!row) return;
     const key = row.key;
-    // Item rows report the day of the section they sit in, not event.dtstart:
-    // a multi-day event expanded into a later section would otherwise push a
-    // stale start date to onVisibleDateChange and unload the visible range.
     const d: Date = row.date;
     firstVisibleKeyRef.current = key;
     if (!positioned && key === todayKey) setPositioned(true);
@@ -294,9 +271,6 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
         setPastDays((days) => days + GROW_PAST_DAYS);
       }
     }
-    // While a programmatic snap is in flight (re-anchor after a prepend, or
-    // scrollToToday), intermediate positions are transient — don't push them
-    // to the navigation/fetch date.
     if (!snapRef.current) onVisibleDateChange?.(d);
   }, [onVisibleDateChange, positioned, todayKey, stepTowardSnap]);
 
@@ -306,8 +280,6 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
       : <EventRow event={item.event} theme={theme} onPress={onPressEvent} />
   ), [theme, onPressCell, onPressEvent]);
 
-  // Keys stay stable across past-growth prepends: one row per event per day,
-  // so no index is needed (an index would remount every item on prepend).
   const keyExtractor = useCallback((item: Row) => (
     item.type === 'header' ? `h-${item.key}` : `i-${item.key}-${item.event.uid}`
   ), []);
