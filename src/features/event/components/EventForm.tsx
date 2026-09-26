@@ -1,17 +1,19 @@
 import { useRef, useState } from 'react';
-import { View, StyleSheet, ScrollView, Platform, KeyboardAvoidingView, useWindowDimensions, LayoutChangeEvent } from 'react-native';
+import { View, StyleSheet, ScrollView, Platform, KeyboardAvoidingView, Keyboard, useWindowDimensions, LayoutChangeEvent } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'expo-router';
-import { X } from 'lucide-react-native';
 import { TalkToggle } from './TalkToggle';
+import { AttendeesField } from './AttendeesField';
 import { requestAlertPermission } from '@/features/notifications/scheduleAlerts';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { getNativePickerLocale } from '@/utils/i18n';
 import { AlertPicker } from './AlertPicker';
 import { RecurrencePicker } from './RecurrencePicker';
-import { Stack, Typography, TextField, DateField, Button, Chip, Toggle, IconButton } from '@/ui/components';
-import type { CalendarMeta, Attendee, CreateEventInput, RecurrenceRule, TalkRoomType } from '@/types';
+import { Stack, Typography, TextField, DateField, Button, Chip, Toggle } from '@/ui/components';
+import type { CalendarMeta, Attendee, CreateEventInput, RecurrenceRule, TalkRoomType, Account } from '@/types';
 
 dayjs.extend(localizedFormat);
 
@@ -25,7 +27,7 @@ interface InitialValues {
   location?: string;
   attendees?: Attendee[];
   rrule?: RecurrenceRule;
-  alarmMinutes?: number;
+  alarms?: number[];
 }
 
 interface Props {
@@ -38,6 +40,7 @@ interface Props {
   initialValues?: InitialValues;
   submitLabel?: string;
   disableCalendarChange?: boolean;
+  account?: Pick<Account, 'id' | 'baseUrl' | 'username' | 'appPassword'> | null;
 }
 
 
@@ -46,11 +49,12 @@ type AndroidPickerStep = null | { target: 'start' | 'end'; step: 'date' | 'time'
 
 export function EventForm({
   calendars, defaultDate, organizerEmail, organizerName, onSubmit, loading,
-  initialValues, submitLabel, disableCalendarChange = false,
+  initialValues, submitLabel, disableCalendarChange = false, account,
 }: Props) {
   const theme = useTheme();
   const { t } = useTranslation();
   const twoColDates = useWindowDimensions().width >= 600;
+  const pickerLocale = getNativePickerLocale(useSettingsStore((s) => s.language));
 
   const [summary, setSummary] = useState(initialValues?.summary ?? '');
   const writableCalendars = calendars.filter(
@@ -71,10 +75,9 @@ export function EventForm({
   const [location, setLocation] = useState(initialValues?.location ?? '');
   const [withTalkRoom, setWithTalkRoom] = useState(false);
   const [talkRoomType, setTalkRoomType] = useState<TalkRoomType>('private');
-  const [attendeeInput, setAttendeeInput] = useState('');
   const [attendees, setAttendees] = useState<Attendee[]>(initialValues?.attendees ?? []);
   const [rrule, setRrule] = useState<RecurrenceRule | undefined>(initialValues?.rrule);
-  const [alarmMinutes, setAlarmMinutes] = useState<number | undefined>(initialValues?.alarmMinutes);
+  const [alarms, setAlarms] = useState<number[] | undefined>(initialValues?.alarms);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [calendarError, setCalendarError] = useState<string | null>(null);
   const [endError, setEndError] = useState<string | null>(null);
@@ -82,7 +85,6 @@ export function EventForm({
   const [androidStep, setAndroidStep] = useState<AndroidPickerStep>(null);
 
   const scrollRef = useRef<ScrollView>(null);
-  const attendeeFocused = useRef(false);
   const inputOffsets = useRef<Record<string, number>>({});
 
   function scrollToField(key: string) {
@@ -170,18 +172,8 @@ export function EventForm({
     }
   }
 
-  function addAttendee() {
-    const email = attendeeInput.trim();
-    if (!email || !email.includes('@')) return;
-    setAttendees((prev) => [...prev, { email }]);
-    setAttendeeInput('');
-  }
-
-  function removeAttendee(email: string) {
-    setAttendees((prev) => prev.filter((a) => a.email !== email));
-  }
-
   function handleSubmit() {
+    Keyboard.dismiss();
     setTitleError(null);
     setCalendarError(null);
     if (!summary.trim()) { setTitleError(t('event.errorTitleRequired')); return; }
@@ -193,12 +185,16 @@ export function EventForm({
     } else if (dtend <= dtstart) {
       setEndError(t('event.errorEndAfterStart')); return;
     }
-    if (alarmMinutes !== undefined) void requestAlertPermission();
+    const { timedAlerts, allDayAlerts } = useSettingsStore.getState();
+    const willAlert = alarms === undefined
+      ? (allDay ? allDayAlerts : timedAlerts).length > 0
+      : alarms.length > 0;
+    if (willAlert) void requestAlertPermission();
 
     onSubmit({
       summary: summary.trim(), calendarId, dtstart, dtend, allDay,
       description, location, attendees, withTalkRoom, talkRoomType,
-      organizerEmail, organizerName, rrule, alarmMinutes,
+      organizerEmail, organizerName, rrule, alarms,
     });
   }
 
@@ -212,6 +208,7 @@ export function EventForm({
             mode={allDay ? 'date' : 'datetime'}
             display="compact"
             accentColor={theme.colors.primary}
+            locale={pickerLocale}
             onChange={handleIosStartChange}
           />
         </View>
@@ -236,6 +233,7 @@ export function EventForm({
               mode={allDay ? 'date' : 'datetime'}
               display="compact"
               accentColor={theme.colors.primary}
+              locale={pickerLocale}
               onChange={handleIosEndChange}
             />
           </View>
@@ -339,7 +337,7 @@ export function EventForm({
             <RecurrencePicker value={rrule} onChange={setRrule} dtstart={dtstart} allDay={allDay} />
           </View>
           <View style={twoColDates ? styles.grow : undefined}>
-            <AlertPicker value={alarmMinutes} onChange={setAlarmMinutes} />
+            <AlertPicker value={alarms} onChange={setAlarms} />
           </View>
         </Stack>
 
@@ -371,45 +369,13 @@ export function EventForm({
           />
         </View>
 
-        <Stack gap={8}>
-          <Typography variant="body2" color="secondary">{t('event.attendees')}</Typography>
-          <View onLayout={(e) => onFieldLayout('attendee', e)}>
-            <Stack direction="horizontal" vAlign="center" gap={8}>
-              <View style={styles.grow}>
-                <TextField
-                  value={attendeeInput}
-                  onChangeText={setAttendeeInput}
-                  placeholder={t('event.attendeePlaceholder')}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  autoCorrect={false}
-                  spellCheck={false}
-                  autoComplete="email"
-                  textContentType="emailAddress"
-                  onSubmitEditing={addAttendee}
-                  onFocus={() => scrollToField('attendee')}
-                  onBlur={() => { attendeeFocused.current = false; }}
-                />
-              </View>
-              <Button variant="primary" title={t('event.add')} onPress={addAttendee} />
-            </Stack>
-          </View>
-
-          {attendees.map((att) => (
-            <Stack
-              key={att.email}
-              direction="horizontal" vAlign="center" bordered
-              gap={8} padding={[12, 8]}
-            >
-              <Typography variant="body2" color="primary">{att.email}</Typography>
-              <View style={styles.pushRight}>
-                <IconButton variant="plain" size={32} onPress={() => removeAttendee(att.email)}>
-                  <X size={18} color={theme.colors.textTertiary} />
-                </IconButton>
-              </View>
-            </Stack>
-          ))}
-        </Stack>
+        <AttendeesField
+          attendees={attendees}
+          onChange={setAttendees}
+          account={account}
+          onInputLayout={(e) => onFieldLayout('attendee', e)}
+          onInputFocus={() => scrollToField('attendee')}
+        />
 
         <TalkToggle
           value={withTalkRoom}

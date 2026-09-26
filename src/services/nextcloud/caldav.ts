@@ -218,9 +218,9 @@ export async function fetchCalendars(account: Account): Promise<CalendarMeta[]> 
     const sourceUrl = sourceMatch ? decodeXmlEntities(sourceMatch[1]).trim() : undefined;
 
     const hasPrivilegeSet = chunk.includes('current-user-privilege-set');
-    const hasAll = chunk.includes('<d:all');
-    const hasWrite = chunk.includes('<d:write') || chunk.includes('<d:write/>');
-    const hasBind = chunk.includes('<d:bind') || chunk.includes('<d:bind/>');
+    const hasAll = /<d:all[\s/>]/.test(chunk);
+    const hasWrite = /<d:write[\s/>]/.test(chunk);
+    const hasBind = /<d:bind[\s/>]/.test(chunk);
     const isReadOnly = hasPrivilegeSet && !hasAll && !hasWrite && !hasBind;
 
     const compSetMatch = chunk.match(
@@ -251,11 +251,16 @@ export async function fetchCalendars(account: Account): Promise<CalendarMeta[]> 
   return calendars;
 }
 
+export const BIRTHDAY_CALENDAR_SLUG = 'contact_birthdays';
+
 function caldavStamp(d: Date): string {
   return `${d.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`;
 }
 
-function calendarQueryBody(comp: 'VEVENT' | 'VTODO', start: Date, end: Date): string {
+function calendarQueryBody(comp: 'VEVENT' | 'VTODO', start: Date, end: Date, bounded = true): string {
+  const timeRange = bounded
+    ? `<c:time-range start="${caldavStamp(start)}" end="${caldavStamp(end)}"/>`
+    : '';
   return `<?xml version="1.0"?>
 <c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
   <d:prop>
@@ -264,8 +269,7 @@ function calendarQueryBody(comp: 'VEVENT' | 'VTODO', start: Date, end: Date): st
   </d:prop>
   <c:filter>
     <c:comp-filter name="VCALENDAR">
-      <c:comp-filter name="${comp}">
-        <c:time-range start="${caldavStamp(start)}" end="${caldavStamp(end)}"/>
+      <c:comp-filter name="${comp}">${timeRange}
       </c:comp-filter>
     </c:comp-filter>
   </c:filter>
@@ -279,11 +283,12 @@ async function reportCalendarObjects(
   start: Date,
   end: Date,
   required: boolean,
+  bounded = true,
 ): Promise<CalendarEvent[]> {
   const res = await davFetch(calendar.url, account, {
     method: 'REPORT',
     headers: { Depth: '1', 'Content-Type': 'application/xml' },
-    body: calendarQueryBody(comp, start, end),
+    body: calendarQueryBody(comp, start, end, bounded),
   });
   if (res.status !== 207) {
     if (required) throw new Error(`fetchEvents HTTP ${res.status}`);
@@ -316,6 +321,23 @@ async function reportCalendarObjects(
   return parsed;
 }
 
+function stableSubscriptionUid(e: CalendarEvent): string {
+    const seed = [
+        e.calendarId, e.dtstart.getTime(), e.dtend.getTime(), e.allDay ? 'd' : 't',
+        e.recurrenceId?.getTime() ?? '', e.summary, e.location ?? '',
+    ].join('\u0000');
+
+    let lo = 0x811c9dc5;
+    let hi = 0x01000193;
+    for (let i = 0; i < seed.length; i++) {
+        const c = seed.charCodeAt(i);
+        lo = Math.imul(lo ^ c, 0x01000193);
+        hi = Math.imul(hi ^ c, 0x85ebca6b);
+    }
+    const hex = (n: number) => (n >>> 0).toString(16).padStart(8, '0');
+    return `sub-${hex(lo)}${hex(hi)}`;
+}
+
 export async function fetchEvents(
     account: Account,
     calendar: CalendarMeta,
@@ -332,10 +354,20 @@ export async function fetchEvents(
             { calendarId: calendar.id, accountId: account.id, color: calendar.color },
             start, end,
         );
-        return parsed.filter((e) => e.dtend > start && e.dtstart < end);
+        return parsed
+            .filter((e) => e.dtend > start && e.dtstart < end)
+            .map((e) => ({ ...e, uid: stableSubscriptionUid(e) }));
     }
 
-    const vevents = await reportCalendarObjects(account, calendar, 'VEVENT', start, end, true);
+    const vevents = await reportCalendarObjects(
+        account,
+        calendar,
+        'VEVENT',
+        start,
+        end,
+        true,
+        calendar.slug !== BIRTHDAY_CALENDAR_SLUG,
+    );
     const vtodos = await reportCalendarObjects(account, calendar, 'VTODO', start, end, false);
     return [...vevents, ...vtodos];
 }

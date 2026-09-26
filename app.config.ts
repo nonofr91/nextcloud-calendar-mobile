@@ -9,7 +9,7 @@ if (![major, minor, patch].every(Number.isInteger)) {
     );
 }
 
-const versionCode = 10602;
+const versionCode = 10700;
 
 if (versionCode !== major * 10000 + minor * 100 + patch) {
     throw new Error(
@@ -35,7 +35,9 @@ const config: ExpoConfig = {
         icon: './assets/icon-ios.icon',
         infoPlist: {
             CFBundleDisplayName: 'Nextcloud Calendar',
-            LSApplicationQueriesSchemes: ['nextcloudtalk'],
+            CFBundleLocalizations: ['en', 'fr', 'de', 'es', 'it', 'ru', 'pt', 'nl', 'oc'],
+            CFBundleAllowMixedLocalizations: true,
+            LSApplicationQueriesSchemes: ['nextcloudtalk', 'comgooglemaps', 'waze'],
             ITSAppUsesNonExemptEncryption: false,
             NSAppTransportSecurity: {
                 NSAllowsArbitraryLoads: true,

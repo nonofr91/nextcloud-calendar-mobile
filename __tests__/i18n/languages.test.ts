@@ -1,4 +1,4 @@
-import {LANGUAGES, SUPPORTED, isSupported, getInitialLanguage} from '../../src/utils/i18n';
+import {LANGUAGES, SUPPORTED, isSupported, getInitialLanguage, getNativePickerLocale} from '../../src/utils/i18n';
 
 const mockGetLocales = jest.fn();
 jest.mock('expo-localization', () => ({
@@ -7,8 +7,8 @@ jest.mock('expo-localization', () => ({
 
 describe('languages catalog', () => {
     it('exposes the eight supported codes', () => {
-        expect(SUPPORTED).toEqual(['en', 'fr', 'de', 'es', 'ru', 'it', 'pt', 'nl']);
-        expect(LANGUAGES.map((l) => l.code)).toEqual(['en', 'fr', 'de', 'es', 'ru', 'it', 'pt', 'nl']);
+        expect(SUPPORTED).toEqual(['en', 'fr', 'de', 'es', 'ru', 'it', 'pt', 'nl', 'oc']);
+        expect(LANGUAGES.map((l) => l.code)).toEqual(['en', 'fr', 'de', 'es', 'ru', 'it', 'pt', 'nl', 'oc']);
     });
 
     it('every language has a non-empty native label', () => {
@@ -36,5 +36,21 @@ describe('languages catalog', () => {
     it('getInitialLanguage falls back to en when no locale is reported', () => {
         mockGetLocales.mockReturnValue([]);
         expect(getInitialLanguage()).toBe('en');
+    });
+
+    it('getNativePickerLocale combines the app language with the device region', () => {
+        mockGetLocales.mockReturnValue([{languageCode: 'en', regionCode: 'US'}]);
+        expect(getNativePickerLocale('de')).toBe('de-US');
+    });
+
+    it('getNativePickerLocale falls back to the language default region', () => {
+        mockGetLocales.mockReturnValue([{languageCode: 'en', regionCode: null}]);
+        expect(getNativePickerLocale('de')).toBe('de-DE');
+        expect(getNativePickerLocale('pt')).toBe('pt-PT');
+    });
+
+    it('getNativePickerLocale falls back to the language region when no locale is reported', () => {
+        mockGetLocales.mockReturnValue([]);
+        expect(getNativePickerLocale('fr')).toBe('fr-FR');
     });
 });

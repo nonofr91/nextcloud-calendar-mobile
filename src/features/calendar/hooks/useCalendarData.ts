@@ -9,8 +9,10 @@ import { useActiveAccount } from '@/hooks/useAccounts';
 import { useCalendars } from '@/hooks/useCalendars';
 import { normalizeEvents } from '@/utils/normalizeEvent';
 import { monthRange, monthRangeAt } from '../utils/range';
+import { AGENDA_FUTURE_DAYS, AGENDA_PAST_DAYS } from '../utils/agendaSections';
+import type { CalendarEvent } from '@/types';
 
-export function useCalendarData(date: Date) {
+export function useCalendarData(date: Date, agendaEnabled = false) {
   const activeAccountId = useAccountStore((s) => s.activeAccountId);
   const hiddenCalendarIds = useCalendarStore((s) => s.hiddenCalendarIds);
   const activeAccount = useActiveAccount(activeAccountId);
@@ -22,6 +24,13 @@ export function useCalendarData(date: Date) {
   const { start, end } = useMemo(() => monthRange(date), [year, month]);
 
   const dbEvents = useEventsForRange(activeAccountId ?? '', start, end);
+  const agendaRange = useMemo(() => ({
+    start: dayjs().subtract(AGENDA_PAST_DAYS, 'day').startOf('day').toDate(),
+    end: dayjs().add(AGENDA_FUTURE_DAYS, 'day').endOf('day').toDate(),
+  }), []);
+  const agendaDbEvents = useEventsForRange(
+    agendaEnabled ? activeAccountId ?? '' : '', agendaRange.start, agendaRange.end,
+  );
 
   const [syncing, setSyncing] = useState(false);
 
@@ -59,16 +68,18 @@ export function useCalendarData(date: Date) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeAccount?.id, calendars, start.getTime(), end.getTime()]);
 
-  const allEvents = useMemo(() => {
+  const prepare = useMemo(() => {
     const nonEditableCalendarIds = new Set(
       calendars.filter((c) => c.isReadOnly || c.isSubscribed).map((c) => c.id),
     );
-    return normalizeEvents(
-      dbEvents.filter((e) => !hiddenCalendarIds.includes(e.calendarId)),
+    return (events: CalendarEvent[]) => normalizeEvents(
+      events.filter((e) => !hiddenCalendarIds.includes(e.calendarId)),
     ).map((e) =>
       nonEditableCalendarIds.has(e.calendarId) ? { ...e, readOnly: true } : e,
     );
-  }, [dbEvents, hiddenCalendarIds, calendars]);
+  }, [hiddenCalendarIds, calendars]);
+  const allEvents = useMemo(() => prepare(dbEvents), [prepare, dbEvents]);
+  const agendaEvents = useMemo(() => prepare(agendaDbEvents), [prepare, agendaDbEvents]);
 
   const hadEventsRef = useRef(false);
   useEffect(() => {
@@ -81,5 +92,5 @@ export function useCalendarData(date: Date) {
   const showFullOverlay = !hadEventsRef.current && syncing && allEvents.length === 0;
   const showSmallLoader = (syncing || calsFetching) && !showFullOverlay;
 
-  return { activeAccount, calendars, allEvents, showFullOverlay, showSmallLoader };
+  return { activeAccount, calendars, allEvents, agendaEvents, showFullOverlay, showSmallLoader };
 }
