@@ -1,6 +1,7 @@
-import { memo, useRef, useCallback, useMemo, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
+import { memo, useRef, useCallback, useMemo, useLayoutEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, type ViewToken,
+  type NativeScrollEvent, type NativeSyntheticEvent,
 } from 'react-native';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -8,7 +9,9 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from 'expo-router';
 import type { Theme } from '@/theme';
 import type { CalendarEvent } from '@/types';
-import { agendaRowKey, buildAgendaSections } from '../utils/agendaSections';
+import {
+  AGENDA_FUTURE_DAYS, AGENDA_PAST_DAYS, agendaRowKey, buildAgendaSections,
+} from '../utils/agendaSections';
 
 dayjs.extend(localizedFormat);
 
@@ -20,14 +23,8 @@ interface Props {
   onVisibleDateChange?: (date: Date) => void;
 }
 
-const GROW_PAST_DAYS = 14;
-const FUTURE_DAYS_INITIAL = 120;
-const GROW_FUTURE_DAYS = 60;
-const GROW_THROTTLE_MS = 300;
-const SCROLL_RETRY_MS = 200;
-const SCROLL_MAX_ATTEMPTS = 60;
-const SNAP_HOP_ROWS = 60;
-const REVEAL_TIMEOUT_MS = 800;
+const HEADER_HEIGHT = 57;
+const EVENT_ROW_HEIGHT = 72;
 
 function formatTime(d: Date, allDay: boolean, allDayLabel: string): string {
   if (allDay) return allDayLabel;
@@ -97,7 +94,7 @@ const EventRow = memo(({ event, theme, onPress }: EventRowProps) => {
     >
       <View style={[styles.colorBar, { backgroundColor: event.color }]} />
       <View style={styles.eventContent}>
-        <Text style={[styles.eventTitle, { color: theme.colors.text }]} numberOfLines={2}>
+        <Text style={[styles.eventTitle, { color: theme.colors.text }]} numberOfLines={1}>
           {event.summary || t('calendar.noTitle')}
         </Text>
         <View style={styles.eventMeta}>
@@ -132,135 +129,98 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
 ) {
   const theme = useTheme();
   const listRef = useRef<FlatList<Row>>(null);
-
-  const [pastDays, setPastDays] = useState(0);
-  const [futureDays, setFutureDays] = useState(FUTURE_DAYS_INITIAL);
-  const [positioned, setPositioned] = useState(false);
-  const lastGrowRef = useRef(0);
-  const rowsRef = useRef<Row[]>([]);
-  const firstVisibleKeyRef = useRef<string | null>(null);
-  const snapRef = useRef<{ key: string; attempts: number } | null>(null);
-  const lastSnapRef = useRef(0);
-
   const todayKey = dayjs().format('YYYY-MM-DD');
 
-  const sections = useMemo(() => {
+  const { rows, stickyIndices, offsets, todayIndex } = useMemo(() => {
     const today = dayjs();
-    return buildAgendaSections(
+    const sections = buildAgendaSections(
       events,
-      today.subtract(pastDays, 'day').toDate(),
-      today.add(futureDays, 'day').toDate(),
+      today.subtract(AGENDA_PAST_DAYS, 'day').toDate(),
+      today.add(AGENDA_FUTURE_DAYS, 'day').toDate(),
     );
-  }, [events, pastDays, futureDays]);
-
-  const { rows, stickyIndices } = useMemo(() => {
     const out: Row[] = [];
     const sticky: number[] = [];
+    const offs: number[] = [];
+    let y = 0;
+    let todayIdx = 0;
     for (const s of sections) {
+      if (s.key === todayKey) todayIdx = out.length;
       sticky.push(out.length);
+      offs.push(y);
+      y += HEADER_HEIGHT;
       out.push({ type: 'header', key: s.key, date: s.date, hasEvents: s.data.length > 0 });
-      for (const e of s.data) out.push({ type: 'item', key: s.key, date: s.date, event: e });
-    }
-    return { rows: out, stickyIndices: sticky };
-  }, [sections]);
-  rowsRef.current = rows;
-
-  const rowIndexOfDay = useCallback((key: string | null): number => {
-    if (!key) return -1;
-    return rowsRef.current.findIndex((r) => r.type === 'header' && r.key === key);
-  }, []);
-
-  const stepTowardSnap = useCallback(() => {
-    const snap = snapRef.current;
-    if (!snap || snap.attempts >= SCROLL_MAX_ATTEMPTS) return;
-    const targetIdx = rowIndexOfDay(snap.key);
-    if (targetIdx < 0) {
-      snapRef.current = null;
-      return;
-    }
-    const from = rowIndexOfDay(firstVisibleKeyRef.current);
-    if (from === targetIdx) {
-      snapRef.current = null;
-      return;
-    }
-    const delta = targetIdx - Math.max(0, from);
-    const hop = Math.abs(delta) > SNAP_HOP_ROWS ? Math.sign(delta) * SNAP_HOP_ROWS : delta;
-    snap.attempts += 1;
-    lastSnapRef.current = Date.now();
-    listRef.current?.scrollToIndex({
-      index: Math.max(0, Math.min(rowsRef.current.length - 1, Math.max(0, from) + hop)),
-      viewOffset: 0,
-      viewPosition: 0,
-      animated: false,
-    });
-  }, [rowIndexOfDay]);
-
-  const requestSnap = useCallback((key: string, animated: boolean) => {
-    snapRef.current = { key, attempts: 0 };
-    const idx = rowIndexOfDay(key);
-    if (idx < 0) return;
-    firstVisibleKeyRef.current = null;
-    lastSnapRef.current = Date.now();
-    listRef.current?.scrollToIndex({ index: idx, viewOffset: 0, viewPosition: 0, animated });
-  }, [rowIndexOfDay]);
-
-  useImperativeHandle(ref, () => ({
-    scrollToToday: () => requestSnap(todayKey, true),
-  }), [requestSnap, todayKey]);
-
-  const onScrollToIndexFailed = useCallback(
-    (info: { index: number; highestMeasuredFrameIndex: number; averageItemLength: number }) => {
-      if (!snapRef.current) return;
-      listRef.current?.scrollToOffset({
-        offset: info.averageItemLength * info.index,
-        animated: false,
-      });
-      setTimeout(stepTowardSnap, SCROLL_RETRY_MS);
-    },
-    [stepTowardSnap],
-  );
-
-  useEffect(() => {
-    const t = setTimeout(() => setPositioned(true), REVEAL_TIMEOUT_MS);
-    return () => clearTimeout(t);
-  }, []);
-
-  const growFuture = useCallback(() => {
-    const now = Date.now();
-    if (now - lastGrowRef.current < GROW_THROTTLE_MS) return;
-    lastGrowRef.current = now;
-    setFutureDays((d) => d + GROW_FUTURE_DAYS);
-  }, []);
-
-  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 });
-  const viewableHandlerRef = useRef<(info: { viewableItems: ViewToken[] }) => void>(() => {});
-  viewableHandlerRef.current = ({ viewableItems }) => {
-    if (viewableItems.length === 0) return;
-    const first = viewableItems[0];
-    const row = first?.item as Row | undefined;
-    if (!row) return;
-    const key = row.key;
-    const d: Date = row.date;
-    firstVisibleKeyRef.current = key;
-    if (!positioned && key === todayKey) setPositioned(true);
-    const snap = snapRef.current;
-    if (snap) {
-      if (key === snap.key) snapRef.current = null;
-      else if (Date.now() - lastSnapRef.current >= GROW_THROTTLE_MS) stepTowardSnap();
-    } else if (positioned && key === rowsRef.current[0]?.key) {
-      // The earliest rendered day is on screen: extend the window backwards.
-      const now = Date.now();
-      if (now - lastGrowRef.current >= GROW_THROTTLE_MS) {
-        lastGrowRef.current = now;
-        setPastDays((days) => days + GROW_PAST_DAYS);
+      for (const e of s.data) {
+        offs.push(y);
+        y += EVENT_ROW_HEIGHT;
+        out.push({ type: 'item', key: s.key, date: s.date, event: e });
       }
     }
-    if (!snapRef.current) onVisibleDateChange?.(d);
-  };
-  const onViewableItemsChanged = useCallback(
-    (info: { viewableItems: ViewToken[] }) => viewableHandlerRef.current(info),
-    [],
-  );
+    return { rows: out, stickyIndices: sticky, offsets: offs, todayIndex: todayIdx };
+  }, [events, todayKey]);
+
+  // Fixed row heights make scrollToIndex exact at any distance — no measure/retry loop.
+  const getItemLayout = useCallback((data: ArrayLike<Row> | null | undefined, index: number) => ({
+    length: data?.[index]?.type === 'header' ? HEADER_HEIGHT : EVENT_ROW_HEIGHT,
+    offset: offsets[index] ?? 0,
+    index,
+  }), [offsets]);
+
+  // Anchor = day at the top of the viewport + how far into it we are. When events load
+  // (rows inserted above), re-apply it so the list doesn't drift. Replaces
+  // maintainVisibleContentPosition, which doesn't hold on Android here.
+  const scrollYRef = useRef(offsets[todayIndex] ?? 0);
+  const anchorRef = useRef({ key: todayKey, delta: 0 });
+  const layoutRef = useRef({ rows, offsets });
+  // Only user drags/flings move the anchor: events from our own programmatic scrolls
+  // arrive late and would otherwise overwrite it with a stale position.
+  const userScrollingRef = useRef(false);
+  const onUserScrollStart = useCallback(() => { userScrollingRef.current = true; }, []);
+  const onUserScrollEnd = useCallback(() => { userScrollingRef.current = false; }, []);
+  const onScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    scrollYRef.current = y;
+    if (!userScrollingRef.current) return;
+    const { rows: r, offsets: o } = layoutRef.current;
+    let i = upperBound(o, y) - 1;
+    while (i > 0 && r[i].type !== 'header') i--;
+    if (r[i]) anchorRef.current = { key: r[i].key, delta: y - o[i] };
+  }, []);
+
+  useLayoutEffect(() => {
+    layoutRef.current = { rows, offsets };
+    const anchor = anchorRef.current;
+    const idx = rows.findIndex((r) => r.type === 'header' && r.key === anchor.key);
+    if (idx < 0) return;
+    const y = offsets[idx] + anchor.delta;
+    if (Math.abs(y - scrollYRef.current) < 1) return;
+    scrollYRef.current = y;
+    listRef.current?.scrollToOffset({ offset: y, animated: false });
+  }, [rows, offsets]);
+
+  // Frozen: the prop is only meant for mount, and todayIndex moves as past events load.
+  const initialIndexRef = useRef(todayIndex);
+  const todayRef = useRef({ key: todayKey, y: offsets[todayIndex] ?? 0 });
+  todayRef.current = { key: todayKey, y: offsets[todayIndex] ?? 0 };
+  useImperativeHandle(ref, () => ({
+    // Move the anchor first: goToday triggers a refetch, and the re-anchor effect
+    // would otherwise snap back to the old position. No animation — across months
+    // it only shows blank cells.
+    scrollToToday: () => {
+      const { key, y } = todayRef.current;
+      userScrollingRef.current = false;
+      anchorRef.current = { key, delta: 0 };
+      scrollYRef.current = y;
+      listRef.current?.scrollToOffset({ offset: y, animated: false });
+    },
+  }), []);
+
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 });
+  const onVisibleRef = useRef(onVisibleDateChange);
+  onVisibleRef.current = onVisibleDateChange;
+  const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    const row = viewableItems[0]?.item as Row | undefined;
+    if (row) onVisibleRef.current?.(row.date);
+  }, []);
 
   const renderRow = useCallback(({ item }: { item: Row }) => (
     item.type === 'header'
@@ -278,34 +238,46 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
       data={rows}
       keyExtractor={keyExtractor}
       renderItem={renderRow}
+      getItemLayout={getItemLayout}
+      initialScrollIndex={initialIndexRef.current}
       stickyHeaderIndices={stickyIndices}
-      maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-      initialNumToRender={12}
+      initialNumToRender={20}
       maxToRenderPerBatch={16}
-      updateCellsBatchingPeriod={40}
       windowSize={9}
       removeClippedSubviews
-      style={{ flex: 1, backgroundColor: theme.colors.background, opacity: positioned ? 1 : 0 }}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
       contentContainerStyle={{ paddingBottom: 80 }}
-      onScrollToIndexFailed={onScrollToIndexFailed}
-      onEndReached={growFuture}
-      onScrollBeginDrag={() => { snapRef.current = null; }}
+      onScroll={onScroll}
+      onScrollBeginDrag={onUserScrollStart}
+      onScrollEndDrag={onUserScrollEnd}
+      onMomentumScrollBegin={onUserScrollStart}
+      onMomentumScrollEnd={onUserScrollEnd}
+      scrollEventThrottle={32}
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig.current}
     />
   );
 });
 
-export const AgendaView = memo(AgendaViewImpl);
+function upperBound(sorted: number[], v: number): number {
+  let lo = 0;
+  let hi = sorted.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (sorted[mid] <= v) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
 
-const EVENT_ROW_HEIGHT = 72;
+export const AgendaView = memo(AgendaViewImpl);
 
 const styles = StyleSheet.create({
   dayHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    height: HEADER_HEIGHT,
     paddingHorizontal: 16,
-    paddingVertical: 10,
     borderBottomWidth: 1,
     gap: 12,
   },
@@ -326,12 +298,12 @@ const styles = StyleSheet.create({
     marginVertical: 3,
     borderRadius: 10,
     overflow: 'hidden',
-    minHeight: EVENT_ROW_HEIGHT - 6,
+    height: EVENT_ROW_HEIGHT - 6,
   },
   colorBar: { width: 4 },
   eventContent: { flex: 1, padding: 10, justifyContent: 'center' },
   eventTitle: { fontSize: 14, fontWeight: '600', marginBottom: 3 },
-  eventMeta: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4 },
+  eventMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   eventTime: { fontSize: 12, fontWeight: '500' },
   eventDuration: { fontSize: 11 },
   eventLocation: { fontSize: 11, flex: 1 },

@@ -3,7 +3,7 @@ import { View, Pressable, StyleSheet, type GestureResponderEvent } from 'react-n
 import { useTheme } from 'expo-router';
 import dayjs from 'dayjs';
 import { eventPositionStyle, nowTopPct } from '../utils/grid';
-import type { GridEvent } from '../utils/toGridEvents';
+import { gridEventKey, type GridEvent } from '../utils/toGridEvents';
 import type { PositionedEvent } from '../utils/eventLayout';
 import { TimeGridEvent } from './TimeGridEvent';
 
@@ -43,7 +43,7 @@ function DayColumnImpl({ date, positioned, hourRowHeight, now, onPressSlot, onPr
         const { top, height } = eventPositionStyle(event.start, event.end);
         return (
           <TimeGridEvent
-            key={`${event._event.uid}-${event.start.getTime()}`}
+            key={gridEventKey(event._event)}
             event={event}
             top={top}
             height={height}

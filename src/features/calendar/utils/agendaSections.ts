@@ -1,6 +1,10 @@
 import dayjs from 'dayjs';
 import type { CalendarEvent } from '@/types';
 
+// ponytail: fixed ±2y agenda window, grow on scroll if anyone needs further.
+export const AGENDA_PAST_DAYS = 730;
+export const AGENDA_FUTURE_DAYS = 730;
+
 export interface AgendaSection {
   key: string;
   date: Date;
