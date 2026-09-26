@@ -5,6 +5,8 @@ import { useTheme } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import { DateField, Select, TextField } from '@/ui/components';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { getNativePickerLocale } from '@/utils/i18n';
 import type { RecurrenceFreq, RecurrenceRule } from '@/types';
 import {
   formatByDay,
@@ -44,6 +46,7 @@ interface Props {
 export function RecurrencePicker({ value, onChange, dtstart, allDay = false }: Props) {
   const theme = useTheme();
   const { t, i18n } = useTranslation();
+  const pickerLocale = getNativePickerLocale(useSettingsStore((s) => s.language));
   const [showUntilPicker, setShowUntilPicker] = useState(false);
   const [countText, setCountText] = useState<string | null>(null);
   const [weekNoText, setWeekNoText] = useState<string | null>(null);
@@ -447,6 +450,7 @@ export function RecurrencePicker({ value, onChange, dtstart, allDay = false }: P
                   display="compact"
                   minimumDate={dtstart}
                   accentColor={theme.colors.primary}
+                  locale={pickerLocale}
                   onChange={handleUntilChange}
                 />
               ) : (
