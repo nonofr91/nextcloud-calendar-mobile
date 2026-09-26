@@ -158,21 +158,15 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
     return { rows: out, stickyIndices: sticky, offsets: offs, todayIndex: todayIdx };
   }, [events, todayKey]);
 
-  // Fixed row heights make scrollToIndex exact at any distance — no measure/retry loop.
   const getItemLayout = useCallback((data: ArrayLike<Row> | null | undefined, index: number) => ({
     length: data?.[index]?.type === 'header' ? HEADER_HEIGHT : EVENT_ROW_HEIGHT,
     offset: offsets[index] ?? 0,
     index,
   }), [offsets]);
 
-  // Anchor = day at the top of the viewport + how far into it we are. When events load
-  // (rows inserted above), re-apply it so the list doesn't drift. Replaces
-  // maintainVisibleContentPosition, which doesn't hold on Android here.
   const scrollYRef = useRef(offsets[todayIndex] ?? 0);
   const anchorRef = useRef({ key: todayKey, delta: 0 });
   const layoutRef = useRef({ rows, offsets });
-  // Only user drags/flings move the anchor: events from our own programmatic scrolls
-  // arrive late and would otherwise overwrite it with a stale position.
   const userScrollingRef = useRef(false);
   const onUserScrollStart = useCallback(() => { userScrollingRef.current = true; }, []);
   const onUserScrollEnd = useCallback(() => { userScrollingRef.current = false; }, []);
@@ -197,14 +191,10 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
     listRef.current?.scrollToOffset({ offset: y, animated: false });
   }, [rows, offsets]);
 
-  // Frozen: the prop is only meant for mount, and todayIndex moves as past events load.
   const initialIndexRef = useRef(todayIndex);
   const todayRef = useRef({ key: todayKey, y: offsets[todayIndex] ?? 0 });
   todayRef.current = { key: todayKey, y: offsets[todayIndex] ?? 0 };
   useImperativeHandle(ref, () => ({
-    // Move the anchor first: goToday triggers a refetch, and the re-anchor effect
-    // would otherwise snap back to the old position. No animation — across months
-    // it only shows blank cells.
     scrollToToday: () => {
       const { key, y } = todayRef.current;
       userScrollingRef.current = false;

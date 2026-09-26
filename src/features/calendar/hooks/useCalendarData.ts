@@ -24,8 +24,6 @@ export function useCalendarData(date: Date, agendaEnabled = false) {
   const { start, end } = useMemo(() => monthRange(date), [year, month]);
 
   const dbEvents = useEventsForRange(activeAccountId ?? '', start, end);
-  // The agenda spans its whole window from the local DB; sync stays driven by `date`.
-  // An empty account id matches nothing, so the query is free while the agenda is off.
   const agendaRange = useMemo(() => ({
     start: dayjs().subtract(AGENDA_PAST_DAYS, 'day').startOf('day').toDate(),
     end: dayjs().add(AGENDA_FUTURE_DAYS, 'day').endOf('day').toDate(),
