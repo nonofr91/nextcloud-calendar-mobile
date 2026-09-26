@@ -124,6 +124,7 @@ Widgets are kept up to date through the app's background sync, and tapping an ev
 - Adjustable zoom level (hour row height: 45–120 px)
 - Configurable week start day (Sunday or Monday)
 - Per-account default calendar for new events
+- 12-hour / 24-hour time format, following the system setting by default
 ---
 
 ## 🤝 Open to Collaboration
