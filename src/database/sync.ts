@@ -10,6 +10,7 @@ import {
 import type { Account, CalendarEvent, CalendarMeta } from '@/types';
 import type { SyncCollectionResult } from '@/services/nextcloud/caldav';
 import { expansionHorizon, needsHorizonReset } from '@/features/calendar/utils/horizon';
+import { settleAll } from '@/utils/settle';
 
 import { getDatabaseInstance } from './DatabaseProvider';
 import Calendar from './models/Calendar';
@@ -155,6 +156,7 @@ export async function syncEvents(
   start: Date,
   end: Date,
   deleteMissing = true,
+  knownCalendarIds?: readonly string[],
 ): Promise<void> {
   if (calendars.length === 0) return;
 
@@ -224,7 +226,7 @@ export async function syncEvents(
 
     if (deleteMissing) {
       const syncedIds = new Set(syncedCalendarIds);
-      const knownIds = new Set(calendars.map((c) => c.id));
+      const knownIds = new Set(knownCalendarIds ?? calendars.map((c) => c.id));
       for (const [k, r] of byKey) {
         if (seen.has(k)) continue;
         if (!inWindow.has(r.id)) continue;
@@ -236,6 +238,70 @@ export async function syncEvents(
 
     if (ops.length > 0) await db.batch(ops);
   }, 30000, 'syncEvents');
+}
+
+const DELTA_SYNC_MIN_INTERVAL_MS = 10_000;
+const lastDeltaSyncAt = new Map<string, number>();
+
+/** Test-only: reset the throttle between syncVisibleRange calls. */
+export function resetDeltaSyncThrottle(): void {
+  lastDeltaSyncAt.clear();
+}
+
+/**
+ * Syncs the data needed to display a range: incremental `sync-collection` for
+ * CalDAV calendars inside the expansion horizon, full range fetch for
+ * subscribed (webcal) calendars and for ranges beyond the horizon.
+ *
+ * Delta checks are throttled per account: within DELTA_SYNC_MIN_INTERVAL_MS of
+ * a previous check they are skipped — the local DB already covers the horizon.
+ * Subscribed calendars are never throttled: their fetch is range-scoped, so
+ * skipping it would leave the newly visible range empty.
+ */
+export async function syncVisibleRange(
+  account: Account,
+  calendars: CalendarMeta[],
+  start: Date,
+  end: Date,
+  deleteMissing = true,
+): Promise<void> {
+  if (calendars.length === 0) return;
+
+  const horizon = expansionHorizon(new Date());
+  const inHorizon =
+    start.getTime() >= horizon.start.getTime() && end.getTime() <= horizon.end.getTime();
+
+  const throttled =
+    Date.now() - (lastDeltaSyncAt.get(account.id) ?? 0) < DELTA_SYNC_MIN_INTERVAL_MS;
+
+  const deltaCals =
+    inHorizon && !throttled ? calendars.filter((c) => !c.isSubscribed) : [];
+  const fullCals = calendars.filter((c) => c.isSubscribed || !inHorizon);
+
+  if (deltaCals.length === 0 && fullCals.length === 0) return;
+  if (deltaCals.length > 0) lastDeltaSyncAt.set(account.id, Date.now());
+
+  const { failures, fulfilledIndexes } = await settleAll(
+    deltaCals.map((cal) => () => syncCalendarDelta(account, cal).then((): never[] => [])),
+  );
+
+  let fullOk = false;
+  if (fullCals.length > 0) {
+    try {
+      await syncEvents(
+        account, fullCals, start, end, deleteMissing, calendars.map((c) => c.id),
+      );
+      fullOk = true;
+    } catch (e) {
+      failures.push(e);
+    }
+  }
+
+  const deltaOk = deltaCals.length > 0 && fulfilledIndexes.length > 0;
+  if (!deltaOk && !fullOk) {
+    lastDeltaSyncAt.delete(account.id);
+    throw new Error(`[syncVisibleRange] all ${calendars.length} calendar sync(s) failed`);
+  }
 }
 
 async function collectByHref(events: Collection<Event>, accountId: string, hrefs: Set<string>) {
@@ -252,9 +318,15 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
   const now = new Date();
   const horizon = expansionHorizon(now);
 
-  const row = (await calendars.query(Q.where('url', calendar.url)).fetch())[0];
+  const row = (
+    await calendars
+      .query(Q.where('account_id', account.id), Q.where('url', calendar.url))
+      .fetch()
+  )[0];
   const storedToken = row?.syncToken;
   const forceFull = needsHorizonReset(row?.expandedCenter, now);
+
+  const epoch = localWriteEpoch();
 
   let result: SyncCollectionResult = await syncCollection(
     account, calendar, forceFull ? '' : storedToken,
@@ -264,14 +336,15 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
   }
   const fullSync = result.reset || forceFull || !storedToken;
 
-  const fetched = await fetchEventsByHrefs(
+  const { events: fetched, returnedHrefs } = await fetchEventsByHrefs(
     account, calendar, result.changed, horizon.start, horizon.end,
   );
-  const fetchedHrefs = new Set(fetched.map((e) => e.href));
+  const changedSet = new Set(result.changed);
 
-  if (result.changed.length > 0 && fetched.length !== result.changed.length) {
+  const missing = result.changed.filter((h) => !returnedHrefs.has(h));
+  if (missing.length > 0) {
     console.warn(
-      `[syncCalendarDelta] multiget returned ${fetched.length}/${result.changed.length} events; skipping write`
+      `[syncCalendarDelta] multiget returned ${returnedHrefs.size}/${changedSet.size} objects; skipping write`
     );
     return;
   }
@@ -281,22 +354,23 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
     const deletedSet = new Set(result.deleted);
 
     if (fullSync) {
-      const changedSet = new Set(result.changed);
       const existing = await events
         .query(Q.where('account_id', account.id), Q.where('calendar_id', calendar.id))
         .fetch();
+      if (localWriteEpoch() !== epoch) return;
       if (result.changed.length > 0) {
         for (const r of existing) {
-          if (!changedSet.has(r.href) || fetchedHrefs.has(r.href)) {
+          if (!changedSet.has(r.href) || returnedHrefs.has(r.href)) {
             ops.push(r.prepareMarkAsDeleted());
           }
         }
       }
     } else {
-      const touched = new Set<string>([...result.deleted, ...fetchedHrefs]);
+      const touched = new Set<string>([...result.deleted, ...returnedHrefs]);
       const existing = await collectByHref(events, account.id, touched);
+      if (localWriteEpoch() !== epoch) return;
       for (const r of existing) {
-        if (deletedSet.has(r.href) || fetchedHrefs.has(r.href)) {
+        if (deletedSet.has(r.href) || returnedHrefs.has(r.href)) {
           ops.push(r.prepareMarkAsDeleted());
         }
       }
@@ -307,6 +381,12 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
     if (row) {
       ops.push(row.prepareUpdate((r: Calendar) => {
         r.syncToken = result.newToken ?? r.syncToken;
+        r.expandedCenter = now.getTime();
+      }));
+    } else {
+      ops.push(calendars.prepareCreate((r: Calendar) => {
+        writeCalendar(r, calendar, account.id);
+        r.syncToken = result.newToken ?? undefined;
         r.expandedCenter = now.getTime();
       }));
     }

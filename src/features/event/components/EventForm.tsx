@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { View, StyleSheet, ScrollView, Platform, KeyboardAvoidingView, useWindowDimensions, LayoutChangeEvent } from 'react-native';
+import { View, StyleSheet, ScrollView, Platform, KeyboardAvoidingView, Keyboard, useWindowDimensions, LayoutChangeEvent } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -10,6 +10,7 @@ import { AttendeesField } from './AttendeesField';
 import { requestAlertPermission } from '@/features/notifications/scheduleAlerts';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTimeFormat } from '@/hooks/useTimeFormat';
+import { getNativePickerLocale } from '@/utils/i18n';
 import { AlertPicker } from './AlertPicker';
 import { RecurrencePicker } from './RecurrencePicker';
 import { Stack, Typography, TextField, DateField, Button, Chip, Toggle } from '@/ui/components';
@@ -59,9 +60,10 @@ export function EventForm({
 
   // The iOS wheel picker ignores is24Hour; its hour cycle follows the picker
   // locale's region. For an explicit 12h/24h choice we pin a matching region
-  // while keeping the app language for labels. 'auto' stays undefined so the
-  // picker follows the system setting, exactly like the rest of the app.
-  const iosPickerLocale = timeFormat === 'auto' ? undefined : `${language}_${use24h ? 'GB' : 'US'}`;
+  // while keeping the app language for labels. 'auto' uses the device region.
+  const iosPickerLocale = timeFormat === 'auto'
+    ? getNativePickerLocale(language)
+    : `${language}-${use24h ? 'GB' : 'US'}`;
 
   const [summary, setSummary] = useState(initialValues?.summary ?? '');
   const writableCalendars = calendars.filter(
@@ -180,6 +182,7 @@ export function EventForm({
   }
 
   function handleSubmit() {
+    Keyboard.dismiss();
     setTitleError(null);
     setCalendarError(null);
     if (!summary.trim()) { setTitleError(t('event.errorTitleRequired')); return; }
