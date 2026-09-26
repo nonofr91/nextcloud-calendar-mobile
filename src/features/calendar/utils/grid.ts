@@ -15,9 +15,6 @@ export function daysPerPage(mode: CalMode): number {
 }
 
 export function dayKey(d: Date): string {
-  // Raw local-time formatting rather than dayjs: this runs per event slice in
-  // buildDayIndex and per column in render, so a dayjs object per call showed up
-  // as hundreds of ms on a busy month. Same YYYY-MM-DD result.
   const y = d.getFullYear();
   const m = d.getMonth() + 1;
   const day = d.getDate();
@@ -122,8 +119,6 @@ const DAY_INDEX_CACHE = new Map<string, Map<string, GridEvent[]>>();
 const DAY_INDEX_CACHE_LIMIT = 8;
 
 function dayIndexKey(events: GridEvent[]): string {
-  // Content-based key: cheap enough to compute and stable for the same set of
-  // underlying events even when GridEvent objects are recreated.
   let hash = '';
   for (const e of events) {
     hash += `${e._event.uid},${e.start.getTime()},${e.end.getTime()},${e.title},${e.color};`;
@@ -146,13 +141,6 @@ export function buildDayIndex(events: GridEvent[]): Map<string, GridEvent[]> {
 
   for (const event of events) {
     if (event._event.allDay) continue;
-
-    // Raw Date/timestamp arithmetic, no dayjs: this runs over every event in
-    // the visible month on each mutation, and a handful of dayjs objects per
-    // event was the bulk of the ~500ms lag felt when dropping a dragged event
-    // on a busy calendar. Day boundaries use local midnight, as dayjs's
-    // startOf('day') did, so DST and month rollover are handled by the Date
-    // constructor.
     const startMs = event.start.getTime();
     const endMs = event.end.getTime();
     let dayStart = new Date(event.start.getFullYear(), event.start.getMonth(), event.start.getDate());
@@ -160,7 +148,6 @@ export function buildDayIndex(events: GridEvent[]): Map<string, GridEvent[]> {
       dayStart.getFullYear(), dayStart.getMonth(), dayStart.getDate() + 1,
     ).getTime();
 
-    // Fast path — the common single-day event: no slice allocation, no loop.
     if (endMs <= firstNextMs) {
       push(dayKey(dayStart), event);
       continue;

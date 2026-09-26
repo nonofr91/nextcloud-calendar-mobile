@@ -14,8 +14,6 @@ import type { CalendarEvent } from '@/types';
 
 dayjs.extend(localizedFormat);
 
-// Jumps within this many months slide (animated); farther ones re-anchor
-// instantly rather than spring across a long stretch of empty months.
 const MAX_ANIMATED_JUMP_MONTHS = 2;
 
 interface Props {
@@ -52,13 +50,10 @@ export function buildMonthGrid(year: number, month: number, weekStartsOn: 0 | 1)
 
 const START_OF_DAY_MS = 86400000;
 
-// Strip the time component, keeping the local date.
 function startOfDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
-// For non-all-day events ending exactly at midnight, the last covered day is the
-// previous day; otherwise it's the start of the end day.
 function lastDayOf(e: CalendarEvent): Date {
   const end = startOfDay(e.dtend);
   if (e.allDay) return end;
@@ -127,8 +122,6 @@ interface MonthGridProps {
   onPressCell: (d: Date) => void;
 }
 
-// One month's 6-week grid. Rendered per pager page so a horizontal swipe slides a
-// full month in and out under the finger instead of the old swipe-then-jump.
 const MonthGrid = memo(function MonthGrid({
   weeks, selected, today, dotMap, colors, onDayPress, onPressCell,
 }: MonthGridProps) {
@@ -231,28 +224,13 @@ function MonthDayViewImpl({ date, events, weekStartsOn, jump, onSelectDate, onMo
   }, [weekStartsOn, language]);
 
   const gridHeight = height * 0.44;
-
-  // The pager pages by whole months: page `index` renders the month `index`
-  // months from `localAnchor`. localAnchor is only reset on an external jump
-  // (Today button, mode switch); ordinary swiping runs the index up and down
-  // without re-anchoring, so paging never fights its own state.
   const [localAnchor, setLocalAnchor] = useState(date);
   const [pagerKey, setPagerKey] = useState(0);
   const pagerRef = useRef<InfinitePagerImperativeApi>(null);
   const localAnchorRef = useRef(localAnchor); localAnchorRef.current = localAnchor;
   const settledIndexRef = useRef(0);
-  // Target index of an in-flight programmatic jump; while set, page-change
-  // callbacks are the animation crossing months, not a user swipe, so they must
-  // not report a month change (the parent already holds the jumped-to date).
   const jumpTargetRef = useRef<number | null>(null);
 
-  // Re-anchor remounts the pager on a fresh key. A far jump's setPage would
-  // write `translate` across a gap wider than the page buffer, leaving the
-  // mounted pages several widths off-screen (blank) until curIndex caught up a
-  // frame later. A remounted pager comes up at index 0 with translate 0,
-  // consistent from its first commit. useLayoutEffect, not useEffect: the render
-  // that carries the new anchor still sits on the old index, so it must not
-  // paint — landing page 0 before paint removes the blank frame.
   const firstAnchorReset = useRef(true);
   useLayoutEffect(() => {
     if (firstAnchorReset.current) { firstAnchorReset.current = false; return; }
@@ -265,21 +243,13 @@ function MonthDayViewImpl({ date, events, weekStartsOn, jump, onSelectDate, onMo
     if (firstJump.current) { firstJump.current = false; return; }
     const target = monthDiff(localAnchorRef.current, jump.target);
     const from = settledIndexRef.current;
-    // Ignore jumps that land on the month already shown (e.g. tapping a day in
-    // the current month).
     if (target === from) return;
-    // Near jump (Today from a nearby month): slide to it like the other views.
-    // At most MAX_ANIMATED_JUMP_MONTHS so the spring never crosses a page the
-    // buffer has not mounted yet.
     if (Math.abs(target - from) <= MAX_ANIMATED_JUMP_MONTHS) {
       jumpTargetRef.current = target;
       settledIndexRef.current = target;
       pagerRef.current?.setPage(target, { animated: true });
       return;
     }
-    // Too far to animate: re-anchor. The layout effect above remounts the pager
-    // at index 0 on the new anchor, swapping months in a single commit rather
-    // than blanking while the pager catches up.
     setLocalAnchor(jump.target);
   }, [jump]);
 
@@ -290,9 +260,6 @@ function MonthDayViewImpl({ date, events, weekStartsOn, jump, onSelectDate, onMo
       if (index === jumpTargetRef.current) jumpTargetRef.current = null;
       return;
     }
-    // InfinitePager emits the current page once on mount (and after a remount);
-    // that echo is not a swipe. Only a real change of page reports a new month,
-    // which also avoids a setState firing into the parent's render.
     if (index === prev) return;
     onMonthChange(dayjs(localAnchorRef.current).add(index, 'month').startOf('month').toDate());
   }, [onMonthChange]);
