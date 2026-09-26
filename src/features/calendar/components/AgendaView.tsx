@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from 'expo-router';
 import type { Theme } from '@/theme';
 import type { CalendarEvent } from '@/types';
+import { useTimeFormat } from '@/hooks/useTimeFormat';
 import {
   AGENDA_FUTURE_DAYS, AGENDA_PAST_DAYS, agendaRowKey, buildAgendaSections,
 } from '../utils/agendaSections';
@@ -25,11 +26,6 @@ interface Props {
 
 const HEADER_HEIGHT = 57;
 const EVENT_ROW_HEIGHT = 72;
-
-function formatTime(d: Date, allDay: boolean, allDayLabel: string): string {
-  if (allDay) return allDayLabel;
-  return dayjs(d).format('LT');
-}
 
 interface DayHeaderProps {
   sectionDate: Date;
@@ -74,6 +70,7 @@ interface EventRowProps {
 
 const EventRow = memo(({ event, theme, onPress }: EventRowProps) => {
   const { t } = useTranslation();
+  const { formatTime } = useTimeFormat();
   const duration = event.allDay
     ? null
     : (() => {
@@ -99,8 +96,8 @@ const EventRow = memo(({ event, theme, onPress }: EventRowProps) => {
         </Text>
         <View style={styles.eventMeta}>
           <Text style={[styles.eventTime, { color: theme.colors.textSecondary }]}>
-            {formatTime(event.dtstart, event.allDay, allDayLabel)}
-            {!event.allDay && ` – ${formatTime(event.dtend, false, allDayLabel)}`}
+            {event.allDay ? allDayLabel : formatTime(event.dtstart)}
+            {!event.allDay && ` – ${formatTime(event.dtend)}`}
           </Text>
           {duration && (
             <Text style={[styles.eventDuration, { color: theme.colors.textTertiary }]}>{duration}</Text>

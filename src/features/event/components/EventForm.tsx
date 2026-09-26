@@ -9,6 +9,7 @@ import { TalkToggle } from './TalkToggle';
 import { AttendeesField } from './AttendeesField';
 import { requestAlertPermission } from '@/features/notifications/scheduleAlerts';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useTimeFormat } from '@/hooks/useTimeFormat';
 import { getNativePickerLocale } from '@/utils/i18n';
 import { AlertPicker } from './AlertPicker';
 import { RecurrencePicker } from './RecurrencePicker';
@@ -53,8 +54,16 @@ export function EventForm({
 }: Props) {
   const theme = useTheme();
   const { t } = useTranslation();
+  const { use24h, timeFormat, formatTime } = useTimeFormat();
+  const language = useSettingsStore((s) => s.language);
   const twoColDates = useWindowDimensions().width >= 600;
-  const pickerLocale = getNativePickerLocale(useSettingsStore((s) => s.language));
+
+  // The iOS wheel picker ignores is24Hour; its hour cycle follows the picker
+  // locale's region. For an explicit 12h/24h choice we pin a matching region
+  // while keeping the app language for labels. 'auto' uses the device region.
+  const iosPickerLocale = timeFormat === 'auto'
+    ? getNativePickerLocale(language)
+    : `${language}-${use24h ? 'GB' : 'US'}`;
 
   const [summary, setSummary] = useState(initialValues?.summary ?? '');
   const writableCalendars = calendars.filter(
@@ -208,7 +217,7 @@ export function EventForm({
             mode={allDay ? 'date' : 'datetime'}
             display="compact"
             accentColor={theme.colors.primary}
-            locale={pickerLocale}
+            locale={iosPickerLocale}
             onChange={handleIosStartChange}
           />
         </View>
@@ -216,7 +225,7 @@ export function EventForm({
         <DateField
           label={t('event.start')}
           value={dayjs(dtstart).format('ddd ll')}
-          time={allDay ? undefined : dayjs(dtstart).format('LT')}
+          time={allDay ? undefined : formatTime(dtstart)}
           onPress={openStartPicker}
         />
       )}
@@ -233,7 +242,7 @@ export function EventForm({
               mode={allDay ? 'date' : 'datetime'}
               display="compact"
               accentColor={theme.colors.primary}
-              locale={pickerLocale}
+              locale={iosPickerLocale}
               onChange={handleIosEndChange}
             />
           </View>
@@ -245,7 +254,7 @@ export function EventForm({
         <DateField
           label={t('event.end')}
           value={dayjs(dtend).format('ddd ll')}
-          time={allDay ? undefined : dayjs(dtend).format('LT')}
+          time={allDay ? undefined : formatTime(dtend)}
           onPress={openEndPicker}
           error={endError ?? undefined}
         />
@@ -323,6 +332,7 @@ export function EventForm({
             key={`android-picker-${androidStep.target}-${androidStep.step}`}
             value={androidPickerValue ?? new Date()}
             mode={androidPickerMode}
+            is24Hour={use24h}
             onChange={handleAndroidChange}
           />
         )}
