@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from 'expo-router';
 import type { Theme } from '@/theme';
 import type { CalendarEvent } from '@/types';
-import { buildAgendaSections } from '../utils/agendaSections';
+import { agendaRowKey, buildAgendaSections } from '../utils/agendaSections';
 
 dayjs.extend(localizedFormat);
 
@@ -141,7 +141,6 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
   const firstVisibleKeyRef = useRef<string | null>(null);
   const snapRef = useRef<{ key: string; attempts: number } | null>(null);
   const lastSnapRef = useRef(0);
-  const pastAnchorRef = useRef<string | null>(null);
 
   const todayKey = dayjs().format('YYYY-MM-DD');
 
@@ -222,21 +221,6 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
   );
 
   useEffect(() => {
-    const anchor = pastAnchorRef.current;
-    if (!anchor) return;
-    pastAnchorRef.current = null;
-    const idx = rowIndexOfDay(anchor);
-    if (idx < 0) return;
-    snapRef.current = { key: anchor, attempts: 0 };
-    firstVisibleKeyRef.current = null;
-    lastSnapRef.current = Date.now();
-    const t = setTimeout(() => {
-      listRef.current?.scrollToIndex({ index: idx, viewOffset: 0, viewPosition: 0, animated: false });
-    }, 0);
-    return () => clearTimeout(t);
-  }, [rows, rowIndexOfDay]);
-
-  useEffect(() => {
     const t = setTimeout(() => setPositioned(true), REVEAL_TIMEOUT_MS);
     return () => clearTimeout(t);
   }, []);
@@ -249,7 +233,8 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
   }, []);
 
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 });
-  const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+  const viewableHandlerRef = useRef<(info: { viewableItems: ViewToken[] }) => void>(() => {});
+  viewableHandlerRef.current = ({ viewableItems }) => {
     if (viewableItems.length === 0) return;
     const first = viewableItems[0];
     const row = first?.item as Row | undefined;
@@ -267,12 +252,15 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
       const now = Date.now();
       if (now - lastGrowRef.current >= GROW_THROTTLE_MS) {
         lastGrowRef.current = now;
-        pastAnchorRef.current = key;
         setPastDays((days) => days + GROW_PAST_DAYS);
       }
     }
     if (!snapRef.current) onVisibleDateChange?.(d);
-  }, [onVisibleDateChange, positioned, todayKey, stepTowardSnap]);
+  };
+  const onViewableItemsChanged = useCallback(
+    (info: { viewableItems: ViewToken[] }) => viewableHandlerRef.current(info),
+    [],
+  );
 
   const renderRow = useCallback(({ item }: { item: Row }) => (
     item.type === 'header'
@@ -281,7 +269,7 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
   ), [theme, onPressCell, onPressEvent]);
 
   const keyExtractor = useCallback((item: Row) => (
-    item.type === 'header' ? `h-${item.key}` : `i-${item.key}-${item.event.uid}`
+    item.type === 'header' ? `h-${item.key}` : agendaRowKey(item.key, item.event)
   ), []);
 
   return (

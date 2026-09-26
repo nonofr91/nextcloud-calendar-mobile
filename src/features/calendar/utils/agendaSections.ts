@@ -7,6 +7,10 @@ export interface AgendaSection {
   data: CalendarEvent[];
 }
 
+export function agendaRowKey(dayKey: string, e: CalendarEvent): string {
+  return `i-${dayKey}-${e.calendarId}-${e.uid}-${e.dtstart.getTime()}`;
+}
+
 export function buildAgendaSections(
   events: CalendarEvent[],
   startDay: Date,
@@ -16,6 +20,7 @@ export function buildAgendaSections(
   const end = dayjs(endDay).endOf('day');
 
   const byDay = new Map<string, CalendarEvent[]>();
+  const seen = new Set<string>();
   for (const e of events) {
     const eEnd = dayjs(e.dtend);
     let cur = dayjs(e.dtstart).startOf('day');
@@ -23,8 +28,12 @@ export function buildAgendaSections(
     while (cur.isBefore(eEnd) || cur.isSame(eEnd, 'day')) {
       if (cur.isAfter(end)) break;
       const key = cur.format('YYYY-MM-DD');
-      if (!byDay.has(key)) byDay.set(key, []);
-      byDay.get(key)!.push(e);
+      const dedupeKey = agendaRowKey(key, e);
+      if (!seen.has(dedupeKey)) {
+        seen.add(dedupeKey);
+        if (!byDay.has(key)) byDay.set(key, []);
+        byDay.get(key)!.push(e);
+      }
       cur = cur.add(1, 'day');
     }
   }

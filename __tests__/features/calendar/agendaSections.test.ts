@@ -1,4 +1,4 @@
-import { buildAgendaSections } from '@/features/calendar/utils/agendaSections';
+import { agendaRowKey, buildAgendaSections } from '@/features/calendar/utils/agendaSections';
 import type { CalendarEvent } from '@/types';
 
 function ev(uid: string, start: Date, end: Date, allDay = false): CalendarEvent {
@@ -73,5 +73,33 @@ describe('buildAgendaSections', () => {
       new Date(2026, 8, 15),
     );
     expect(sections[0].data.map((e) => e.uid)).toEqual(['all-day', 'a', 'b']);
+  });
+
+  it('dedupes identical event rows on the same day (duplicate key guard)', () => {
+    const e = ev('dup', new Date(2026, 8, 14, 10), new Date(2026, 8, 14, 11));
+    const sections = buildAgendaSections(
+      [e, { ...e }],
+      new Date(2026, 8, 14),
+      new Date(2026, 8, 15),
+    );
+    expect(sections[0].data).toHaveLength(1);
+  });
+
+  it('keeps same-uid events from different calendars as distinct rows', () => {
+    const a = ev('shared', new Date(2026, 8, 14, 10), new Date(2026, 8, 14, 11));
+    const b = { ...a, calendarId: 'shared-cal', href: '/cal/shared/shared.ics' };
+    const sections = buildAgendaSections(
+      [a, b],
+      new Date(2026, 8, 14),
+      new Date(2026, 8, 15),
+    );
+    expect(sections[0].data).toHaveLength(2);
+    expect(agendaRowKey('2026-09-14', a)).not.toBe(agendaRowKey('2026-09-14', b));
+  });
+
+  it('gives recurring occurrences and same-day rows unique keys', () => {
+    const occ1 = { ...ev('r', new Date(2026, 8, 14, 9), new Date(2026, 8, 14, 10)), uid: 'r_occ_1000' };
+    const occ2 = { ...ev('r', new Date(2026, 8, 14, 17), new Date(2026, 8, 14, 18)), uid: 'r_occ_1000' };
+    expect(agendaRowKey('2026-09-14', occ1)).not.toBe(agendaRowKey('2026-09-14', occ2));
   });
 });
