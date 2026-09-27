@@ -1,0 +1,12 @@
+Nextcloud Calendar Mobile porta i tuoi calendari Nextcloud in modo nativo su Android. L'app si connette direttamente alla tua istanza Nextcloud tramite il protocollo CalDAV.
+
+Funzioni:
+* Più account Nextcloud
+* Calendari in vista giorno, settimana e mese
+* Creare, modificare ed eliminare eventi
+* Offline: gli eventi vengono salvati localmente e sincronizzati con il server
+* Creare una stanza Nextcloud Talk per ogni evento
+* Accesso rapido tramite scansione di un codice QR
+* Temi chiaro e scuro, più lingue
+
+Questa è un'applicazione non ufficiale. Non è stata esaminata, approvata né certificata da Nextcloud GmbH.

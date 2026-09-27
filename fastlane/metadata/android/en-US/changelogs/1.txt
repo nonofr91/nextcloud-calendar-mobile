@@ -1,0 +1,1 @@
+See https://github.com/SoluceTechnologies/nextcloud-calendar-mobile/releases

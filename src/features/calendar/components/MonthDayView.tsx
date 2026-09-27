@@ -1,0 +1,367 @@
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  View, Text, TouchableOpacity, FlatList, StyleSheet,
+  useWindowDimensions,
+} from 'react-native';
+import dayjs from 'dayjs';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from 'expo-router';
+import { dayKey } from '../utils/grid';
+import InfinitePager, { type InfinitePagerImperativeApi } from 'react-native-infinite-pager';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { useTimeFormat } from '@/hooks/useTimeFormat';
+import type { CalendarEvent } from '@/types';
+
+dayjs.extend(localizedFormat);
+
+const MAX_ANIMATED_JUMP_MONTHS = 2;
+
+interface Props {
+  date: Date;
+  events: CalendarEvent[];
+  weekStartsOn: 0 | 1;
+  jump: { nonce: number; target: Date };
+  onSelectDate: (d: Date) => void;
+  onMonthChange: (d: Date) => void;
+  onPressEvent: (e: CalendarEvent) => void;
+  onPressCell: (d: Date) => void;
+}
+
+export function buildMonthGrid(year: number, month: number, weekStartsOn: 0 | 1): (dayjs.Dayjs | null)[][] {
+  const firstOfMonth = dayjs(new Date(year, month, 1));
+
+  const offset = (firstOfMonth.day() - weekStartsOn + 7) % 7;
+
+  const rows: (dayjs.Dayjs | null)[][] = [];
+  let cursor = firstOfMonth.subtract(offset, 'day');
+  for (let row = 0; row < 6; row++) {
+    const week: (dayjs.Dayjs | null)[] = [];
+    for (let col = 0; col < 7; col++) {
+      week.push(cursor.month() === month ? cursor : null);
+      cursor = cursor.add(1, 'day');
+    }
+    const allNull = week.every((d) => d === null);
+    if (allNull) break;
+    rows.push(week);
+    if (cursor.month() !== month && row >= 3) break;
+  }
+  return rows;
+}
+
+const START_OF_DAY_MS = 86400000;
+
+function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function lastDayOf(e: CalendarEvent): Date {
+  const end = startOfDay(e.dtend);
+  if (e.allDay) return end;
+  const exactMidnight =
+    e.dtend.getHours() === 0 &&
+    e.dtend.getMinutes() === 0 &&
+    e.dtend.getSeconds() === 0 &&
+    e.dtend.getMilliseconds() === 0;
+  if (exactMidnight) {
+    return new Date(end.getTime() - 1);
+  }
+  return end;
+}
+
+const EVENT_DAY_KEYS_CACHE = new Map<string, string[]>();
+const EVENT_DAY_KEYS_CACHE_LIMIT = 200;
+
+function cacheKeyFor(e: CalendarEvent): string {
+  return `${e.uid}:${e.calendarId}:${e.dtstart.getTime()}:${e.dtend.getTime()}:${e.allDay}`;
+}
+
+export function eventDayKeys(e: CalendarEvent): string[] {
+  const key = cacheKeyFor(e);
+  const cached = EVENT_DAY_KEYS_CACHE.get(key);
+  if (cached) return cached;
+
+  const start = startOfDay(e.dtstart);
+  const end = lastDayOf(e);
+  const keys: string[] = [];
+  let cur = start;
+  const limit = 366;
+  while (cur.getTime() <= end.getTime() && keys.length <= limit) {
+    keys.push(dayKey(cur));
+    cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
+  }
+
+  const result = keys.length ? keys : [dayKey(start)];
+
+  if (EVENT_DAY_KEYS_CACHE.size >= EVENT_DAY_KEYS_CACHE_LIMIT) {
+    const first = EVENT_DAY_KEYS_CACHE.keys().next().value;
+    if (first !== undefined) EVENT_DAY_KEYS_CACHE.delete(first);
+  }
+  EVENT_DAY_KEYS_CACHE.set(key, result);
+
+  return result;
+}
+
+export function eventCoversDay(e: CalendarEvent, key: string): boolean {
+  const startKey = dayKey(startOfDay(e.dtstart));
+  const end = lastDayOf(e);
+  const endKey = dayKey(end);
+  return key >= startKey && key <= (endKey < startKey ? startKey : endKey);
+}
+
+function monthDiff(from: Date, to: Date): number {
+  return (dayjs(to).year() - dayjs(from).year()) * 12 + (dayjs(to).month() - dayjs(from).month());
+}
+
+interface MonthGridProps {
+  weeks: (dayjs.Dayjs | null)[][];
+  selected: dayjs.Dayjs;
+  today: dayjs.Dayjs;
+  dotMap: Map<string, Set<string>>;
+  colors: ReturnType<typeof useTheme>['colors'];
+  onDayPress: (d: dayjs.Dayjs) => void;
+  onPressCell: (d: Date) => void;
+}
+
+const MonthGrid = memo(function MonthGrid({
+  weeks, selected, today, dotMap, colors, onDayPress, onPressCell,
+}: MonthGridProps) {
+  return (
+    <View style={styles.monthPage}>
+      {weeks.map((week, wi) => (
+        <View key={wi} style={styles.weekRow}>
+          {week.map((d, di) => {
+            if (d === null) {
+              return <View key={di} style={styles.dayCell} />;
+            }
+            const key = d.format('YYYY-MM-DD');
+            const isToday = d.isSame(today, 'day');
+            const isSelected = d.isSame(selected, 'day');
+            const dots = Array.from(dotMap.get(key) ?? []).slice(0, 3);
+
+            return (
+              <TouchableOpacity
+                key={di}
+                style={styles.dayCell}
+                onPress={() => onDayPress(d)}
+                onLongPress={() => onPressCell(d.toDate())}
+              >
+                <View style={[
+                  styles.dayCircle,
+                  { backgroundColor: isSelected ? colors.primary : 'transparent' },
+                  { borderWidth: isToday && !isSelected ? 1.5 : 0, borderColor: colors.primary },
+                ]}>
+                  <Text
+                    numberOfLines={1}
+                    allowFontScaling={false}
+                    style={[
+                      styles.dayNumber,
+                      { color: isSelected
+                        ? colors.primaryText
+                        : isToday
+                          ? colors.primary
+                          : colors.text, fontWeight: isSelected || isToday ? '700' : '400' },
+                    ]}>
+                    {d.date()}
+                  </Text>
+                </View>
+                <View style={styles.dotsRow}>
+                  {dots.map((color, ci) => (
+                    <View key={ci} style={[styles.dot, { backgroundColor: color }]} />
+                  ))}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      ))}
+    </View>
+  );
+});
+
+function MonthDayViewImpl({ date, events, weekStartsOn, jump, onSelectDate, onMonthChange, onPressEvent, onPressCell }: Props) {
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const language = useSettingsStore((s) => s.language);
+  const { formatTime } = useTimeFormat();
+  const { height } = useWindowDimensions();
+
+  const selected = useMemo(() => dayjs(date), [date]);
+
+  const dotMap = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    const add = (key: string, color: string) => {
+      let set = map.get(key);
+      if (!set) { set = new Set(); map.set(key, set); }
+      set.add(color);
+    };
+
+    for (const ev of events) {
+      for (const key of eventDayKeys(ev)) add(key, ev.color);
+    }
+    return map;
+  }, [events]);
+
+  const dayEvents = useMemo(() => {
+    const sel = selected.format('YYYY-MM-DD');
+    return events
+      .filter((e) => eventCoversDay(e, sel))
+      .sort((a, b) => a.dtstart.getTime() - b.dtstart.getTime());
+  }, [events, selected]);
+
+  const todayKey = dayjs().format('YYYY-MM-DD');
+  const today = useMemo(() => dayjs(todayKey), [todayKey]);
+
+  const handleDayPress = useCallback((d: dayjs.Dayjs) => {
+    onSelectDate(d.toDate());
+  }, [onSelectDate]);
+
+  const dayHeaders = useMemo(() => {
+    const headers: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const dow = (weekStartsOn + i) % 7;
+      headers.push(dayjs().day(dow).locale(language).format('dd'));
+    }
+    return headers;
+  }, [weekStartsOn, language]);
+
+  const gridHeight = height * 0.44;
+  const [localAnchor, setLocalAnchor] = useState(date);
+  const [pagerKey, setPagerKey] = useState(0);
+  const pagerRef = useRef<InfinitePagerImperativeApi>(null);
+  const localAnchorRef = useRef(localAnchor); localAnchorRef.current = localAnchor;
+  const settledIndexRef = useRef(0);
+  const jumpTargetRef = useRef<number | null>(null);
+
+  const firstAnchorReset = useRef(true);
+  useLayoutEffect(() => {
+    if (firstAnchorReset.current) { firstAnchorReset.current = false; return; }
+    settledIndexRef.current = 0;
+    setPagerKey((k) => k + 1);
+  }, [localAnchor]);
+
+  const firstJump = useRef(true);
+  useEffect(() => {
+    if (firstJump.current) { firstJump.current = false; return; }
+    const target = monthDiff(localAnchorRef.current, jump.target);
+    const from = settledIndexRef.current;
+    if (target === from) return;
+    if (Math.abs(target - from) <= MAX_ANIMATED_JUMP_MONTHS) {
+      jumpTargetRef.current = target;
+      settledIndexRef.current = target;
+      pagerRef.current?.setPage(target, { animated: true });
+      return;
+    }
+    setLocalAnchor(jump.target);
+  }, [jump]);
+
+  const handlePageChange = useCallback((index: number) => {
+    const prev = settledIndexRef.current;
+    settledIndexRef.current = index;
+    if (jumpTargetRef.current !== null) {
+      if (index === jumpTargetRef.current) jumpTargetRef.current = null;
+      return;
+    }
+    if (index === prev) return;
+    onMonthChange(dayjs(localAnchorRef.current).add(index, 'month').startOf('month').toDate());
+  }, [onMonthChange]);
+
+  const renderPage = useCallback(({ index }: { index: number }) => {
+    const m = dayjs(localAnchor).add(index, 'month');
+    const weeks = buildMonthGrid(m.year(), m.month(), weekStartsOn);
+    return (
+      <MonthGrid
+        weeks={weeks}
+        selected={selected}
+        today={today}
+        dotMap={dotMap}
+        colors={theme.colors}
+        onDayPress={handleDayPress}
+        onPressCell={onPressCell}
+      />
+    );
+  }, [localAnchor, weekStartsOn, selected, today, dotMap, theme.colors, handleDayPress, onPressCell]);
+
+  return (
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.grid, { height: gridHeight, borderBottomColor: theme.colors.border }]}>
+        <View style={styles.dowRow}>
+          {dayHeaders.map((d, i) => (
+            <Text key={i} style={[styles.dowLabel, { color: theme.colors.textTertiary }]}>{d}</Text>
+          ))}
+        </View>
+
+        <View style={styles.pagerWrap}>
+          <InfinitePager
+            key={pagerKey}
+            ref={pagerRef}
+            style={styles.fill}
+            pageWrapperStyle={styles.fill}
+            renderPage={renderPage}
+            onPageChange={handlePageChange}
+            pageBuffer={1}
+          />
+        </View>
+      </View>
+
+      <View style={styles.dayList}>
+        <Text style={[styles.dayListHeader, { color: theme.colors.textSecondary }]}>
+          {selected.locale(language).format('dddd, LL')}
+        </Text>
+        {dayEvents.length === 0 ? (
+          <Text style={[styles.emptyText, { color: theme.colors.textTertiary }]}>{t('calendar.noEvents')}</Text>
+        ) : (
+          <FlatList
+            data={dayEvents}
+            keyExtractor={(e, i) => `${e.calendarId}-${e.uid}-${e.dtstart.getTime()}-${i}`}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[styles.eventRow, { borderLeftColor: item.color, backgroundColor: theme.colors.surface }]}
+                onPress={() => onPressEvent(item)}
+              >
+                <View style={[styles.eventColorBar, { backgroundColor: item.color }]} />
+                <View style={styles.eventInfo}>
+                  <Text style={[styles.eventTitle, { color: theme.colors.text }]} numberOfLines={1}>
+                    {item.summary}
+                  </Text>
+                  <Text style={[styles.eventTime, { color: theme.colors.textSecondary }]}>
+                    {item.allDay
+                      ? t('calendar.allDay')
+                      : `${formatTime(item.dtstart)} – ${formatTime(item.dtend)}`}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+            contentContainerStyle={{ paddingBottom: 16 }}
+          />
+        )}
+      </View>
+    </View>
+  );
+}
+
+export const MonthDayView = memo(MonthDayViewImpl);
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  fill: { flex: 1 },
+  grid: { borderBottomWidth: StyleSheet.hairlineWidth },
+  dowRow: { flexDirection: 'row', paddingVertical: 6 },
+  dowLabel: { flex: 1, textAlign: 'center', fontSize: 11, fontWeight: '600', textTransform: 'uppercase' },
+  pagerWrap: { flex: 1 },
+  monthPage: { flex: 1 },
+  weekRow: { flex: 1, flexDirection: 'row' },
+  dayCell: { flex: 1, alignItems: 'center', paddingTop: 2 },
+  dayCircle: { width: 32, height: 32, borderRadius: 16, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  dayNumber: { fontSize: 14, textAlign: 'center' },
+  dotsRow: { flexDirection: 'row', gap: 2, marginTop: 2 },
+  dot: { width: 5, height: 5, borderRadius: 3 },
+  dayList: { flex: 1, paddingHorizontal: 16, paddingTop: 12 },
+  dayListHeader: { fontSize: 13, fontWeight: '600', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
+  emptyText: { fontSize: 15, textAlign: 'center', marginTop: 32 },
+  eventRow: { flexDirection: 'row', borderRadius: 8, marginBottom: 8, overflow: 'hidden' },
+  eventColorBar: { width: 4 },
+  eventInfo: { flex: 1, padding: 10 },
+  eventTitle: { fontSize: 15, fontWeight: '500' },
+  eventTime: { fontSize: 12, marginTop: 2 },
+});
