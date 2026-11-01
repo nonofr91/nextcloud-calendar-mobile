@@ -1,4 +1,4 @@
-import type { Account, TaskProcessingTask, TaskTypeInfo } from '@/types';
+import type { Account, TaskProcessingStatus, TaskProcessingTask, TaskTypeInfo } from '@/types';
 import { httpErrorFrom } from '../shared/errors';
 import { trustedFetch } from '../shared/trustedFetch';
 
@@ -21,6 +21,22 @@ function ocsHeaders(account: TaskAccount): Record<string, string> {
   };
 }
 
+const STATUS_BY_NAME: Record<string, TaskProcessingStatus> = {
+  STATUS_UNKNOWN: 0,
+  STATUS_SCHEDULED: 1,
+  STATUS_RUNNING: 2,
+  STATUS_SUCCESSFUL: 3,
+  STATUS_FAILED: 4,
+  STATUS_CANCELLED: 5,
+};
+
+// NC serializes status as int on older versions, STATUS_* string on newer ones.
+function normalizeStatus(raw: unknown): TaskProcessingStatus {
+  if (typeof raw === 'number' && raw >= 0 && raw <= 5) return raw as TaskProcessingStatus;
+  if (typeof raw === 'string') return STATUS_BY_NAME[raw] ?? 0;
+  return 0;
+}
+
 // Tolerates both `ocs.data.task` nested and flattened `ocs.data` task shapes.
 function taskFrom(json: any, context: string): TaskProcessingTask {
   const data = json?.ocs?.data;
@@ -28,7 +44,7 @@ function taskFrom(json: any, context: string): TaskProcessingTask {
   if (!task || typeof task.id !== 'number') {
     throw new Error(`${context}: response carried no task`);
   }
-  return task;
+  return { ...task, status: normalizeStatus(task.status) };
 }
 
 export function hasTextTaskType(

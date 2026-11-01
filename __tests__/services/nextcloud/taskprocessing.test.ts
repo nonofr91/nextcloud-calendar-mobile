@@ -43,7 +43,7 @@ function httpResponse(status: number, body?: unknown) {
   };
 }
 
-const task = (id: number, status: number, extra: object = {}) => ({
+const task = (id: number, status: number | string, extra: object = {}) => ({
   id,
   type: 'core:text2text',
   status,
@@ -146,6 +146,19 @@ describe('scheduleTask', () => {
     fetchMock.mockResolvedValueOnce(httpResponse(400));
     await expect(scheduleTask(account, 'x', {})).rejects.toThrow('scheduleTask HTTP 400');
   });
+
+  it('normalizes STATUS_* string statuses to numbers (NC35)', async () => {
+    fetchMock.mockResolvedValueOnce(httpResponse(200, ocsTask(task(7, 'STATUS_SCHEDULED'))));
+    expect((await scheduleTask(account, 'x', {})).status).toBe(1);
+    fetchMock.mockResolvedValueOnce(
+      httpResponse(200, ocsTask(task(7, 'STATUS_SUCCESSFUL', { output: { output: 'ok' } })))
+    );
+    expect((await getTask(account, 7))?.status).toBe(3);
+    fetchMock.mockResolvedValueOnce(httpResponse(200, ocsTask(task(7, 'STATUS_FAILED'))));
+    expect((await getTask(account, 7))?.status).toBe(4);
+    fetchMock.mockResolvedValueOnce(httpResponse(200, ocsTask(task(7, 'STATUS_SOMETHING_ELSE'))));
+    expect((await getTask(account, 7))?.status).toBe(0);
+  });
 });
 
 describe('getTask', () => {
@@ -225,6 +238,15 @@ describe('pollTask', () => {
     fetchMock.mockResolvedValueOnce(httpResponse(200, ocsTask(task(5, 2))));
     fetchMock.mockResolvedValueOnce(httpResponse(404));
     await expect(pollTask(account, 5, opts)).rejects.toThrow('task purged');
+  });
+
+  it('resolves immediately on a STATUS_* string terminal status', async () => {
+    fetchMock.mockResolvedValueOnce(
+      httpResponse(200, ocsTask(task(5, 'STATUS_SUCCESSFUL', { output: { output: 'done' } })))
+    );
+    const t = await pollTask(account, 5, opts);
+    expect(t.status).toBe(3);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('treats failed (4) and cancelled (5) as terminal', async () => {
