@@ -93,7 +93,8 @@ export type CalendarAppStatus = 'unknown' | 'available' | 'unconfigured';
 export type TaskTypeSlotShape = {
     name: string;
     description: string;
-    type: number;
+    /** ShapeEnum — int on older NC, enum name string on newer ones. */
+    type: number | string;
     mandatory: boolean;
 };
 

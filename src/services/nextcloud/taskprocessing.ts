@@ -47,10 +47,39 @@ function taskFrom(json: any, context: string): TaskProcessingTask {
   return { ...task, status: normalizeStatus(task.status) };
 }
 
+// NC serializes ShapeEnum as int on older versions, enum name on newer ones.
+const SHAPE_TYPE_BY_NAME: Record<string, number> = {
+  Text: 1,
+  Number: 2,
+  Enum: 3,
+  File: 4,
+  Image: 5,
+  Audio: 6,
+  Video: 7,
+  ListOfTexts: 8,
+  ListOfNumbers: 9,
+  ListOfEnums: 10,
+  ListOfFiles: 11,
+  ListOfImages: 12,
+  ListOfAudios: 13,
+  ListOfVideos: 14,
+};
+
+export function shapeTypeOf(slot: { type?: number | string } | undefined): number {
+  const t = slot?.type;
+  if (typeof t === 'number') return t;
+  if (typeof t === 'string') return SHAPE_TYPE_BY_NAME[t] ?? 0;
+  return 0;
+}
+
 function isEligibleTextType(info: TaskTypeInfo | undefined): boolean {
   if (!info || info.isInternal) return false;
-  const textIn = Object.values(info.inputShape ?? {}).some((s) => s?.type === TEXT_SLOT_TYPE);
-  const textOut = Object.values(info.outputShape ?? {}).some((s) => s?.type === TEXT_SLOT_TYPE);
+  const textIn = Object.values(info.inputShape ?? {}).some(
+    (s) => shapeTypeOf(s) === TEXT_SLOT_TYPE
+  );
+  const textOut = Object.values(info.outputShape ?? {}).some(
+    (s) => shapeTypeOf(s) === TEXT_SLOT_TYPE
+  );
   return textIn && textOut;
 }
 

@@ -107,6 +107,39 @@ describe('hasTextTaskType', () => {
       })
     ).toBeNull();
   });
+
+  it('accepts NC35 string-serialized ShapeEnum names', () => {
+    // NC >= 35 serializes slot type as 'Text'/'Enum'/… instead of int.
+    const stringSlot = { name: 'in', description: '', type: 'Text' as const, mandatory: true };
+    const enumSlot = { name: 'e', description: '', type: 'Enum' as const, mandatory: true };
+    expect(
+      hasTextTaskType({
+        'core:text2text:summary': textType({
+          inputShape: { input: stringSlot },
+          outputShape: { output: stringSlot },
+        }),
+      })
+    ).toBe('core:text2text:summary');
+    // A text in/out type with extra non-text inputs (e.g. translate) still counts.
+    expect(
+      hasTextTaskType({
+        'core:text2text:translate': textType({
+          inputShape: { input: stringSlot, target_language: enumSlot },
+          outputShape: { output: stringSlot },
+        }),
+      })
+    ).toBe('core:text2text:translate');
+    // String 'Audio'-only shapes don't qualify.
+    const audioSlot = { name: 'a', description: '', type: 'Audio' as const, mandatory: true };
+    expect(
+      hasTextTaskType({
+        'core:audio2audio': textType({
+          inputShape: { input: audioSlot },
+          outputShape: { output: audioSlot },
+        }),
+      })
+    ).toBeNull();
+  });
 });
 
 describe('fetchTaskTypes', () => {
