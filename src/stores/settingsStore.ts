@@ -20,6 +20,7 @@ interface SettingsState {
   hapticsEnabled: boolean;
   reduceMotion: boolean;
   talkOpenMode: TalkOpenMode;
+  aiEnabled: boolean;
   defaultCalendarByAccount: Record<string, string>;
   setThemePreference: (pref: ThemePreference) => void;
   setLanguage: (lang: AppLanguage) => void;
@@ -32,6 +33,7 @@ interface SettingsState {
   setHapticsEnabled: (v: boolean) => void;
   setReduceMotion: (v: boolean) => void;
   setTalkOpenMode: (v: TalkOpenMode) => void;
+  setAiEnabled: (v: boolean) => void;
   setDefaultCalendar: (accountId: string, calendarId: string | undefined) => void;
 }
 
@@ -49,6 +51,7 @@ export const useSettingsStore = create<SettingsState>()(
       hapticsEnabled: true,
       reduceMotion: false,
       talkOpenMode: 'app',
+      aiEnabled: false,
       defaultCalendarByAccount: {},
       setTimedAlerts: (v) => set({ timedAlerts: v }),
       setAllDayAlerts: (v) => set({ allDayAlerts: v }),
@@ -61,6 +64,7 @@ export const useSettingsStore = create<SettingsState>()(
       setHapticsEnabled: (v) => set({ hapticsEnabled: v }),
       setReduceMotion: (v) => set({ reduceMotion: v }),
       setTalkOpenMode: (v) => set({ talkOpenMode: v }),
+      setAiEnabled: (v) => set({ aiEnabled: v }),
       setDefaultCalendar: (accountId, calendarId) =>
         set((s) => {
           const next = { ...s.defaultCalendarByAccount };
@@ -103,6 +107,7 @@ export const useSettingsStore = create<SettingsState>()(
         hapticsEnabled: state.hapticsEnabled,
         reduceMotion: state.reduceMotion,
         talkOpenMode: state.talkOpenMode,
+        aiEnabled: state.aiEnabled,
         defaultCalendarByAccount: state.defaultCalendarByAccount,
       }),
     }

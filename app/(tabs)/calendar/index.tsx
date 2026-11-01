@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useMemo, useRef } from 'react';
+import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -21,6 +21,7 @@ import { useCalendarDrawer } from '@/features/calendar/hooks/useCalendarDrawer';
 import { useZoom } from '@/features/calendar/hooks/useZoom';
 import { useMonthReturn } from '@/features/calendar/hooks/useMonthReturn';
 import { CalendarTopBar } from '@/features/calendar/components/CalendarTopBar';
+import { DaySummarySheet } from '@/features/ai/DaySummarySheet';
 import { TimeGridView } from '@/features/calendar/components/TimeGridView';
 import { ViewLayer } from '@/features/calendar/components/ViewLayer';
 import { CalendarFab } from '@/features/calendar/components/CalendarFab';
@@ -126,6 +127,14 @@ export default function CalendarScreen() {
     [activeAccount, mutateAsync, t, recurrenceScopeStrings]
   );
 
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const openSummary = useCallback(() => setSummaryOpen(true), []);
+  const closeSummary = useCallback(() => setSummaryOpen(false), []);
+  const summaryDayIso = useMemo(
+    () => dayjs(viewMode === 'schedule' ? agendaVisibleDate : date).format('YYYY-MM-DD'),
+    [viewMode, agendaVisibleDate, date]
+  );
+
   const isToday = viewMode === 'schedule'
     ? dayjs(agendaVisibleDate).isSame(dayjs(), 'day')
     : dayjs(date).isSame(dayjs(), 'day');
@@ -152,6 +161,7 @@ export default function CalendarScreen() {
         onOpenDrawer={drawer.openDrawer}
         onToday={nav.goToday}
         onSwitchMode={nav.switchMode}
+        onOpenSummary={openSummary}
       />
 
       <OfflineBanner />
@@ -221,6 +231,8 @@ export default function CalendarScreen() {
           router.push({ pathname: '/event/new', params: { date: start.toISOString() } });
         })}
       />
+
+      <DaySummarySheet visible={summaryOpen} onClose={closeSummary} dayIso={summaryDayIso} />
 
       <CalendarDrawer
         open={drawer.drawerOpen}

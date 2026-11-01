@@ -373,5 +373,32 @@
     "remedy": "Sicherere Optionen: den Server über ein VPN wie Tailscale oder WireGuard erreichen oder ein kostenloses Zertifikat mit DuckDNS und Let's Encrypt einrichten.",
     "connect": "Trotzdem verbinden",
     "cancel": "Abbrechen"
+  },
+  "ai": {
+    "title": "KI-Assistent",
+    "enable": "KI-Funktionen aktivieren",
+    "provider": "KI-Anbieter",
+    "providerAvailable": "Verfügbar: {{name}}",
+    "providerUnavailable": "Auf diesem Server ist kein KI-Anbieter verfügbar",
+    "privacyNotice": "Wenn aktiviert, werden Titel, Zeiten und Orte von Terminen an deinen Nextcloud-Server gesendet, damit dessen KI-Anbieter Zusammenfassungen und Entwürfe erzeugen kann. Die Daten bleiben auf deinem Server — die App sendet nichts an Drittdienste.",
+    "disclosure": "Von der KI deines Servers generiert",
+    "regenerate": "Neu generieren",
+    "thinking": "Denkt nach…",
+    "copy": "Kopieren",
+    "descriptionDraft": "Mit KI entwerfen",
+    "error": "Die KI-Anfrage ist fehlgeschlagen. Bitte erneut versuchen.",
+    "summary": {
+      "empty": "Keine Termine",
+      "events_one": "{{count}} Termin",
+      "events_other": "{{count}} Termine",
+      "events_few": "{{count}} Termine",
+      "events_many": "{{count}} Termine",
+      "tasks_one": "{{count}} Aufgabe",
+      "tasks_other": "{{count}} Aufgaben",
+      "tasks_few": "{{count}} Aufgaben",
+      "tasks_many": "{{count}} Aufgaben",
+      "next": "nächster:",
+      "at": "um"
+    }
   }
 }
