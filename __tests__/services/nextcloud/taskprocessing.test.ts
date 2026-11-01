@@ -5,6 +5,7 @@ import {
   getTask,
   cancelTask,
   pollTask,
+  TaskPollTimeout,
 } from '@/services/nextcloud/taskprocessing';
 import { trustedFetch } from '@/services/shared/trustedFetch';
 import type { TaskTypeInfo } from '@/types';
@@ -77,6 +78,22 @@ describe('hasTextTaskType', () => {
     expect(
       hasTextTaskType({
         'core:text2text:headline': textType({ isInternal: true }),
+        'app:text:gen': textType(),
+      })
+    ).toBe('app:text:gen');
+  });
+
+  it('skips preferred types that are internal or lack text slots', () => {
+    // An internal preferred id must not shadow a usable fallback.
+    expect(
+      hasTextTaskType({
+        'core:text2text:summary': textType({ isInternal: true }),
+        'core:text2text': textType(),
+      })
+    ).toBe('core:text2text');
+    expect(
+      hasTextTaskType({
+        'core:text2text': textType({ outputShape: { image: IMAGE } }),
         'app:text:gen': textType(),
       })
     ).toBe('app:text:gen');
@@ -210,10 +227,16 @@ describe('pollTask', () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
-  it('resolves the last-known task on timeout', async () => {
+  it('throws TaskPollTimeout carrying the last-known task on timeout', async () => {
     fetchMock.mockResolvedValue(httpResponse(200, ocsTask(task(5, 2))));
-    const t = await pollTask(account, 5, { intervalMs: 1, timeoutMs: 15 });
-    expect(t.status).toBe(2);
+    const err = await pollTask(account, 5, { intervalMs: 1, timeoutMs: 15 }).then(
+      () => {
+        throw new Error('expected timeout');
+      },
+      (e) => e
+    );
+    expect(err).toBeInstanceOf(TaskPollTimeout);
+    expect(err.task?.status).toBe(2);
   });
 
   it('throws when already aborted before starting', async () => {

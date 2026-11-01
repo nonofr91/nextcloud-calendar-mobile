@@ -47,20 +47,22 @@ function taskFrom(json: any, context: string): TaskProcessingTask {
   return { ...task, status: normalizeStatus(task.status) };
 }
 
+function isEligibleTextType(info: TaskTypeInfo | undefined): boolean {
+  if (!info || info.isInternal) return false;
+  const textIn = Object.values(info.inputShape ?? {}).some((s) => s?.type === TEXT_SLOT_TYPE);
+  const textOut = Object.values(info.outputShape ?? {}).some((s) => s?.type === TEXT_SLOT_TYPE);
+  return textIn && textOut;
+}
+
 export function hasTextTaskType(
   taskTypes: Record<string, TaskTypeInfo> | null | undefined
 ): string | null {
   if (!taskTypes) return null;
   for (const id of PREFERRED_TEXT_TYPES) {
-    if (taskTypes[id]) return id;
+    if (isEligibleTextType(taskTypes[id])) return id;
   }
   for (const [id, info] of Object.entries(taskTypes)) {
-    if (info?.isInternal) continue;
-    const textIn = Object.values(info?.inputShape ?? {}).some((s) => s?.type === TEXT_SLOT_TYPE);
-    const textOut = Object.values(info?.outputShape ?? {}).some(
-      (s) => s?.type === TEXT_SLOT_TYPE
-    );
-    if (textIn && textOut) return id;
+    if (isEligibleTextType(info)) return id;
   }
   return null;
 }
@@ -122,6 +124,17 @@ function abortError(): Error {
   return e;
 }
 
+// Thrown at the polling deadline while the task is still scheduled/running —
+// distinct from a terminal task failure so callers can keep waiting or cancel.
+export class TaskPollTimeout extends Error {
+  task: TaskProcessingTask | null;
+  constructor(task: TaskProcessingTask | null) {
+    super(`pollTask: timeout, last status ${task?.status ?? 'unknown'}`);
+    this.name = 'TaskPollTimeout';
+    this.task = task;
+  }
+}
+
 function sleep(ms: number, signal?: AbortSignal): Promise<'elapsed' | 'aborted'> {
   return new Promise((resolve) => {
     if (signal?.aborted) {
@@ -158,7 +171,7 @@ export async function pollTask(
     last = task;
     if (TERMINAL_STATUSES.includes(task.status)) return task;
     const remaining = deadline - Date.now();
-    if (remaining <= 0) return last;
+    if (remaining <= 0) throw new TaskPollTimeout(last);
     if ((await sleep(Math.min(intervalMs, remaining), opts?.signal)) === 'aborted') {
       throw abortError();
     }
