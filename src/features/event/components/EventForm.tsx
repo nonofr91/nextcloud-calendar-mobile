@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'expo-router';
+import { Sparkles } from 'lucide-react-native';
 import { TalkToggle } from './TalkToggle';
 import { AttendeesField } from './AttendeesField';
 import { FindTimeSuggestSheet } from './FindTimeSuggestSheet';
@@ -32,6 +33,9 @@ import type {
 } from '@/types';
 import { TimezonePicker } from './TimezonePicker';
 import { isValidTimeZone, resolveAccountTimezone, wallDateToUtc, zonedUtcToWallDate } from '@/utils/timezone';
+import { useTaskTypes } from '@/features/ai/useTaskTypes';
+import { useTextTask } from '@/features/ai/useTextTask';
+import { draftDescriptionPrompt } from '@/features/ai/prompts';
 
 dayjs.extend(localizedFormat);
 
@@ -85,6 +89,17 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
   const { t } = useTranslation();
   const { use24h, timeFormat, formatTime } = useTimeFormat();
   const language = useSettingsStore((s) => s.language);
+  const aiEnabled = useSettingsStore((s) => s.aiEnabled);
+  const { textTaskType } = useTaskTypes();
+  const {
+    state: aiDraftState,
+    output: aiDraftOutput,
+    error: aiDraftError,
+    run: runTextTask,
+    reset: resetTextTask,
+  } = useTextTask();
+  const aiDraftVisible = aiEnabled && !!textTaskType;
+  const aiDraftRunning = aiDraftState === 'scheduling' || aiDraftState === 'running';
   const twoColDates = useWindowDimensions().width >= 600;
 
   const iosPickerLocale = timeFormat === 'auto'
@@ -344,6 +359,24 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
 
   useImperativeHandle(ref, () => ({ submit: handleSubmit }));
 
+  useEffect(() => {
+    if (aiDraftState === 'done' && aiDraftOutput) {
+      setDescription(aiDraftOutput);
+      resetTextTask();
+    }
+  }, [aiDraftState, aiDraftOutput, resetTextTask]);
+
+  function handleAiDraft() {
+    void runTextTask(
+      draftDescriptionPrompt({
+        summary: summary.trim(),
+        start: dtstart.toISOString(),
+        end: dtend.toISOString(),
+        location: location.trim() || undefined,
+      })
+    );
+  }
+
   const startBlock = (
     <View style={twoColDates ? styles.grow : undefined}>
       {Platform.OS === 'ios' ? (
@@ -513,7 +546,6 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
           />
         )}
 
-
         <Stack
           direction={twoColDates ? 'horizontal' : 'vertical'}
           gap={twoColDates ? 12 : 16}
@@ -573,16 +605,39 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
         </View>
 
         <View onLayout={(e) => onFieldLayout('description', e)}>
-          <TextField
-            label={t('event.description')}
-            value={description}
-            onChangeText={setDescription}
-            placeholder={t('event.descriptionPlaceholder')}
-            multiline
-            numberOfLines={3}
-            style={styles.multiline}
-            onFocus={() => scrollToField('description')}
-          />
+          <Stack gap={4} hAlign="stretch">
+            <TextField
+              label={t('event.description')}
+              value={description}
+              onChangeText={setDescription}
+              placeholder={t('event.descriptionPlaceholder')}
+              multiline
+              numberOfLines={3}
+              style={styles.multiline}
+              onFocus={() => scrollToField('description')}
+            />
+            {aiDraftVisible && (
+              <>
+                <Button
+                  testID="event-form-ai-draft"
+                  variant="link"
+                  size="small"
+                  inline
+                  alignment="start"
+                  loading={aiDraftRunning}
+                  disabled={!summary.trim()}
+                  icon={<Sparkles size={16} color={theme.colors.primary} />}
+                  title={t('ai.descriptionDraft')}
+                  onPress={handleAiDraft}
+                />
+                {aiDraftState === 'failed' && aiDraftError ? (
+                  <Typography variant="caption" color="danger" testID="event-form-ai-draft-error">
+                    {aiDraftError}
+                  </Typography>
+                ) : null}
+              </>
+            )}
+          </Stack>
         </View>
 
         <AttendeesField

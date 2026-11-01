@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Menu, Headphones, Mic, Search } from 'lucide-react-native';
+import { Menu, Headphones, Mic, Search, Sparkles } from 'lucide-react-native';
 import { useTheme } from 'expo-router';
 import { Stack, Typography, Chip, Icon, AnimatedPressable } from '@/ui/components';
 import { useNotificationStore } from '@/stores/notificationStore';
@@ -20,6 +20,7 @@ interface Props {
   onSwitchMode: (mode: ViewMode) => void;
   onListen?: () => void;
   onOpenVoice?: () => void;
+  onOpenSummary?: () => void;
 }
 
 const VIEW_MODE_KEYS: Record<ViewMode, string> = {
@@ -31,7 +32,7 @@ const VIEW_MODE_KEYS: Record<ViewMode, string> = {
   schedule: 'calendar.schedule',
 };
 
-function CalendarTopBarImpl({ headerTitle, isToday, viewMode, pendingInvitationsCount = 0, onOpenDrawer, onOpenSearch, onToday, onSwitchMode, onListen, onOpenVoice }: Props) {
+function CalendarTopBarImpl({ headerTitle, isToday, viewMode, pendingInvitationsCount = 0, onOpenDrawer, onOpenSearch, onToday, onSwitchMode, onListen, onOpenVoice, onOpenSummary }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const todayDisabled = isToday;
@@ -129,6 +130,21 @@ function CalendarTopBarImpl({ headerTitle, isToday, viewMode, pendingInvitations
           </Icon>
         </AnimatedPressable>
 
+        {onOpenSummary ? (
+          <AnimatedPressable
+            testID="calendar-open-summary"
+            onPress={onOpenSummary}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t('ai.title')}
+            style={styles.summaryBtn}
+          >
+            <Icon size={24}>
+              <Sparkles color={colors.primary} />
+            </Icon>
+          </AnimatedPressable>
+        ) : null}
+
         <AnimatedPressable
           testID="calendar-today"
           onPress={onToday}
@@ -179,6 +195,7 @@ const styles = StyleSheet.create({
   searchBtn: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
   listenBtn: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
   title: { flex: 1, marginHorizontal: 4 },
+  summaryBtn: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
   todayBtn: { minWidth: 44, height: 44, paddingLeft: 6, alignItems: 'flex-end', justifyContent: 'center' },
   pills: { paddingHorizontal: 12, paddingBottom: 8, gap: 8 },
 });

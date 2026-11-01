@@ -25,6 +25,7 @@ export interface SettingsState {
   talkOpenMode: TalkOpenMode;
   voiceAssistantByAccount: Record<string, boolean>;
   voiceOnDevicePreferred: boolean;
+  aiEnabled: boolean;
   defaultCalendarByAccount: Record<string, string>;
   pushNotifications: boolean;
   setThemePreference: (pref: ThemePreference) => void;
@@ -40,6 +41,7 @@ export interface SettingsState {
   setTalkOpenMode: (v: TalkOpenMode) => void;
   setVoiceAssistantEnabled: (accountId: string, v: boolean) => void;
   setVoiceOnDevicePreferred: (v: boolean) => void;
+  setAiEnabled: (v: boolean) => void;
   setDefaultCalendar: (accountId: string, calendarId: string | undefined) => void;
   setPushNotifications: (v: boolean) => void;
 }
@@ -60,6 +62,7 @@ export const useSettingsStore = create<SettingsState>()(
       talkOpenMode: 'app',
       voiceAssistantByAccount: {},
       voiceOnDevicePreferred: true,
+      aiEnabled: false,
       defaultCalendarByAccount: {},
       pushNotifications: false,
       setTimedAlerts: (v) => set({ timedAlerts: v }),
@@ -76,6 +79,7 @@ export const useSettingsStore = create<SettingsState>()(
       setVoiceAssistantEnabled: (accountId, v) =>
         set((s) => ({ voiceAssistantByAccount: { ...s.voiceAssistantByAccount, [accountId]: v } })),
       setVoiceOnDevicePreferred: (v) => set({ voiceOnDevicePreferred: v }),
+      setAiEnabled: (v) => set({ aiEnabled: v }),
       setDefaultCalendar: (accountId, calendarId) =>
         set((s) => {
           const next = { ...s.defaultCalendarByAccount };
@@ -134,6 +138,7 @@ export const useSettingsStore = create<SettingsState>()(
         talkOpenMode: state.talkOpenMode,
         voiceAssistantByAccount: state.voiceAssistantByAccount,
         voiceOnDevicePreferred: state.voiceOnDevicePreferred,
+        aiEnabled: state.aiEnabled,
         defaultCalendarByAccount: state.defaultCalendarByAccount,
         pushNotifications: state.pushNotifications,
       }),
