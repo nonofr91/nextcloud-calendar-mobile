@@ -1,0 +1,104 @@
+appId: com.soluce.nextcloudcalendar
+---
+# Documentation scenario for PR #4 (TRANSP/STATUS). Logs in, then walks the feature
+# step by step taking screenshots for the user guide + EVIDENCE.md.
+# Env: NC_URL, NC_USER, NC_PASS (shared/login.yaml), OUT_DIR.
+- runFlow: ../shared/reset.yaml
+- runFlow: ../shared/login.yaml
+- extendedWaitUntil:
+    visible:
+      id: calendar-fab-new
+    timeout: 60000
+
+# --- 01: open the new-event form, scroll to the pickers ---
+- tapOn:
+    id: calendar-fab-new
+- extendedWaitUntil:
+    visible:
+      id: event-form-title
+    timeout: 30000
+- tapOn:
+    id: event-form-title
+- inputText: Doc PR4 tentative event
+- scrollUntilVisible:
+    element:
+      id: event-form-availability
+    direction: DOWN
+- takeScreenshot: ${OUT_DIR}/01-event-form-pickers
+
+# --- 02: availability picker options ---
+- tapOn:
+    id: event-form-availability
+- takeScreenshot: ${OUT_DIR}/02-event-availability-options
+- tapOn:
+    id: event-form-availability-transparent
+
+# --- 03: status picker options ---
+- tapOn:
+    id: event-form-status
+- takeScreenshot: ${OUT_DIR}/03-event-status-options
+- tapOn:
+    id: event-form-status-tentative
+
+# --- 04: save, open the event, detail rows ---
+- scrollUntilVisible:
+    element:
+      id: event-form-save
+    direction: DOWN
+- tapOn:
+    id: event-form-save
+- extendedWaitUntil:
+    visible: Doc PR4 tentative event
+    timeout: 30000
+- tapOn: Doc PR4 tentative event
+- extendedWaitUntil:
+    visible:
+      id: event-detail-delete
+    timeout: 30000
+- takeScreenshot: ${OUT_DIR}/04-event-detail-status
+- pressBack
+
+# --- 05: agenda view — tentative italicized ---
+- tapOn:
+    id: calendar-mode-agenda
+- extendedWaitUntil:
+    visible: Doc PR4 tentative event
+    timeout: 30000
+- takeScreenshot: ${OUT_DIR}/05-agenda-tentative-italic
+
+# --- 06: edit -> Cancelled -> agenda strikethrough ---
+- tapOn: Doc PR4 tentative event
+- extendedWaitUntil:
+    visible:
+      id: event-detail-delete
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: event-detail-edit
+    direction: DOWN
+- tapOn:
+    id: event-detail-edit
+- extendedWaitUntil:
+    visible:
+      id: event-form-status
+    timeout: 30000
+- tapOn:
+    id: event-form-status
+- tapOn:
+    id: event-form-status-cancelled
+- scrollUntilVisible:
+    element:
+      id: event-form-save
+    direction: DOWN
+- tapOn:
+    id: event-form-save
+- extendedWaitUntil:
+    visible:
+      id: event-detail-delete
+    timeout: 30000
+- takeScreenshot: ${OUT_DIR}/06-event-detail-cancelled
+- pressBack
+- extendedWaitUntil:
+    visible: Doc PR4 tentative event
+    timeout: 30000
+- takeScreenshot: ${OUT_DIR}/07-agenda-cancelled-strikethrough
