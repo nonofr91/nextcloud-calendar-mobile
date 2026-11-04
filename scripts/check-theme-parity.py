@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Check parity between Penpot design tokens and the app theme.
 
-Compares `penpot/Nextcloud Calendar Mobile/tokens.json` (DTCG export from the
-Penpot file) with the constants in `src/theme.ts`. Exits non-zero and prints a
-diff report when the design source and the code theme drift apart.
+Compares `penpot/tokens.json` (canonical DTCG export of the Penpot file) with
+the constants in `src/theme.ts`. Exits non-zero and prints a diff report when
+the design source and the code theme drift apart.
 
 Usage: python3 scripts/check-theme-parity.py
 """
