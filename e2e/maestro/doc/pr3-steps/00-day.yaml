@@ -1,0 +1,9 @@
+appId: com.soluce.nextcloudcalendar
+---
+- runFlow: ../../shared/ensure-home.yaml
+- tapOn:
+    id: calendar-mode-day
+- extendedWaitUntil:
+    visible:
+      id: calendar-listen
+    timeout: 15000

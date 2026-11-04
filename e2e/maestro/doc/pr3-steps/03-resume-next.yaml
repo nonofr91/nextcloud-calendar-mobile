@@ -1,0 +1,6 @@
+appId: com.soluce.nextcloudcalendar
+---
+- tapOn:
+    id: briefing-toggle
+- tapOn:
+    id: briefing-next

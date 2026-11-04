@@ -1,0 +1,8 @@
+appId: com.soluce.nextcloudcalendar
+---
+- tapOn:
+    id: briefing-stop
+- extendedWaitUntil:
+    notVisible:
+      id: briefing-bar
+    timeout: 10000

@@ -1,0 +1,42 @@
+appId: com.soluce.nextcloudcalendar
+---
+# Doc flow for PR #3 — spoken day briefing ("Listen to my day").
+# Assumes the app is already logged in and the displayed day has events.
+# Screenshots land in ~/.maestro/tests/<ts>/pr3-spoken-briefing/takeScreenshot/.
+- runFlow: ../shared/ensure-home.yaml
+# Day view shows today's events — the briefing reads them aloud.
+- tapOn:
+    id: calendar-mode-day
+- extendedWaitUntil:
+    visible:
+      id: calendar-listen
+    timeout: 15000
+- takeScreenshot: 01-day-listen-button
+# Start the briefing → BriefingBar appears with the spoken text and controls.
+- tapOn:
+    id: calendar-listen
+- extendedWaitUntil:
+    visible:
+      id: briefing-bar
+    timeout: 15000
+- takeScreenshot: 02-briefing-speaking
+# Pause → on Android the current utterance is halted and the toggle flips to play.
+- tapOn:
+    id: briefing-toggle
+- takeScreenshot: 03-briefing-paused
+# Resume re-speaks the interrupted segment.
+- tapOn:
+    id: briefing-toggle
+- takeScreenshot: 04-briefing-resumed
+# Skip to the next segment.
+- tapOn:
+    id: briefing-next
+- takeScreenshot: 05-briefing-next
+# Stop → the bar disappears.
+- tapOn:
+    id: briefing-stop
+- extendedWaitUntil:
+    notVisible:
+      id: briefing-bar
+    timeout: 10000
+- takeScreenshot: 06-briefing-stopped
