@@ -71,6 +71,7 @@ export interface VoiceAssistant {
     reply?: string;
     errorText?: string;
     open: () => void;
+    openWith: (text: string) => void;
     close: () => void;
     submitText: (text: string) => void;
     confirm: () => void;
@@ -792,6 +793,16 @@ export function useVoiceAssistant(account: Account | null, calendars: CalendarMe
         };
     }, [close, cancelAutoClose]);
 
+    // Deep-link entry: open the sheet and route a pre-formed utterance
+    // straight into the intent pipeline (skips STT).
+    const openWith = useCallback(
+        (text: string) => {
+            open();
+            submitText(text);
+        },
+        [open, submitText],
+    );
+
     return {
         visible,
         state,
@@ -801,6 +812,7 @@ export function useVoiceAssistant(account: Account | null, calendars: CalendarMe
         reply,
         errorText,
         open,
+        openWith,
         close,
         submitText,
         confirm,

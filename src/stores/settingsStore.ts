@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { legacyBackedStorage } from '@/stores/legacyStorage';
 import { getInitialLanguage, getInitialWeekStartsOn, type AppLanguage } from '@/utils/i18n';
+import { SHARED_KEYS, setSharedString } from '@/services/shared/appGroupStorage';
 import type { TalkOpenMode } from '@/types';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
@@ -67,7 +68,11 @@ export const useSettingsStore = create<SettingsState>()(
       setHapticsEnabled: (v) => set({ hapticsEnabled: v }),
       setReduceMotion: (v) => set({ reduceMotion: v }),
       setTalkOpenMode: (v) => set({ talkOpenMode: v }),
-      setVoiceAssistantEnabled: (v) => set({ voiceAssistantEnabled: v }),
+      setVoiceAssistantEnabled: (v) => {
+        // Siri App Intents gate on this flag through shared app-group defaults.
+        setSharedString(SHARED_KEYS.voiceEnabled, v ? '1' : '0');
+        set({ voiceAssistantEnabled: v });
+      },
       setVoiceOnDevicePreferred: (v) => set({ voiceOnDevicePreferred: v }),
       setDefaultCalendar: (accountId, calendarId) =>
         set((s) => {
