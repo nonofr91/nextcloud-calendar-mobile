@@ -601,7 +601,7 @@ export function useVoiceAssistant(account: Account | null, calendars: CalendarMe
         });
     }, [handleUtterance, locale, setStatus, promptWith, t]);
 
-    const open = useCallback(() => {
+    const resetSheet = useCallback(() => {
         genRef.current += 1;
         cancelAutoClose();
         setVisible(true);
@@ -610,8 +610,12 @@ export function useVoiceAssistant(account: Account | null, calendars: CalendarMe
         setIntentDescription(undefined);
         setCandidates([]);
         setErrorText(undefined);
+    }, [cancelAutoClose]);
+
+    const open = useCallback(() => {
+        resetSheet();
         void listen();
-    }, [listen, cancelAutoClose]);
+    }, [resetSheet, listen]);
 
     const close = useCallback(() => {
         genRef.current += 1;
@@ -812,13 +816,14 @@ export function useVoiceAssistant(account: Account | null, calendars: CalendarMe
     }, [close, cancelAutoClose]);
 
     // Deep-link entry: open the sheet and route a pre-formed utterance
-    // straight into the intent pipeline (skips STT).
+    // straight into the intent pipeline (skips STT — no mic permission
+    // prompt for a request Siri already transcribed).
     const openWith = useCallback(
         (text: string) => {
-            open();
+            resetSheet();
             submitText(text);
         },
-        [open, submitText],
+        [resetSheet, submitText],
     );
 
     return {
