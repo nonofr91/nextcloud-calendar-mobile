@@ -16,6 +16,26 @@ icônes Lucide, flows nommés et overlays, en parité avec le code React Native.
 | `penpot/<file>.penpot` | Export binaire du fichier (backup versionnable, ignoré sauf *.penpot) |
 | `penpot/*/ ` | Export dézippé — **regénérable, ignoré par git** |
 
+## Workflow design-first (features avec UI)
+
+Règle permanente (voir `AGENTS.md` racine) : **design d'abord, code ensuite.**
+
+1. **Maquetter dans Penpot** — réutiliser composants+variantes, boards
+   `Screen / <route>`, tokens pour toute valeur visuelle, flow nommé +
+   interactions pour le parcours.
+2. **Exporter `tokens.json`** si des tokens changent — même branche.
+3. **Coder** en consommant `src/theme.ts` — zéro valeur en dur couverte par
+   un token ; `pluginData rn-component` = le composant RN à utiliser.
+4. **`just theme-parity` vert** — CI fork l'exige.
+
+### Fork → upstream
+
+- Features avec UI : branche depuis `dev` **sur le fork** — les artefacts
+  Penpot ne quittent pas le fork (CI Penpot fork-only).
+- Commits Penpot séparés (`chore(penpot): …`) → cherry-pick code-only pour
+  les PR upstream.
+- `fix/` : direct upstream, pas de Penpot sauf si un token est touché.
+
 ## Contrat design ↔ code
 
 - Les noms de tokens Penpot correspondent **exactement** aux clés de
