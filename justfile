@@ -23,6 +23,39 @@ e2e-build:
       && (cd android && ./gradlew assembleRelease -x lintVitalAnalyzeRelease -PreactNativeArchitectures=$abi); \
     rc=$?; git checkout -- android/app/src/main/AndroidManifest.xml; exit $rc
 
+# Incremental release build: reuse generated android/ and Gradle cache.
+# Use when the PR only touches JS/TS — skips expo prebuild entirely.
+e2e-build-inc:
+    abi=$(adb shell getprop ro.product.cpu.abi 2>/dev/null | tr -d '\r'); \
+    [ -n "$abi" ] || { [ "$(uname -m)" = arm64 ] && abi=arm64-v8a || abi=x86_64; }; \
+    if [ ! -d android/app ]; then \
+      echo "android/ missing — running expo prebuild once (no --clean)..."; \
+      EXPO_NO_GIT_STATUS=1 npx expo prebuild -p android --no-install; \
+      git checkout -- android/app/src/main/AndroidManifest.xml 2>/dev/null || true; \
+    fi; \
+    cd android && ./gradlew assembleRelease -x lintVitalAnalyzeRelease -PreactNativeArchitectures=$abi
+
+# Pick clean vs incremental build from what the PR diff touches.
+# Conservative: any change to native/config inputs → full e2e-build (prebuild --clean).
+e2e-build-auto base="origin/dev":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ ! -d android/app ]; then
+      echo "android/ missing — clean build"; just e2e-build; exit 0
+    fi
+    if ! git rev-parse --verify "{{base}}" >/dev/null 2>&1; then
+      echo "Base {{base}} not found — clean build (safe default)"; just e2e-build; exit 0
+    fi
+    if git diff --name-only "{{base}}...HEAD" -- \
+        app.config.ts app.json package.json yarn.lock \
+        patches/ plugins/ android/ ios/ | grep -q .; then
+      echo "Native/config change vs {{base}} — clean build"
+      just e2e-build
+    else
+      echo "JS/TS-only diff vs {{base}} — incremental build"
+      just e2e-build-inc
+    fi
+
 e2e *args:
     yarn jest -c e2e/jest.config.mjs "$@"
 

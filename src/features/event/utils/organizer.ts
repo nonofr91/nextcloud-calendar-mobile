@@ -3,7 +3,7 @@ import type { Account } from '@/types';
 // ORGANIZER's mailto must match an entry in the account's CalDAV
 // calendar-user-address-set, otherwise the server's scheduling broker drops
 // the invitation entirely (no inbox object, no iMIP mail). A username like
-// 'ARASABruno' is NOT a registered address — only emit well-formed emails.
+// 'TestAttendee' is NOT a registered address — only emit well-formed emails.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function resolveOrganizer(account: Account): { organizerEmail: string; organizerName: string } {
