@@ -63,10 +63,12 @@ function readAttendees(props: ICAL.Property[]): Attendee[] {
     const value = (prop.getFirstValue() as string) ?? '';
     const email = value.replace(/^mailto:/i, '');
     const displayName = (prop.getParameter('cn') as string) ?? undefined;
+    const partstat = ((prop.getParameter('partstat') as string)?.toLowerCase()) ?? undefined;
+    const role = (prop.getParameter('role') as string) ?? undefined;
     const key = email.toLowerCase();
     if (email && seen.has(key)) continue;
     if (email) seen.add(key);
-    attendees.push({ email, displayName });
+    attendees.push({ email, displayName, partstat, role });
   }
   return attendees;
 }
@@ -134,7 +136,7 @@ function isOverridden(slot: ICAL.Time, overrideIds: Set<string>): boolean {
   return overrideIds.has(slot.convertToZone(ICAL.Timezone.utcTimezone).toString());
 }
 
-function resolveInstant(t: ICAL.Time, tzid: string | undefined, isEnd = false): Date {
+export function resolveInstant(t: ICAL.Time, tzid: string | undefined, isEnd = false): Date {
   if (t.isDate) {
     return isEnd
       ? new Date(t.year, t.month - 1, t.day - 1)
@@ -177,7 +179,7 @@ function repairIcsFolding(ics: string): string {
   return out.join('\r\n');
 }
 
-function parseIcsToJcal(ics: string): ReturnType<typeof ICAL.parse> {
+export function parseIcsToJcal(ics: string): ReturnType<typeof ICAL.parse> {
   try {
     return ICAL.parse(ics);
   } catch {

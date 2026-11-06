@@ -101,6 +101,11 @@
     "descriptionPlaceholder": "Detalles...",
     "attendees": "Asistentes",
     "attendeePlaceholder": "email@example.com",
+    "myParticipation": "My participation",
+    "participationAccepted": "You are going",
+    "participationTentative": "You might go",
+    "participationDeclined": "You declined",
+    "participationNeedsAction": "No response yet",
     "add": "Añadir",
     "saving": "Guardando…",
     "saveEvent": "Guardar evento",
@@ -497,5 +502,21 @@
     "offlineNote": "Sin conexión — mostrando solo resultados locales",
     "serverFailed": "No se pudo contactar con el servidor — mostrando solo resultados locales",
     "openFailed": "No se pudo abrir este evento"
+  },
+  "invitations": {
+    "title": "Invitations",
+    "noInvitations": "No pending invitations.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "tentative": "Maybe",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "organizer": "From",
+    "selectCalendar": "Add to calendar",
+    "loading": "Loading invitations…",
+    "error": "Could not load invitations.",
+    "calendar": "Calendar",
+    "from": "From {{name}}",
+    "responseFailed": "Could not respond to the invitation."
   }
 }
