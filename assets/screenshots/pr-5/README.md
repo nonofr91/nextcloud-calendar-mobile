@@ -24,6 +24,7 @@ PC microphone routed to the emulator via Windows Stereo Mix + QEMU host mic.
 | `16-agent-created-rdv-test.png` | Agent created "Rendez-vous test" on Sat Nov 7 ~13h — then asked to move it |
 | `17-move-not-applied.png` | After "mets-le a 16h30": the event still shows at 1 PM — agent move not applied (it had previously cancelled the Nov-5 meetings instead of moving them) |
 | `18-cancelled-events-cleared-after-resync.png` | Thu Nov 5 empty after the STATUS:CANCELLED parser fix + forced full resync — the agent-cancelled meetings no longer render |
+| `19-create-attendee-busy-warning.png` | Create with a busy attendee: "Create 'Plannifie une reunion' on Monday 9 November · 10:45 in Personnel? — with Test Attendee — warning, busy at that time: Test Attendee" — free/busy checked via the CalDAV scheduling outbox after the calendar disambiguation pick |
 
 **Incident evidence**: the Nov-5 "Reunion" events were set to `STATUS:CANCELLED`
 by the agent during earlier move attempts (visible as "Cet événement a été
@@ -41,6 +42,9 @@ mutations don't invalidate the local event store.
   agent to query the wrong day; local move path also answered "No event found"
   because "midi" parsed as noon today, not Nov 5.
 - Multi-turn conversation: ✅ conversation_token carried across turns.
+- Attendee availability on create: ✅ after the disambiguation-path fix, the
+  confirmation card warns when a resolved attendee is busy (VFREEBUSY via the
+  scheduling outbox). It warns without blocking — confirm still creates.
 - Language: replies follow the language of each message (no language slot in
   the NC35 contextagent:interaction inputShape — server-side behaviour).
 
