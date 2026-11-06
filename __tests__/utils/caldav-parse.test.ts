@@ -749,6 +749,95 @@ END:VCALENDAR`;
   });
 });
 
+// An event cancelled server-side (e.g. by a Nextcloud AI agent move) keeps its
+// href but flips to STATUS:CANCELLED — it must disappear on sync, not render as
+// a live event forever.
+describe('STATUS:CANCELLED events are dropped', () => {
+  const calMetaC = { calendarId: 'cal-1', accountId: 'acc-1', color: '#0082c9' };
+
+  const cancelledEvent = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:cancelled-1
+SUMMARY:Cancelled Meeting
+DTSTART:20261105T110000Z
+DTEND:20261105T120000Z
+STATUS:CANCELLED
+END:VEVENT
+END:VCALENDAR`;
+
+  it('drops a single VEVENT with STATUS:CANCELLED', () => {
+    const events = parseIcsObjects([{ ics: cancelledEvent, href: '/c/e.ics' }], calMetaC);
+    expect(events).toHaveLength(0);
+  });
+
+  it('drops a VTODO with STATUS:CANCELLED', () => {
+    const cancelledTodo = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VTODO
+UID:todo-cancelled
+SUMMARY:Cancelled task
+DUE:20261105T110000Z
+STATUS:CANCELLED
+END:VTODO
+END:VCALENDAR`;
+    const events = parseIcsObjects([{ ics: cancelledTodo, href: '/c/t.ics' }], calMetaC);
+    expect(events).toHaveLength(0);
+  });
+
+  it('drops the whole series when the recurring master is cancelled', () => {
+    const cancelledSeries = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:weekly-cancelled
+SUMMARY:Weekly gone
+DTSTART:20260805T140000Z
+DTEND:20260805T150000Z
+RRULE:FREQ=WEEKLY
+STATUS:CANCELLED
+END:VEVENT
+END:VCALENDAR`;
+    const events = parseIcsObjects(
+      [{ ics: cancelledSeries, href: '/c/w.ics' }],
+      calMetaC,
+      new Date('2026-08-01T00:00:00Z'),
+      new Date('2026-10-01T00:00:00Z'),
+    );
+    expect(events).toHaveLength(0);
+  });
+
+  it('drops only the cancelled occurrence, keeps the rest of the series', () => {
+    const series = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:weekly-part
+SUMMARY:Weekly keep
+DTSTART:20260805T140000Z
+DTEND:20260805T150000Z
+RRULE:FREQ=WEEKLY;COUNT=3
+END:VEVENT
+BEGIN:VEVENT
+UID:weekly-part
+RECURRENCE-ID:20260812T140000Z
+DTSTART:20260812T140000Z
+DTEND:20260812T150000Z
+STATUS:CANCELLED
+END:VEVENT
+END:VCALENDAR`;
+    const events = parseIcsObjects(
+      [{ ics: series, href: '/c/wp.ics' }],
+      calMetaC,
+      new Date('2026-08-01T00:00:00Z'),
+      new Date('2026-10-01T00:00:00Z'),
+    );
+    expect(events).toHaveLength(2);
+    expect(events.map((e) => e.dtstart.toISOString())).toEqual([
+      '2026-08-05T14:00:00.000Z',
+      '2026-08-19T14:00:00.000Z',
+    ]);
+  });
+});
+
 // ical.js falls back to floating wall-clock comparison when the resource carries no
 // VTIMEZONE for the DTSTART TZID, so an EXDATE stated in any other zone excluded
 // nothing and the occurrence the server had removed came back at every sync.

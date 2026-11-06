@@ -12,6 +12,7 @@ import type {Account, CalendarEvent, CalendarMeta} from '@/types';
 import type {SyncCollectionResult} from '@/services/nextcloud/caldav';
 import {expansionHorizon, needsHorizonReset} from '@/features/calendar/utils/horizon';
 import {settleAll} from '@/utils/settle';
+import {storage} from '@/storage';
 
 import {getDatabaseInstance} from './DatabaseProvider';
 import Calendar from './models/Calendar';
@@ -267,6 +268,38 @@ export function resetDeltaSyncThrottle(): void {
     lastDeltaSyncAt.clear();
 }
 
+// Bump when parser semantics change so rows stored by the older parser get
+// refetched once: a delta sync never revisits hrefs whose change was already
+// consumed (e.g. STATUS:CANCELLED events persisted as normal before the
+// parser learned to drop them). Resetting expandedCenter forces the next
+// syncCalendarDelta down the full-sync path for every calendar.
+const PARSE_EPOCH = 2;
+const parseEpochKey = (account: Account) => `caldav-parse-epoch:${account.id}`;
+const parseEpochChecked = new Set<string>();
+
+async function ensureParseEpoch(account: Account): Promise<void> {
+    if (parseEpochChecked.has(account.id)) return;
+    parseEpochChecked.add(account.id);
+    try {
+        if (storage.getString(parseEpochKey(account)) === String(PARSE_EPOCH)) return;
+        const db = getDatabaseInstance();
+        const calendars = db.get<Calendar>('calendars');
+        const rows = await calendars
+            .query(Q.where('account_id', account.id))
+            .fetch();
+        if (rows.length > 0) {
+            await safeWrite(db, async () => {
+                await db.batch(
+                    rows.map((r) => r.prepareUpdate((c) => { c.expandedCenter = 0; })),
+                );
+            }, 30000, 'ensureParseEpoch');
+        }
+        storage.set(parseEpochKey(account), String(PARSE_EPOCH));
+    } catch (e) {
+        console.warn('[sync] parse epoch reset failed:', e);
+    }
+}
+
 export async function syncVisibleRange(
     account: Account,
     calendars: CalendarMeta[],
@@ -275,6 +308,8 @@ export async function syncVisibleRange(
     deleteMissing = true,
 ): Promise<void> {
     if (calendars.length === 0) return;
+
+    await ensureParseEpoch(account);
 
     const horizon = expansionHorizon(new Date());
     const inHorizon =

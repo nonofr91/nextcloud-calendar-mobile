@@ -76,6 +76,14 @@ function organizerEmailOf(vevent: ICAL.Component): string | undefined {
   return prop ? (prop.getFirstValue() as string).replace(/^mailto:/i, '') : undefined;
 }
 
+// A VEVENT with STATUS:CANCELLED is a tombstone, not a displayable event —
+// cancelled masters drop the whole series, cancelled RECURRENCE-ID overrides
+// drop only that occurrence.
+function isCancelled(vevent: ICAL.Component): boolean {
+  const status = vevent.getFirstPropertyValue('status');
+  return typeof status === 'string' && status.toUpperCase() === 'CANCELLED';
+}
+
 type OverridableFields = Pick<
   CalendarEvent,
   'summary' | 'description' | 'location' | 'talkUrl' | 'attendees' | 'organizerEmail' | 'alarms'
@@ -191,6 +199,8 @@ function parseVtodo(
   meta: ParseCalMeta,
   href: string,
 ): CalendarEvent | undefined {
+  if (isCancelled(vtodo)) return undefined;
+
   const uid = vtodo.getFirstPropertyValue('uid') as string | null;
   if (!uid) return undefined;
 
@@ -258,6 +268,7 @@ export function parseIcsItem(
 
     for (const vevent of vevents) {
       if (vevent.getFirstPropertyValue('recurrence-id')) continue;
+      if (isCancelled(vevent)) continue;
 
       const uid = vevent.getFirstPropertyValue('uid');
       const exceptions = vevents.filter(
@@ -358,6 +369,7 @@ export function parseIcsItem(
 
         for (const ex of overrides) {
           if (emitted >= MAX_OCCURRENCES) break;
+          if (ex.component && isCancelled(ex.component)) continue;
           if (excluded.has(resolveInstant(ex.recurrenceId, tzid).getTime())) continue;
           if (pushOccurrence(ex.recurrenceId, ex, ex.startDate, ex.endDate)) emitted++;
         }
