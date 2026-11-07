@@ -32,7 +32,7 @@ PC microphone routed to the emulator via Windows Stereo Mix + QEMU host mic.
 | `24-invite-a-accept-pending.png` | Tapping "Accept" on Invite A: all three buttons switch to loading state while `respondToInvitation` PUTs the PARTSTAT reply |
 | `25-invite-b-maybe-done.png` | After "Maybe" on Invite B: the card is gone from the inbox — server returned PARTSTAT=TENTATIVE on the organizer copy |
 | `26-invitations-after-responses.png` | Inbox after the three responses: only the two pre-existing pending invites remain (A accepted, B tentative, C declined+removed) |
-| `27-attendee-calendar-accepted.png` | TestUser's month view afterwards: "Invite" appears Nov 16 (accepted) and "Invite B" Nov 17 (tentative); declined Invite C on Nov 18 is not shown |
+| `27-attendee-calendar-accepted.png` | the attendee's month view afterwards: "Invite" appears Nov 16 (accepted) and "Invite B" Nov 17 (tentative); declined Invite C on Nov 18 is not shown |
 
 **Incident evidence**: the Nov-5 "Reunion" events were set to `STATUS:CANCELLED`
 by the agent during earlier move attempts (visible as "Cet événement a été
