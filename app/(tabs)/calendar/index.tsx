@@ -11,6 +11,8 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { ViewContainer, Spinner } from '@/ui/components';
 import { CalendarDrawer } from '@/features/calendar/components/CalendarDrawer';
 import { OfflineBanner } from '@/features/calendar/components/OfflineBanner';
+import { useIsOnline } from '@/services/shared/network';
+import { drainPending } from '@/services/pendingMutations';
 import { MonthDayView } from '@/features/calendar/components/MonthDayView';
 import { AgendaView } from '@/features/calendar/components/AgendaView';
 import { createNavigationGuard } from '@/utils/navigationGuard';
@@ -34,6 +36,8 @@ import { useUpdateEvent } from '@/features/event/hooks/useMutateEvent';
 import { askRecurrenceScope } from '@/features/event/recurrenceScope';
 import { useBriefing } from '@/features/briefing/useBriefing';
 import { BriefingBar } from '@/features/briefing/BriefingBar';
+import { useVoiceAssistant } from '@/features/voice/useVoiceAssistant';
+import { VoiceAssistantSheet } from '@/features/voice/VoiceAssistantSheet';
 
 dayjs.extend(isoWeek);
 
@@ -49,6 +53,7 @@ export default function CalendarScreen() {
   const toggleCalendarVisibility = useCalendarStore((s) => s.toggleCalendarVisibility);
   const notifDisabledCalendarIds = useCalendarStore((s) => s.notifDisabledCalendarIds);
   const toggleCalendarNotifications = useCalendarStore((s) => s.toggleCalendarNotifications);
+  const voiceAssistantEnabled = useSettingsStore((s) => s.voiceAssistantEnabled);
 
   const nav = useCalendarNavigation();
   const { viewMode, date, fetchDate, agendaVisibleDate } = nav;
@@ -70,6 +75,7 @@ export default function CalendarScreen() {
   } = useCalendarData(fetchDate, viewMode === 'schedule');
   const insets = useSafeAreaInsets();
   const drawer = useCalendarDrawer();
+  const voice = useVoiceAssistant(activeAccount, calendars);
   const briefing = useBriefing(displayedDay);
   const { start: startBriefing } = briefing;
   const handleListen = useCallback(() => {
@@ -85,6 +91,11 @@ export default function CalendarScreen() {
     void startBriefing();
     router.setParams({ autolisten: undefined });
   }, [autolisten, startBriefing, router]);
+
+  const online = useIsOnline();
+  useEffect(() => {
+    if (online && activeAccount) void drainPending(activeAccount);
+  }, [online, activeAccount]);
 
   const calendarEvents = useMemo(() => toGridEvents(allEvents), [allEvents]);
 
@@ -169,9 +180,10 @@ export default function CalendarScreen() {
         onToday={nav.goToday}
         onSwitchMode={nav.switchMode}
         onListen={handleListen}
+        onOpenVoice={voiceAssistantEnabled ? voice.open : undefined}
       />
 
-      <OfflineBanner />
+      <OfflineBanner account={activeAccount ?? null} />
 
       <View style={styles.viewArea}>
         <ViewLayer visible={deferredViewMode === 'month'}>
@@ -236,6 +248,22 @@ export default function CalendarScreen() {
         onNext={briefing.next}
         onStop={briefing.stop}
         style={StyleSheet.flatten([styles.briefingBar, { bottom: insets.bottom + 76 }])}
+      />
+
+      <VoiceAssistantSheet
+        visible={voice.visible}
+        state={voice.state === 'idle' ? 'listening' : voice.state}
+        transcript={voice.transcript}
+        intentDescription={voice.intentDescription}
+        candidates={voice.candidates}
+        reply={voice.reply}
+        errorText={voice.errorText}
+        onSubmitText={voice.submitText}
+        onConfirm={voice.confirm}
+        onCancel={voice.close}
+        onPickCandidate={voice.pickCandidate}
+        onRelisten={voice.relisten}
+        onClose={voice.close}
       />
 
       <CalendarFab
