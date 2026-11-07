@@ -25,6 +25,8 @@ PC microphone routed to the emulator via Windows Stereo Mix + QEMU host mic.
 | `17-move-not-applied.png` | After "mets-le a 16h30": the event still shows at 1 PM — agent move not applied (it had previously cancelled the Nov-5 meetings instead of moving them) |
 | `18-cancelled-events-cleared-after-resync.png` | Thu Nov 5 empty after the STATUS:CANCELLED parser fix + forced full resync — the agent-cancelled meetings no longer render |
 | `19-create-attendee-busy-warning.png` | Create with a busy attendee: "Create 'Plannifie une reunion' on Monday 9 November · 10:45 in Personnel? — with Test Attendee — warning, busy at that time: Test Attendee" — free/busy checked via the CalDAV scheduling outbox after the calendar disambiguation pick |
+| `20-create-attendee-busy-alt-slots.png` | Busy attendee → the card now offers free alternative slots the same day ("pick a free slot:" 12:00–13:00 / 14:30–15:30 / 17:00–18:00), merging attendee VFREEBUSY with the user's own blocking-calendar events; when the requested day is full the search extends up to 5 days ahead |
+| `21-alt-slot-confirm-card.png` | After picking the 12:00 candidate the confirmation card re-arms at the new time: "Create 'Plannifie une reunion' on Monday 9 November · 12:00 in Personnel? — with Test Attendee" |
 
 **Incident evidence**: the Nov-5 "Reunion" events were set to `STATUS:CANCELLED`
 by the agent during earlier move attempts (visible as "Cet événement a été
@@ -44,7 +46,10 @@ mutations don't invalidate the local event store.
 - Multi-turn conversation: ✅ conversation_token carried across turns.
 - Attendee availability on create: ✅ after the disambiguation-path fix, the
   confirmation card warns when a resolved attendee is busy (VFREEBUSY via the
-  scheduling outbox). It warns without blocking — confirm still creates.
+  scheduling outbox) and offers free alternative slots (same day first, then up
+  to 5 days ahead, merged with the user's own blocking calendars). Picking a
+  candidate re-arms the card at the new time; falling back to warn-and-confirm
+  when nothing is free.
 - Language: replies follow the language of each message (no language slot in
   the NC35 contextagent:interaction inputShape — server-side behaviour).
 
