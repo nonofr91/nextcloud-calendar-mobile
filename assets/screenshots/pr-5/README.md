@@ -33,6 +33,16 @@ PC microphone routed to the emulator via Windows Stereo Mix + QEMU host mic.
 | `25-invite-b-maybe-done.png` | After "Maybe" on Invite B: the card is gone from the inbox — server returned PARTSTAT=TENTATIVE on the organizer copy |
 | `26-invitations-after-responses.png` | Inbox after the three responses: only the two pre-existing pending invites remain (A accepted, B tentative, C declined+removed) |
 | `27-attendee-calendar-accepted.png` | the attendee's month view afterwards: "Invite" appears Nov 16 (accepted) and "Invite B" Nov 17 (tentative); declined Invite C on Nov 18 is not shown |
+| `29-offline-create-confirm.png` | Round 2 — airplane mode: `crée rdv offline test demain à 10h` → calendar pick → confirm card « Créer "rdv offline test" le dimanche 8 novembre · 10:00 dans Personnel ? » |
+| `30-offline-create-queued.png` | Honest offline reply: « Enregistré en local — sera envoyé au serveur dès le retour du réseau. » (no fake success) + the network-error alert; the op went to the persisted MMKV outbox |
+| `31-local-create-confirm.png` | Local create path: `cree rdv vocal test mardi a 11h` → confirm card. The PUT transiently failed (network still settling) → queued → auto-replayed to prod on the online transition — also proving the drain works without user action |
+| `33-local-move-confirm.png` | Local move: `decale rdv vocal test mardi a 15h` → single-title match → 'Déplacer "rdv vocal test" au mardi 10 novembre · 15:00 ?' → applied on prod (duration preserved) |
+| `35-disambiguate-perma.png` | `supprime la perma` on real data → "Lequel ?" with 3 dated candidates (Perma Bruno 09/11, Perma Vincent 02/11 & 16/11) — substring match + window expansion verified on prod events |
+| `36-disambiguate-confirm.png` | After picking → the card showed the *spoken needle* (« Supprimer "perma" ? »), not the resolved title — UX gap found live, fixed by showing the resolved `event.summary` |
+| `37-agenda-briefing.png` | `qu'est-ce que j'ai demain` → spoken briefing listing Sun Nov 8 events incl. the queued-create event |
+| `38-next-event.png` | `prochain rdv` → reminder briefing (« Rappel : Perma Vincent, toute la journée. Puis 2 événements à suivre. ») |
+| `39-slot-candidates.png` | `trouve un créneau de 30 minutes demain` → 4 candidates avoiding the busy 10–11 h block exactly; the read-only "Matin" roster calendar correctly did NOT block. Live finding: « de 30 minutes » was not parsed (fell back to 60 min) — fixed |
+| `41-scope-prompt.png` | Recurring-event scope prompt reached live via `supprime la perma` → pick Perma Bruno → 3-choice scope list (cancelled before mutating real data) |
 
 **Incident evidence**: the Nov-5 "Reunion" events were set to `STATUS:CANCELLED`
 by the agent during earlier move attempts (visible as "Cet événement a été
@@ -63,6 +73,42 @@ mutations don't invalidate the local event store.
   his calendar, organizer copy updated PARTSTAT=ACCEPTED; Maybe → materialized,
   PARTSTAT=TENTATIVE; Decline → removed, PARTSTAT=DECLINED. Required the active-
   account fix on the invitations screen (was reading the first account's inbox).
+
+## Round 2 results (see TEST-SCENARIOS.md for the script)
+
+- Offline outbox: ✅ airplane mode → honest queued reply → auto-drained on
+  reconnect (`[pendingMutations] replayed create op`) → VEVENT verified on
+  prod at 10:00 Paris. A later transient PUT failure also queued and
+  self-replayed without user action.
+- Local CREATE via typed input: ✅ confirm card → VEVENT on prod.
+- Local MOVE: ✅ single-title match across days → card → new time on prod,
+  duration preserved.
+- Multi-match disambiguation on real "Perma" events: ✅ dated candidates,
+  recurring pick → recurrence scope prompt, cancel before mutation.
+- Read intents: ✅ agenda briefing (includes the queued event), next-event
+  reminder.
+- Slot search without attendees: ✅ candidates avoid real busy blocks;
+  read-only roster calendars don't block by default.
+- Hostile lifecycle: ✅ closing the sheet while the agent is `thinking`
+  aborts the poll — no late reply, no crash.
+- fr-FR offline pack: ✅ `androidTriggerOfflineModelDownload` triggered the
+  system download (57 MB Soda v3056); logcat shows `SodaSpeechRecognizer:
+  Initialize Soda with language pack directory` — on-device fr-FR now starts
+  directly. Missing-pack retry falls back to network once, then downloads
+  the pack for next time (commit `3a5e627e`).
+
+### Bugs found by this round and fixed on the branch
+
+- `slot` intent: « un créneau de 30 minutes » never parsed a duration
+  (60-min default); "a 30-minute slot" even missed the intent → freeform.
+- Confirm cards quoted the spoken needle (« Supprimer "perma" ? ») rather
+  than the resolved event title after disambiguation.
+- The pack-download dialog was re-triggered on every failed on-device
+  attempt — deduplicated per locale per session.
+
+Not exercised: agent-side DELETE (destructive on real data, see the
+incident note above) and real-microphone fr-FR transcription (needs the
+host-mic routing + local STT patches below).
 
 ## Emulator-specific workarounds used (local-only, not committed)
 
