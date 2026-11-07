@@ -43,6 +43,8 @@ PC microphone routed to the emulator via Windows Stereo Mix + QEMU host mic.
 | `38-next-event.png` | `prochain rdv` → reminder briefing (« Rappel : Perma Vincent, toute la journée. Puis 2 événements à suivre. ») |
 | `39-slot-candidates.png` | `trouve un créneau de 30 minutes demain` → 4 candidates avoiding the busy 10–11 h block exactly; the read-only "Matin" roster calendar correctly did NOT block. Live finding: « de 30 minutes » was not parsed (fell back to 60 min) — fixed |
 | `41-scope-prompt.png` | Recurring-event scope prompt reached live via `supprime la perma` → pick Perma Bruno → 3-choice scope list (cancelled before mutating real data) |
+| `42-slot-30min-fixed.png` | After the duration fix: `trouve un créneau de 30 minutes demain` now proposes 30-min candidates (11:00–11:30, 14:30–15:00, 17:30–18:00) — and correctly avoids the "Réunion" created earlier at 9 h |
+| `43-resolved-title-confirm.png` | After the resolved-title fix: the same flow now ends on 'Supprimer "Perma Bruno" ?' — the actual event title, not the spoken needle « perma » |
 
 **Incident evidence**: the Nov-5 "Reunion" events were set to `STATUS:CANCELLED`
 by the agent during earlier move attempts (visible as "Cet événement a été
