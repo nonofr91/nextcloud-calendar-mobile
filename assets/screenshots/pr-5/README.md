@@ -27,6 +27,12 @@ PC microphone routed to the emulator via Windows Stereo Mix + QEMU host mic.
 | `19-create-attendee-busy-warning.png` | Create with a busy attendee: "Create 'Plannifie une reunion' on Monday 9 November · 10:45 in Personnel? — with Test Attendee — warning, busy at that time: Test Attendee" — free/busy checked via the CalDAV scheduling outbox after the calendar disambiguation pick |
 | `20-create-attendee-busy-alt-slots.png` | Busy attendee → the card now offers free alternative slots the same day ("pick a free slot:" 12:00–13:00 / 14:30–15:30 / 17:00–18:00), merging attendee VFREEBUSY with the user's own blocking-calendar events; when the requested day is full the search extends up to 5 days ahead |
 | `21-alt-slot-confirm-card.png` | After picking the 12:00 candidate the confirmation card re-arms at the new time: "Create 'Plannifie une reunion' on Monday 9 November · 12:00 in Personnel? — with Test Attendee" |
+| `22-invitations-drawer-badge.png` | Logged in as TestAttendee (second account): drawer shows "Invitations" with badge 5 — pending REQUESTs delivered to his schedule-inbox |
+| `23-invitations-list-actions.png` | Invitations screen (attendee side): pending cards with organizer, date and the three actions Decline / Maybe / Accept — incl. "Invite A - a accepter", "Invite B - provisoire" |
+| `24-invite-a-accept-pending.png` | Tapping "Accept" on Invite A: all three buttons switch to loading state while `respondToInvitation` PUTs the PARTSTAT reply |
+| `25-invite-b-maybe-done.png` | After "Maybe" on Invite B: the card is gone from the inbox — server returned PARTSTAT=TENTATIVE on the organizer copy |
+| `26-invitations-after-responses.png` | Inbox after the three responses: only the two pre-existing pending invites remain (A accepted, B tentative, C declined+removed) |
+| `27-attendee-calendar-accepted.png` | TestUser's month view afterwards: "Invite" appears Nov 16 (accepted) and "Invite B" Nov 17 (tentative); declined Invite C on Nov 18 is not shown |
 
 **Incident evidence**: the Nov-5 "Reunion" events were set to `STATUS:CANCELLED`
 by the agent during earlier move attempts (visible as "Cet événement a été
@@ -52,6 +58,11 @@ mutations don't invalidate the local event store.
   when nothing is free.
 - Language: replies follow the language of each message (no language slot in
   the NC35 contextagent:interaction inputShape — server-side behaviour).
+- Invitations end-to-end (attendee side, second account TestAttendee): ✅ REQUEST
+  lands in the drawer badge + invitations list; Accept → event materialized on
+  his calendar, organizer copy updated PARTSTAT=ACCEPTED; Maybe → materialized,
+  PARTSTAT=TENTATIVE; Decline → removed, PARTSTAT=DECLINED. Required the active-
+  account fix on the invitations screen (was reading the first account's inbox).
 
 ## Emulator-specific workarounds used (local-only, not committed)
 
