@@ -238,7 +238,7 @@ export type ServerCapabilities = {
     notifyPush?: NotifyPushCapabilities;
 };
 
-export type ViewMode = 'month' | 'week' | '3days' | 'day' | 'schedule';
+export type ViewMode = 'month' | 'week' | '7days' | '3days' | 'day' | 'schedule';
 
 export type SuggestedSlot = {
   start: Date;
