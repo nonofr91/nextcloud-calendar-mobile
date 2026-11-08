@@ -13,6 +13,7 @@ import { CalendarDrawer } from '@/features/calendar/components/CalendarDrawer';
 import { OfflineBanner } from '@/features/calendar/components/OfflineBanner';
 import { useIsOnline } from '@/services/shared/network';
 import { drainPending } from '@/services/pendingMutations';
+import { SyncErrorBanner } from '@/features/calendar/components/SyncErrorBanner';
 import { MonthDayView } from '@/features/calendar/components/MonthDayView';
 import { AgendaView } from '@/features/calendar/components/AgendaView';
 import { createNavigationGuard } from '@/utils/navigationGuard';
@@ -73,6 +74,7 @@ export default function CalendarScreen() {
   const { hourRowHeight, cellHeight, commitZoom } = useZoom();
   const {
     activeAccount, calendars, allEvents, agendaEvents, showFullOverlay, showSmallLoader,
+    syncFailed, retrySync,
   } = useCalendarData(fetchDate, viewMode === 'schedule');
   const voiceAssistantEnabled = activeAccount
     ? (voiceAssistantByAccount[activeAccount.id] ?? false)
@@ -203,6 +205,7 @@ export default function CalendarScreen() {
       />
 
       <OfflineBanner account={activeAccount ?? null} />
+      {syncFailed && <SyncErrorBanner onRetry={retrySync} />}
 
       <View style={styles.viewArea}>
         <ViewLayer visible={deferredViewMode === 'month'}>

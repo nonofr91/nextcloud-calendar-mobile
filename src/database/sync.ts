@@ -163,6 +163,10 @@ export function seriesBaseUid(uid: string): string {
     return i === -1 ? uid : uid.slice(0, i);
 }
 
+export interface SyncEventsResult {
+  failedCount: number;
+}
+
 export async function syncEvents(
     account: Account,
     calendars: CalendarMeta[],
@@ -170,8 +174,8 @@ export async function syncEvents(
     end: Date,
     deleteMissing = true,
     knownCalendarIds?: readonly string[],
-): Promise<void> {
-    if (calendars.length === 0) return;
+): Promise<SyncEventsResult> {
+    if (calendars.length === 0) return { failedCount: 0 };
 
     const {
         events: remote,
@@ -250,6 +254,8 @@ export async function syncEvents(
 
         if (ops.length > 0) await db.batch(ops);
     }, 30000, 'syncEvents');
+
+    return { failedCount: failures.length };
 }
 
 const DELTA_SYNC_MIN_INTERVAL_MS = 10_000;
@@ -267,8 +273,8 @@ export async function syncVisibleRange(
     start: Date,
     end: Date,
     deleteMissing = true,
-): Promise<void> {
-    if (calendars.length === 0) return;
+): Promise<SyncEventsResult> {
+    if (calendars.length === 0) return { failedCount: 0 };
 
     const horizon = expansionHorizon(new Date());
     const inHorizon =
@@ -282,7 +288,7 @@ export async function syncVisibleRange(
     const deltaCals = inHorizon ? calendars.filter((c) => !rangeOnly(c) && !throttled(c)) : [];
     const fullCals = calendars.filter((c) => rangeOnly(c) || !inHorizon);
 
-    if (deltaCals.length === 0 && fullCals.length === 0) return;
+    if (deltaCals.length === 0 && fullCals.length === 0) return { failedCount: 0 };
 
     const {failures, fulfilledIndexes} = await settleAll(
         deltaCals.map((cal) => () => syncCalendarDelta(account, cal).then((): never[] => [])),
@@ -294,12 +300,14 @@ export async function syncVisibleRange(
     const rangeCals = fullCals.concat(deltaCals.filter((_, i) => !fulfilled.has(i)));
 
     let fullOk = false;
+    let partialFailed = 0;
     if (rangeCals.length > 0) {
         try {
-            await syncEvents(
+            const res = await syncEvents(
                 account, rangeCals, start, end, deleteMissing, calendars.map((c) => c.id),
             );
             fullOk = true;
+            partialFailed = res.failedCount;
         } catch (e) {
             failures.push(e);
         }
@@ -310,6 +318,8 @@ export async function syncVisibleRange(
         for (const c of deltaCals) lastDeltaSyncAt.delete(deltaKey(account, c));
         throw new Error(`[syncVisibleRange] all ${calendars.length} calendar sync(s) failed`);
     }
+
+    return { failedCount: failures.length + partialFailed };
 }
 
 async function collectByHref(events: Collection<Event>, accountId: string, hrefs: Set<string>) {
