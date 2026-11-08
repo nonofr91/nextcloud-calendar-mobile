@@ -412,6 +412,7 @@ describe('EventForm timezone', () => {
         account={{
           id: 'acc-1', baseUrl: 'https://cloud.example.com',
           username: 'john', appPassword: 'xxxx', timezone: '',
+          displayName: 'John', davUserId: 'john',
         }}
         initialValues={timedInitial}
       />,

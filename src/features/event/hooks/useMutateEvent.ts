@@ -170,7 +170,7 @@ export function shiftedMasterInput(
 
 export type MutationResult = 'ok' | 'queued' | 'failed';
 
-function useAction<V, R>(run: (value: V) => Promise<R>): {
+export function useAction<V, R>(run: (value: V) => Promise<R>): {
   mutate: (value: V) => void;
   mutateAsync: (value: V) => Promise<R>;
   isPending: boolean;
@@ -376,9 +376,10 @@ export function useCreateEvent(account: Account, calendars: CalendarMeta[]) {
       let marked: string[] = [];
       let uploadedPaths: string[] = [];
       let failures = 0;
+      let resolved = { location: input.location ?? '', description: input.description ?? '' };
       try {
         marked = await insertEvents(optimistic);
-        const resolved = await resolveLocationAndDescription(account, input);
+        resolved = await resolveLocationAndDescription(account, input);
         const built = buildIcsForInput(uid, input, resolved.location, resolved.description, timezone, 0, input.extraLines);
         const delta = await applyAttachmentDelta(account, built, input);
         failures = delta.failures;
@@ -424,7 +425,6 @@ export function useCreateEvent(account: Account, calendars: CalendarMeta[]) {
         }
       }
       return 'ok';
-      }
     }, [account, calendars]),
   );
 }

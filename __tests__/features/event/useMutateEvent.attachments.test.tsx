@@ -31,13 +31,13 @@ jest.mock('../../../src/database/sync', () => ({
 }));
 
 jest.mock('../../../src/database/eventWrites', () => ({
-  insertEvents: jest.fn(async () => undefined),
-  patchByUid: jest.fn(async () => undefined),
+  insertEvents: jest.fn(async () => []),
+  patchByUid: jest.fn(async () => []),
   removeWhere: jest.fn(async () => []),
   restoreSeries: jest.fn(async () => undefined),
   snapshotByBase: jest.fn(async () => []),
   seriesBaseUid: (uid: string) => uid.split('_occ_')[0],
-  shiftSeriesDates: jest.fn(async () => undefined),
+  shiftSeriesDates: jest.fn(async () => []),
 }));
 
 jest.mock('../../../src/stores/settingsStore', () => ({

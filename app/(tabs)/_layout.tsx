@@ -31,6 +31,8 @@ const TAB_ITEMS: TabItem[] = [
     sf: { default: 'magnifyingglass', selected: 'magnifyingglass' },
     md: { default: 'search', selected: 'search' },
     Icon: Search,
+  },
+  {
     name: 'notifications',
     labelKey: 'tabs.notifications',
     sf: { default: 'bell', selected: 'bell.fill' },

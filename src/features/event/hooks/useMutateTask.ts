@@ -11,7 +11,7 @@ import type { Account, CalendarEvent } from '@/types';
 import { useAction } from './useMutateEvent';
 
 export function useToggleTask(account: Account) {
-  return useAction<CalendarEvent>(
+  return useAction<CalendarEvent, void>(
     useCallback(
       async (event) => {
         if (!event.isTask || event.readOnly) return;

@@ -69,6 +69,14 @@ jest.mock('../../src/features/event/hooks/useMutateEvent', () => ({
   useDeleteEvent: () => ({ mutateAsync: jest.fn() }),
 }));
 
+jest.mock('../../src/features/event/hooks/useMutateTask', () => ({
+  useToggleTask: () => ({ mutateAsync: jest.fn() }),
+}));
+
+jest.mock('../../src/features/invitations/hooks/useUpdateAttendeeStatus', () => ({
+  useUpdateAttendeeStatus: () => ({ mutateAsync: jest.fn() }),
+}));
+
 jest.mock('../../src/features/map/hooks/useEventLocation', () => ({
   useEventLocation: () => ({ coordinates: null, isVirtual: false }),
 }));

@@ -959,6 +959,8 @@ describe('TRANSP/STATUS parsing', () => {
     const extras = extractExtraVeventLines(withProps('TRANSP:TRANSPARENT\nSTATUS:CANCELLED'));
     expect(extras.join('\n')).not.toContain('TRANSP');
     expect(extras.join('\n')).not.toContain('STATUS');
+  });
+});
 
 describe('ATTACH parsing — event attachments', () => {
   const calMeta = { calendarId: 'cal-1', accountId: 'acc-1', color: '#0082c9' };

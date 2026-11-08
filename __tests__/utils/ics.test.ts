@@ -490,6 +490,8 @@ describe('buildExceptionIcs', () => {
 
     expect(ics).not.toContain('STATUS:');
     expect(ics).not.toContain('TRANSP:');
+  });
+
   it('keeps the master TZID on RECURRENCE-ID when the exception overrides the zone', () => {
     const slot = new Date('2026-09-02T12:00:00Z'); // 14:00 Paris / 08:00 NYC
     const ics = buildExceptionIcs({

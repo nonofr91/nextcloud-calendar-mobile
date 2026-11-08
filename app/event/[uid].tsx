@@ -113,8 +113,6 @@ export default function EventDetailScreen() {
   const canEdit = !calendar?.isReadOnly && !calendar?.isSubscribed && !event?.isTask;
   const canToggleTask = !!event?.isTask && !calendar?.isReadOnly && !calendar?.isSubscribed;
   const respondMutation = useUpdateAttendeeStatus(activeAccount);
-
-  const canEdit = !calendar?.isReadOnly && !calendar?.isSubscribed && !event?.isTask;
   const isAttendee = !!event && activeAccount !== null && isCurrentUserAttendee(event, activeAccount);
   const myPartstat = event && activeAccount ? getAttendeePartstat(event, activeAccount) : undefined;
   const eventsLoading = event === undefined;

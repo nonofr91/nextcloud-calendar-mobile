@@ -165,6 +165,8 @@ describe('isCurrentUserAttendee', () => {
     };
     expect(isCurrentUserAttendee(event, account)).toBe(true);
     expect(isCurrentUserAttendee(event, null)).toBe(false);
+  });
+});
 
 describe('attendeeColor', () => {
   it('returns a hex color for an email', () => {
