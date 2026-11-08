@@ -23,6 +23,8 @@ import {
   seriesBaseUid,
   shiftSeriesDates,
 } from '@/database/eventWrites';
+import { releasePending } from '@/database/pendingWrites';
+import { eventKey } from '@/database/sync';
 import { occurrenceSlot } from '@/features/event/occurrenceTarget';
 import type { Account, CalendarMeta, CalendarEvent, CreateEventInput, RecurrenceEditScope } from '@/types';
 
@@ -210,7 +212,6 @@ export function useCreateEvent(account: Account, calendars: CalendarMeta[]) {
       const optimistic = input.rrule
         ? expandOccurrences(uid, input, calendar, account)
         : [eventFromInput(uid, input, calendar, account)];
-      await insertEvents(optimistic);
 
       // A retry after an ambiguous failure (request reached the server but the
       // response was lost) must not PUT a second resource: the first attempt's
@@ -228,7 +229,9 @@ export function useCreateEvent(account: Account, calendars: CalendarMeta[]) {
       }
 
       let ics = '';
+      let marked: string[] = [];
       try {
+        marked = await insertEvents(optimistic);
         const resolved = await resolveLocationAndDescription(account, input);
         const timezone = resolveTimezone(account);
         ics = buildIcsForInput(uid, input, resolved.location, resolved.description, timezone);
@@ -237,16 +240,19 @@ export function useCreateEvent(account: Account, calendars: CalendarMeta[]) {
         const real = input.rrule
           ? expandOccurrences(uid, input, calendar, account)
           : [eventFromInput(uid, input, calendar, account, resolved)];
-        await insertEvents(real);
+        await insertEvents(real, { trackPending: false });
+        releasePending(marked);
         return 'ok';
       } catch (error) {
         if (isNetworkFailure(error) && ics) {
-          // Offline: keep the optimistic event and replay the PUT later.
+          // Offline: keep the optimistic event and replay the PUT later. The
+          // pending keys stay marked until drainPending replays the op.
           enqueue({ kind: 'create', accountId: account.id, calendar, uid, ics });
           Alert.alert(i18n.t('event.createQueued'), describeMutationError(error));
           return 'queued';
         }
-        await removeWhere(account.id, (e) => seriesBaseUid(e.uid) === uid);
+        await removeWhere(account.id, (e) => seriesBaseUid(e.uid) === uid, { trackPending: false });
+        releasePending(marked);
         Alert.alert(i18n.t('event.errorCreateFailed'), describeMutationError(error));
         return 'failed';
       }
@@ -277,22 +283,23 @@ export function useUpdateEvent(account: Account, calendars: CalendarMeta[]) {
         status: input.status ?? event.status,
       };
 
-      if (shiftsWholeSeries) {
-        await shiftSeriesDates(account.id, base, deltaStart, deltaEnd, datesOnly ? {} : nonTemporalPatch);
-      } else {
-        await patchByUid(account.id, event.uid, {
-          ...(datesOnly ? {} : nonTemporalPatch),
-          dtstart,
-          dtend,
-          ...(targetCal && {
-            calendarId: targetCal.id,
-            color: targetCal.color,
-            href: `${targetCal.url}${event.uid}.ics`,
-          }),
-        });
-      }
-
+      let marked: string[] = [];
       try {
+        if (shiftsWholeSeries) {
+          marked = await shiftSeriesDates(account.id, base, deltaStart, deltaEnd, datesOnly ? {} : nonTemporalPatch);
+        } else {
+          marked = await patchByUid(account.id, event.uid, {
+            ...(datesOnly ? {} : nonTemporalPatch),
+            dtstart,
+            dtend,
+            ...(targetCal && {
+              calendarId: targetCal.id,
+              color: targetCal.color,
+              href: `${targetCal.url}${event.uid}.ics`,
+            }),
+          });
+        }
+
         const { location, description } = await resolveLocationAndDescription(account, input);
         let timezone = resolveTimezone(account);
         const scheduled = withServerOrganizer(input, event);
@@ -364,9 +371,11 @@ export function useUpdateEvent(account: Account, calendars: CalendarMeta[]) {
           const newUid = Crypto.randomUUID();
           await putEvent(account, cal, newUid, buildIcsForInput(newUid, scheduled, location, description, timezone, 0, extractExtraVeventLines(masterIcs)));
         }
+        releasePending(marked);
         return 'ok';
       } catch (error) {
         await restoreSeries(account.id, base, snapshot);
+        releasePending(marked);
         Alert.alert(i18n.t('event.errorUpdateFailed'), describeMutationError(error));
         return 'failed';
       }
@@ -378,41 +387,46 @@ export function useDeleteEvent(account: Account) {
   return useAction<{ event: CalendarEvent; scope?: RecurrenceEditScope }, MutationResult>(
     useCallback(async ({ event, scope = 'all' }): Promise<MutationResult> => {
       const base = seriesBaseUid(event.uid);
-      let removed: CalendarEvent[];
-      if (!event.isRecurring || scope === 'all') {
-        removed = await removeWhere(account.id, (e) => seriesBaseUid(e.uid) === base);
-      } else if (scope === 'thisAndFollowing') {
-        const from = occurrenceSlot(event).getTime();
-        removed = await removeWhere(
-          account.id,
-          (e) => seriesBaseUid(e.uid) === base && new Date(e.dtstart).getTime() >= from,
-        );
-      } else {
-        removed = await removeWhere(account.id, (e) => e.uid === event.uid);
-      }
-
+      let removed: CalendarEvent[] = [];
+      let marked: string[] = [];
       try {
         if (!event.isRecurring || scope === 'all') {
-          await deleteEvent(account, event.href);
-          return 'ok';
-        }
-        const timezone = resolveTimezone(account);
-        const masterIcs = await fetchEventIcs(account, event.href);
-        if (scope === 'this') {
-          await updateEvent(account, event.href, injectExdate(masterIcs, occurrenceSlot(event), timezone));
+          removed = await removeWhere(account.id, (e) => seriesBaseUid(e.uid) === base);
         } else if (scope === 'thisAndFollowing') {
-          const oneDayBefore = dayjs(occurrenceSlot(event)).subtract(1, 'day').endOf('day').toDate();
-          await updateEvent(account, event.href, truncateRruleUntil(masterIcs, oneDayBefore));
+          const from = occurrenceSlot(event).getTime();
+          removed = await removeWhere(
+            account.id,
+            (e) => seriesBaseUid(e.uid) === base && new Date(e.dtstart).getTime() >= from,
+          );
+        } else {
+          removed = await removeWhere(account.id, (e) => e.uid === event.uid);
         }
+        marked = removed.map((e) => eventKey(e.accountId, e.calendarId, e.uid));
+
+        if (!event.isRecurring || scope === 'all') {
+          await deleteEvent(account, event.href);
+        } else {
+          const timezone = resolveTimezone(account);
+          const masterIcs = await fetchEventIcs(account, event.href);
+          if (scope === 'this') {
+            await updateEvent(account, event.href, injectExdate(masterIcs, occurrenceSlot(event), timezone));
+          } else if (scope === 'thisAndFollowing') {
+            const oneDayBefore = dayjs(occurrenceSlot(event)).subtract(1, 'day').endOf('day').toDate();
+            await updateEvent(account, event.href, truncateRruleUntil(masterIcs, oneDayBefore));
+          }
+        }
+        releasePending(marked);
         return 'ok';
       } catch (error) {
         if (isNetworkFailure(error) && (!event.isRecurring || scope === 'all')) {
-          // Offline: rows stay removed locally; the DELETE is replayed later.
+          // Offline: rows stay removed locally; the DELETE is replayed later
+          // and the pending keys stay marked until then.
           enqueue({ kind: 'delete', accountId: account.id, href: event.href });
           Alert.alert(i18n.t('event.deleteQueued'), describeMutationError(error));
           return 'queued';
         }
-        await insertEvents(removed);
+        await insertEvents(removed, { trackPending: false });
+        releasePending(marked);
         Alert.alert(i18n.t('event.errorDeleteFailed'), describeMutationError(error));
         return 'failed';
       }

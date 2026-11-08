@@ -6,6 +6,7 @@ import { putEvent, updateEvent, deleteEvent, moveEvent } from '@/services/nextcl
 import { HttpError, describeMutationError } from '@/services/shared/errors';
 import { getIsOnline } from '@/services/shared/network';
 import { removeWhere, seriesBaseUid } from '@/database/eventWrites';
+import { releasePendingByUid } from '@/database/pendingWrites';
 import i18n from '@/utils/i18n';
 
 const KEY = 'pendingMutations.v1';
@@ -67,6 +68,14 @@ export function usePendingCount(): number {
 
 let draining = false;
 
+/** Uid of the event a queued op mutates — create/move carry it directly,
+ * update/delete embed it in the href (`.../<uid>.ics`). */
+function opUid(op: PendingOp): string {
+    if (op.kind === 'create' || op.kind === 'move') return op.uid;
+    const file = op.href.split('/').pop() ?? '';
+    return file.replace(/\.ics$/, '');
+}
+
 /** Replay queued mutations for `account`, in order. An op that still fails
  * stays queued (tries++) unless it exceeds MAX_TRIES, then it is dropped —
  * the local optimistic state was already applied at enqueue time. */
@@ -85,6 +94,7 @@ export async function drainPending(account: Account): Promise<number> {
                 else if (op.kind === 'delete') await deleteEvent(account, op.href);
                 else await moveEvent(account, op.fromHref, op.targetCalendar, op.uid);
                 writeQueue(queue.filter((o) => o.id !== op.id));
+                releasePendingByUid(op.accountId, opUid(op));
                 flushed++;
                 console.info(`[pendingMutations] replayed ${op.kind} op ${op.id}`);
             } catch (error) {
@@ -97,6 +107,7 @@ export async function drainPending(account: Account): Promise<number> {
                 // local change the server refused without telling the user.
                 console.warn(`[pendingMutations] dropping ${op.kind} op ${op.id}:`, error);
                 writeQueue(queue.filter((o) => o.id !== op.id));
+                releasePendingByUid(op.accountId, opUid(op));
                 if (op.kind === 'create') {
                     await removeWhere(op.accountId, (e) => seriesBaseUid(e.uid) === op.uid).catch(() => undefined);
                     Alert.alert(i18n.t('event.queueCreateDropped'), describeMutationError(error));

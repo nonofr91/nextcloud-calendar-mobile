@@ -5,7 +5,8 @@ import type { CalendarEvent } from '@/types';
 import { getDatabaseInstance } from './DatabaseProvider';
 import { mapEventToShared } from './mappers/event';
 import Event from './models/Event';
-import { eventKey, markLocalWrite, prepareCreateEvent, seriesBaseUid, serializeAlarms, writeEvent } from './sync';
+import { markPending } from './pendingWrites';
+import { eventKey, prepareCreateEvent, seriesBaseUid, serializeAlarms, writeEvent } from './sync';
 import { safeWrite } from './utils/safeTransaction';
 
 const events = () => getDatabaseInstance().get<Event>('events');
@@ -42,10 +43,19 @@ function applyPatch(row: Event, patch: Partial<CalendarEvent>): void {
   if (patch.status !== undefined) row.status = patch.status;
 }
 
-export async function insertEvents(list: CalendarEvent[]): Promise<void> {
-  if (list.length === 0) return;
+/**
+ * Insert or update events locally. Returns the event keys that were marked
+ * pending so the caller can release them once the server push resolves.
+ * Pass `trackPending: false` for writes that merely restore server state
+ * (post-push rewrite, rollback) — they are not un-pushed intents.
+ */
+export async function insertEvents(
+  list: CalendarEvent[],
+  opts?: { trackPending?: boolean },
+): Promise<string[]> {
+  if (list.length === 0) return [];
   const db = getDatabaseInstance();
-  markLocalWrite();
+  const marked: string[] = [];
   await safeWrite(db, async () => {
     const uids = list.map((ev) => ev.uid);
     const existing = await events().query(Q.where('uid', Q.oneOf(uids))).fetch();
@@ -56,6 +66,7 @@ export async function insertEvents(list: CalendarEvent[]): Promise<void> {
       const k = eventKey(ev.accountId, ev.calendarId, ev.uid);
       if (seen.has(k)) continue;
       seen.add(k);
+      marked.push(k);
       const found = byKey.get(k);
       ops.push(
         found
@@ -63,23 +74,31 @@ export async function insertEvents(list: CalendarEvent[]): Promise<void> {
           : prepareCreateEvent(events(), ev),
       );
     }
+    if (opts?.trackPending !== false) markPending(marked);
     await db.batch(ops);
   }, 15000, 'insertEvents');
+  return marked;
 }
 
 export async function patchByUid(
   accountId: string,
   uid: string,
   patch: Partial<CalendarEvent>,
-): Promise<void> {
+): Promise<string[]> {
   const db = getDatabaseInstance();
-  markLocalWrite();
+  const marked: string[] = [];
   await safeWrite(db, async () => {
     const rows = await events()
       .query(Q.where('account_id', accountId), Q.where('uid', uid))
       .fetch();
+    for (const r of rows) marked.push(keyOf(r));
+    // A calendar move rewrites calendarId: remote ops on the post-move key
+    // must also be skipped.
+    if (patch.calendarId !== undefined) marked.push(eventKey(accountId, patch.calendarId, uid));
+    if (marked.length > 0) markPending(marked);
     await db.batch(rows.map((r) => r.prepareUpdate((row: Event) => applyPatch(row, patch))));
   }, 15000, 'patchByUid');
+  return marked;
 }
 
 export async function shiftSeriesDates(
@@ -88,12 +107,14 @@ export async function shiftSeriesDates(
   deltaStartMs: number,
   deltaEndMs: number,
   patch: Omit<Partial<CalendarEvent>, 'dtstart' | 'dtend'>,
-): Promise<void> {
+): Promise<string[]> {
   const db = getDatabaseInstance();
-  markLocalWrite();
+  const marked: string[] = [];
   await safeWrite(db, async () => {
     const rows = await seriesRows(accountId, baseUid);
     const target = rows.filter((r) => seriesBaseUid(r.uid) === baseUid);
+    for (const r of target) marked.push(keyOf(r));
+    if (marked.length > 0) markPending(marked);
     await db.batch(
       target.map((r) =>
         r.prepareUpdate((row: Event) => {
@@ -104,6 +125,7 @@ export async function shiftSeriesDates(
       )
     );
   }, 15000, 'shiftSeriesDates');
+  return marked;
 }
 
 export async function snapshotByBase(accountId: string, baseUid: string): Promise<CalendarEvent[]> {
@@ -138,26 +160,30 @@ export async function findIdenticalEvent(
 export async function removeWhere(
   accountId: string,
   predicate: (e: CalendarEvent) => boolean,
+  opts?: { trackPending?: boolean },
 ): Promise<CalendarEvent[]> {
   const db = getDatabaseInstance();
   let removed: CalendarEvent[] = [];
-  markLocalWrite();
   await safeWrite(db, async () => {
     const rows = await events().query(Q.where('account_id', accountId)).fetch();
     const target = rows.filter((r) => predicate(mapEventToShared(r)));
     removed = target.map(mapEventToShared);
+    if (opts?.trackPending !== false) markPending(target.map(keyOf));
     await db.batch(target.map((r) => r.prepareMarkAsDeleted()));
   }, 15000, 'removeWhere');
   return removed;
 }
 
+/**
+ * Rollback helper: restores a snapshot captured before an optimistic write.
+ * The restored rows match server state, so nothing is marked pending.
+ */
 export async function restoreSeries(
   accountId: string,
   baseUid: string,
   snapshot: CalendarEvent[],
 ): Promise<void> {
   const db = getDatabaseInstance();
-  markLocalWrite();
   await safeWrite(db, async () => {
     const rows = await seriesRows(accountId, baseUid);
     const baseRows = rows.filter((r) => seriesBaseUid(r.uid) === baseUid);
