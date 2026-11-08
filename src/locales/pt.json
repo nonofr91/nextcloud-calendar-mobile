@@ -85,6 +85,8 @@
     "calendarNotifications": "Notificações de {{name}}",
         "calendarVisibility": "Mostrar {{name}}",
         "pendingSync": "{{count}} alteração(ões) pendente(s) — tocar para tentar de novo"
+,
+    "showCompletedTasks": "Mostrar tarefas concluídas"
   },
   "search": {
     "title": "Pesquisar",
@@ -92,6 +94,13 @@
     "hint": "Pesquisar por título, descrição, local ou participante.",
     "noResults": "Sem eventos correspondentes",
     "clear": "Limpar pesquisa"
+  },
+  "task": {
+    "pending": "Tarefa",
+    "completed": "Concluída",
+    "completedWithDate": "Concluída em {{date}}",
+    "markCompleted": "Marcar como concluída",
+    "markNotCompleted": "Marcar como não concluída"
   },
   "event": {
     "titleLabel": "Título *",
@@ -370,7 +379,8 @@
       "tierNote": "Os comandos locais correm no dispositivo; as perguntas livres usam o assistente Nextcloud quando o servidor o disponibiliza.",
       "availabilityTitle": "Calendários que contam para a disponibilidade",
       "availabilityHint": "A pesquisa de horários ignora os calendários desativados."
-    }
+    },
+    "tasks": "Tarefas"
   },
   "widget": {
     "liveRemaining": "faltam {{duration}}",

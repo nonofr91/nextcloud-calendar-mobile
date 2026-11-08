@@ -85,6 +85,8 @@
     "calendarNotifications": "Notificacions per {{name}}",
         "calendarVisibility": "Afichar {{name}}",
         "pendingSync": "{{count}} modificacion(s) en espèra — tocar per tornar ensajar"
+,
+    "showCompletedTasks": "Mostrar los prètzfets acabats"
   },
   "search": {
     "title": "Recèrca",
@@ -92,6 +94,13 @@
     "hint": "Recercar per títol, descripcion, luòc o participant.",
     "noResults": "Cap d'eveniment correspondent",
     "clear": "Escafar la recèrca"
+  },
+  "task": {
+    "pending": "Prètzfet",
+    "completed": "Acabat",
+    "completedWithDate": "Acabat lo {{date}}",
+    "markCompleted": "Marcar coma acabat",
+    "markNotCompleted": "Marcar coma pas acabat"
   },
   "event": {
     "titleLabel": "Títol *",
@@ -357,7 +366,8 @@
       "tierNote": "Las comandas localas demòran sus l'aparelh ; las questions liuras utilizan l'assistent Nextcloud quand lo servidor o prepausa.",
       "availabilityTitle": "Agendas comptant per la disponibilitat",
       "availabilityHint": "La recèrca de traucs ignora los agendas desactivats."
-    }
+    },
+    "tasks": "Tasques"
   },
   "widget": {
     "liveRemaining": "Demòra {{duration}}",

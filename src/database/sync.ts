@@ -77,6 +77,9 @@ export function writeEvent(row: Event, ev: CalendarEvent): void {
     row.transp = ev.transp;
     row.status = ev.status;
     row.timezone = ev.timezone ?? undefined;
+    row.taskStatus = ev.taskStatus ?? undefined;
+    row.taskCompletedAt = ev.taskCompletedAt?.getTime() ?? undefined;
+    row.taskPercent = ev.taskPercent ?? undefined;
 }
 
 function calendarUnchanged(row: Calendar, c: CalendarMeta): boolean {
@@ -113,7 +116,10 @@ function eventUnchanged(row: Event, ev: CalendarEvent): boolean {
         (row.attendees ?? '[]') === JSON.stringify(ev.attendees ?? []) &&
         (row.transp ?? undefined) === (ev.transp ?? undefined) &&
         (row.status ?? undefined) === (ev.status ?? undefined) &&
-        (row.timezone ?? undefined) === (ev.timezone ?? undefined)
+        (row.timezone ?? undefined) === (ev.timezone ?? undefined) &&
+        (row.taskStatus ?? undefined) === (ev.taskStatus ?? undefined) &&
+        (row.taskCompletedAt ?? undefined) === (ev.taskCompletedAt?.getTime() ?? undefined) &&
+        (row.taskPercent ?? undefined) === (ev.taskPercent ?? undefined)
     );
 }
 

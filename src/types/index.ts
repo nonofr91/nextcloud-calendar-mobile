@@ -95,6 +95,10 @@ export type CalendarEvent = {
     /** IANA TZID of DTSTART/DTEND; undefined for all-day (floating) events. */
     timezone?: string;
     isTask?: boolean;
+    taskStatus?: string;
+    taskCompletedAt?: Date;
+    taskPercent?: number;
+    taskCompleted?: boolean;
     readOnly?: boolean;
     transp?: EventTransp;
     status?: EventStatus;

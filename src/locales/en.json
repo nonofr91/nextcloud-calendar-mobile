@@ -85,6 +85,8 @@
     "calendarNotifications": "Notifications for {{name}}",
         "calendarVisibility": "Show {{name}}",
         "pendingSync": "{{count}} change(s) pending sync — tap to retry"
+,
+    "showCompletedTasks": "Show completed tasks"
   },
   "search": {
     "title": "Search",
@@ -92,6 +94,13 @@
     "hint": "Search by title, description, location or attendee.",
     "noResults": "No matching events",
     "clear": "Clear search"
+  },
+  "task": {
+    "pending": "Task",
+    "completed": "Completed",
+    "completedWithDate": "Completed {{date}}",
+    "markCompleted": "Mark as completed",
+    "markNotCompleted": "Mark as not completed"
   },
   "event": {
     "titleLabel": "Title *",
@@ -370,7 +379,8 @@
       "tierNote": "Local commands run on-device; free-form questions use the Nextcloud assistant when the server provides it.",
       "availabilityTitle": "Calendars counting for availability",
       "availabilityHint": "Slot search ignores calendars that are off."
-    }
+    },
+    "tasks": "Tasks"
   },
   "widget": {
     "liveRemaining": "{{duration}} left",

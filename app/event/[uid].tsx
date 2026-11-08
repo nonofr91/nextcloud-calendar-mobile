@@ -5,7 +5,7 @@ import * as Clipboard from 'expo-clipboard';
 import { haptic } from '@/utils/haptics';
 import {
   Pencil, Clock, CalendarDays, MapPin, Video, Repeat, Trash2, Copy, Check, Bell,
-  Navigation, Ban, Info, EyeOff, Globe,
+  Navigation, Ban, Info, EyeOff, Globe, ListTodo, SquareCheck,
 } from 'lucide-react-native';
 import { useLocalSearchParams, useNavigation, useRouter, useTheme } from 'expo-router';
 import dayjs from 'dayjs';
@@ -17,6 +17,7 @@ import { formatRecurrenceRule } from '@/features/event/utils/recurrencePattern';
 import { useCalendars } from '@/hooks/useCalendars';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useDeleteEvent } from '@/features/event/hooks/useMutateEvent';
+import { useToggleTask } from '@/features/event/hooks/useMutateTask';
 import { useEventLocation } from '@/features/map/hooks/useEventLocation';
 import { EventMapPreview, EventMapSheet } from '@/features/map/components';
 import { openMaps } from '@/features/map/utils/mapLinks';
@@ -74,8 +75,10 @@ export default function EventDetailScreen() {
 
   const calendar = calendars.find((c) => c.id === event?.calendarId);
   const deleteMutation = useDeleteEvent(activeAccount!);
+  const toggleTaskMutation = useToggleTask(activeAccount!);
 
   const canEdit = !calendar?.isReadOnly && !calendar?.isSubscribed && !event?.isTask;
+  const canToggleTask = !!event?.isTask && !calendar?.isReadOnly && !calendar?.isSubscribed;
   const eventsLoading = event === undefined;
 
   const [copied, setCopied] = useState(false);
@@ -252,10 +255,27 @@ export default function EventDetailScreen() {
             <Stack gap={10}>
               <Typography
                 variant="h3"
-                style={event.status === 'cancelled' ? styles.cancelledTitle : undefined}
+                style={[
+                  event.status === 'cancelled' && styles.cancelledTitle,
+                  event.taskCompleted && styles.doneText,
+                ]}
               >
                 {event.summary}
               </Typography>
+              {event.isTask && (
+                <Stack direction="horizontal" gap={6} vAlign="center">
+                  {event.taskCompleted
+                    ? <SquareCheck size={16} color={theme.colors.primary} />
+                    : <ListTodo size={16} color={theme.colors.primary} />}
+                  <Typography variant="body2" color="secondary" style={{ flex: 1 }}>
+                    {event.taskCompleted
+                      ? event.taskCompletedAt
+                        ? t('task.completedWithDate', { date: dayjs(event.taskCompletedAt).format('lll') })
+                        : t('task.completed')
+                      : t('task.pending')}
+                  </Typography>
+                </Stack>
+              )}
               {event.isRecurring && (
                 <Stack direction="horizontal" gap={6}>
                   <Repeat size={16} color={theme.colors.primary} />
@@ -436,6 +456,24 @@ export default function EventDetailScreen() {
             />
           </Stack>
         )}
+
+        {canToggleTask && event.isTask && (
+          <Stack
+            padding={[20, 12]}
+            style={[styles.footer, { paddingBottom: insets.bottom + 12, borderTopColor: theme.colors.border }]}
+          >
+            <Button
+              variant="primary"
+              title={event.taskCompleted ? t('task.markNotCompleted') : t('task.markCompleted')}
+              icon={event.taskCompleted
+                ? <ListTodo size={18} color="#fff" />
+                : <Check size={18} color="#fff" />}
+              loading={toggleTaskMutation.isPending}
+              disabled={toggleTaskMutation.isPending}
+              onPress={() => toggleTaskMutation.mutateAsync(event)}
+            />
+          </Stack>
+        )}
       </SafeAreaView>
     </ViewContainer>
   );
@@ -448,4 +486,5 @@ const styles = StyleSheet.create({
   footer: { borderTopWidth: StyleSheet.hairlineWidth },
   link: { textDecorationLine: 'underline' },
   cancelledTitle: { textDecorationLine: 'line-through', opacity: 0.5 },
+  doneText: { textDecorationLine: 'line-through' },
 });

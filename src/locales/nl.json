@@ -85,6 +85,8 @@
     "calendarNotifications": "Meldingen van {{name}}",
         "calendarVisibility": "{{name}} tonen",
         "pendingSync": "{{count}} wijziging(en) in de wacht — tik om opnieuw te proberen"
+,
+    "showCompletedTasks": "Voltooide taken weergeven"
   },
   "search": {
     "title": "Zoeken",
@@ -92,6 +94,13 @@
     "hint": "Zoek op titel, beschrijving, locatie of deelnemer.",
     "noResults": "Geen overeenkomende afspraken",
     "clear": "Zoekopdracht wissen"
+  },
+  "task": {
+    "pending": "Taak",
+    "completed": "Voltooid",
+    "completedWithDate": "Voltooid op {{date}}",
+    "markCompleted": "Markeren als voltooid",
+    "markNotCompleted": "Markeren als niet voltooid"
   },
   "event": {
     "titleLabel": "Titel *",
@@ -370,7 +379,8 @@
       "tierNote": "Lokale opdrachten blijven op het apparaat; vrije vragen gebruiken de Nextcloud-assistent wanneer de server die aanbiedt.",
       "availabilityTitle": "Agenda's die meetellen voor beschikbaarheid",
       "availabilityHint": "Slotzoekopdracht negeert uitgeschakelde agenda's."
-    }
+    },
+    "tasks": "Taken"
   },
   "widget": {
     "liveRemaining": "nog {{duration}}",

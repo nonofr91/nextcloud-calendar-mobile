@@ -10,6 +10,9 @@ export const migrations = schemaMigrations({
           columns: [
             { name: 'transp', type: 'string', isOptional: true },
             { name: 'status', type: 'string', isOptional: true },
+            { name: 'task_status', type: 'string', isOptional: true },
+            { name: 'task_completed_at', type: 'number', isOptional: true },
+            { name: 'task_percent', type: 'number', isOptional: true },
           ],
         }),
       ],

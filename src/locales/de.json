@@ -85,6 +85,8 @@
     "calendarNotifications": "Benachrichtigungen für {{name}}",
         "calendarVisibility": "{{name}} anzeigen",
         "pendingSync": "{{count}} Änderung(en) ausstehend — zum Wiederholen tippen"
+,
+    "showCompletedTasks": "Erledigte Aufgaben anzeigen"
   },
   "search": {
     "title": "Suche",
@@ -92,6 +94,13 @@
     "hint": "Nach Titel, Beschreibung, Ort oder Teilnehmer suchen.",
     "noResults": "Keine passenden Termine",
     "clear": "Suche löschen"
+  },
+  "task": {
+    "pending": "Aufgabe",
+    "completed": "Erledigt",
+    "completedWithDate": "Erledigt {{date}}",
+    "markCompleted": "Als erledigt markieren",
+    "markNotCompleted": "Als nicht erledigt markieren"
   },
   "event": {
     "titleLabel": "Titel *",
@@ -370,7 +379,8 @@
       "tierNote": "Lokale Befehle laufen auf dem Gerät; freie Fragen nutzen den Nextcloud-Assistenten, sofern der Server ihn bereitstellt.",
       "availabilityTitle": "Kalender, die für Verfügbarkeit zählen",
       "availabilityHint": "Die Slot-Suche ignoriert deaktivierte Kalender."
-    }
+    },
+    "tasks": "Aufgaben"
   },
   "widget": {
     "liveRemaining": "noch {{duration}}",

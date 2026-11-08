@@ -19,6 +19,9 @@ export const EVENT_OBSERVED_COLUMNS = [
   'transp',
   'status',
   'timezone',
+  'task_status',
+  'task_completed_at',
+  'task_percent',
 ];
 
 export const CALENDAR_OBSERVED_COLUMNS = [

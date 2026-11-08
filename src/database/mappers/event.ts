@@ -1,5 +1,6 @@
 import type { Attendee, CalendarEvent, EventStatus, EventTransp } from '@/types';
 import { dedupeAttendees } from '@/utils/attendees';
+import { taskIsCompleted } from '@/utils/vtodo';
 
 import Event from '../models/Event';
 
@@ -51,5 +52,9 @@ export function mapEventToShared(event: Event): CalendarEvent {
     transp: event.transp as EventTransp | undefined,
     status: event.status as EventStatus | undefined,
     timezone: event.timezone ?? undefined,
+    taskStatus: event.taskStatus ?? undefined,
+    taskCompletedAt: event.taskCompletedAt != null ? new Date(event.taskCompletedAt) : undefined,
+    taskPercent: event.taskPercent ?? undefined,
+    taskCompleted: taskIsCompleted(event.taskStatus, event.taskCompletedAt, event.taskPercent),
   };
 }

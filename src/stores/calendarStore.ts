@@ -12,6 +12,7 @@ interface CalendarState {
   /** User overrides for "counts for availability" — absent id defaults to !isReadOnly. */
   availabilityCalendarOverrides: Record<string, boolean>;
   hourRowHeight: number;
+  showCompletedTasks: boolean;
   setViewMode: (mode: ViewMode) => void;
   setSelectedDate: (date: Date | null) => void;
   toggleCalendarVisibility: (calendarId: string) => void;
@@ -19,6 +20,7 @@ interface CalendarState {
   toggleCalendarWidget: (calendarId: string) => void;
   setCalendarAvailability: (calendarId: string, value: boolean) => void;
   setHourRowHeight: (h: number) => void;
+  toggleShowCompletedTasks: () => void;
 }
 
 function toggleIn(list: string[], id: string): string[] {
@@ -35,6 +37,7 @@ export const useCalendarStore = create<CalendarState>()(
       widgetDisabledCalendarIds: [],
       availabilityCalendarOverrides: {},
       hourRowHeight: 60,
+      showCompletedTasks: false,
       setViewMode: (mode) => set({ viewMode: mode }),
       setSelectedDate: (date) => set({ selectedDate: date }),
       toggleCalendarVisibility: (calendarId) =>
@@ -46,11 +49,13 @@ export const useCalendarStore = create<CalendarState>()(
       setCalendarAvailability: (calendarId, value) =>
         set({ availabilityCalendarOverrides: { ...get().availabilityCalendarOverrides, [calendarId]: value } }),
       setHourRowHeight: (h) => set({ hourRowHeight: h }),
+      toggleShowCompletedTasks: () =>
+        set({ showCompletedTasks: !get().showCompletedTasks }),
     }),
     {
       name: 'calendar-store',
       storage: createJSONStorage(() =>
-        legacyBackedStorage(['viewMode', 'hiddenCalendarIds', 'notifDisabledCalendarIds', 'widgetDisabledCalendarIds', 'availabilityCalendarOverrides', 'hourRowHeight'])
+        legacyBackedStorage(['viewMode', 'hiddenCalendarIds', 'notifDisabledCalendarIds', 'widgetDisabledCalendarIds', 'availabilityCalendarOverrides', 'hourRowHeight', 'showCompletedTasks'])
       ),
       partialize: (state) => ({
         viewMode: state.viewMode,
@@ -59,6 +64,7 @@ export const useCalendarStore = create<CalendarState>()(
         widgetDisabledCalendarIds: state.widgetDisabledCalendarIds,
         availabilityCalendarOverrides: state.availabilityCalendarOverrides,
         hourRowHeight: state.hourRowHeight,
+        showCompletedTasks: state.showCompletedTasks,
       }),
     }
   )
