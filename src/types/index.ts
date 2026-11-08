@@ -223,12 +223,17 @@ export type TaskProcessingTask = {
     userId?: string;
     appId?: string;
     customId?: string;
+export type NotifyPushCapabilities = {
+  types: string[];
+  websocketUrl: string;
+  preAuthUrl?: string;
 };
 
 export type ServerCapabilities = {
     talkEnabled: boolean;
     calendarApp: CalendarAppStatus;
     taskTypes?: Record<string, TaskTypeInfo>;
+    notifyPush?: NotifyPushCapabilities;
 };
 
 export type ViewMode = 'month' | 'week' | '3days' | 'day' | 'schedule';

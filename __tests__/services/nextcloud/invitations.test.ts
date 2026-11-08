@@ -1,6 +1,7 @@
 import { parseInvitation, fetchInvitations, respondToInvitation, updateAttendeeStatus } from '../../../src/services/nextcloud/invitations';
 import type { Account, CalendarEvent, CalendarMeta } from '../../../src/types';
 
+
 const account: Account = {
   id: 'acc-1',
   displayName: 'Bob',
