@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Menu, Headphones, Mic, Sparkles, Search } from 'lucide-react-native';
@@ -12,6 +12,7 @@ interface Props {
   headerTitle: string;
   isToday: boolean;
   viewMode: ViewMode;
+  pendingInvitationsCount?: number;
   onOpenDrawer: () => void;
   onOpenSearch: () => void;
   onToday: () => void;
@@ -29,7 +30,7 @@ const VIEW_MODE_KEYS: Record<ViewMode, string> = {
   schedule: 'calendar.schedule',
 };
 
-function CalendarTopBarImpl({ headerTitle, isToday, viewMode, onOpenDrawer, onOpenSearch, onToday, onSwitchMode, onListen, onOpenVoice, onOpenSummary }: Props) {
+function CalendarTopBarImpl({ headerTitle, isToday, viewMode, pendingInvitationsCount = 0, onOpenDrawer, onOpenSearch, onToday, onSwitchMode, onListen, onOpenVoice, onOpenSummary }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const todayDisabled = isToday;
@@ -44,6 +45,9 @@ function CalendarTopBarImpl({ headerTitle, isToday, viewMode, onOpenDrawer, onOp
           <Icon size={24}>
             <Menu color={colors.primary} />
           </Icon>
+          {pendingInvitationsCount > 0 && (
+            <View style={[styles.badge, { backgroundColor: colors.danger, borderColor: colors.headerBackground }]} pointerEvents="none" />
+          )}
         </AnimatedPressable>
 
         <Typography
@@ -143,6 +147,15 @@ const styles = StyleSheet.create({
   hamburger: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginLeft: -4 },
   listenBtn: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
   searchBtn: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
+  badge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2,
+  },
   title: { flex: 1, marginHorizontal: 4 },
   summaryBtn: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
   todayBtn: { minWidth: 44, height: 44, paddingLeft: 6, alignItems: 'flex-end', justifyContent: 'center' },

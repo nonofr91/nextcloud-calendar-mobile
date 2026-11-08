@@ -1,7 +1,7 @@
 import { memo, useRef } from 'react';
 import { TouchableOpacity, View, StyleSheet, type ViewStyle } from 'react-native';
 import dayjs from 'dayjs';
-import { SquareCheck } from 'lucide-react-native';
+import { SquareCheck, HelpCircle } from 'lucide-react-native';
 import { Typography } from '@/ui/components';
 import type { CalendarEvent } from '@/types';
 import type { GridEvent } from '../utils/toGridEvents';
@@ -63,6 +63,7 @@ function TimeGridEventImpl({ event, top, height, leftPct, widthPct, zIndex, hour
         testID={`event-card-${event._event.uid}`}
         style={[
           styles.card,
+          event.isPending && styles.cardPending,
           {
             flex: 1,
             marginRight: 3,
@@ -74,6 +75,11 @@ function TimeGridEventImpl({ event, top, height, leftPct, widthPct, zIndex, hour
           },
         ]}
       >
+        {event.isPending && (
+          <View style={styles.pendingBadge} pointerEvents="none">
+            <HelpCircle size={Math.max(12, titleSize - 2)} color={ink.text} />
+          </View>
+        )}
         <View style={styles.cardRow}>
           {isTask && taskDone && (
             <SquareCheck size={Math.max(13, titleSize + 1)} color={ink.text} />
@@ -111,4 +117,14 @@ const styles = StyleSheet.create({
   cardRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 3 },
   cardText: { flex: 1 },
   doneText: { textDecorationLine: 'line-through' },
+  cardPending: {
+    borderStyle: 'dotted',
+    borderWidth: 2,
+    opacity: 0.75,
+  },
+  pendingBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+  },
 });
