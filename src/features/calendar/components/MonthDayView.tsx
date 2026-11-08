@@ -12,8 +12,7 @@ import { eventCoversDay, eventDayKeys, buildMonthGrid } from '../utils/monthLayo
 import InfinitePager, { type InfinitePagerImperativeApi } from 'react-native-infinite-pager';
 import { useSettingsStore, type MonthViewStyle } from '@/stores/settingsStore';
 import { useTimeFormat } from '@/hooks/useTimeFormat';
-import { useAccountStore } from '@/stores/accountStore';
-import { useActiveAccount } from '@/hooks/useAccounts';
+import { useAccounts } from '@/hooks/useAccounts';
 import { isEventPending } from '@/utils/eventPending';
 import type { CalendarEvent } from '@/types';
 import { MonthGridPage } from './MonthGridPage';
@@ -114,8 +113,7 @@ function MonthDayViewImpl({
   const { t } = useTranslation();
   const language = useSettingsStore((s) => s.language);
   const { formatTime } = useTimeFormat();
-  const activeAccountId = useAccountStore((s) => s.activeAccountId);
-  const activeAccount = useActiveAccount(activeAccountId);
+  const accounts = useAccounts();
   const { height } = useWindowDimensions();
 
   const selected = useMemo(() => dayjs(date), [date]);
@@ -284,9 +282,12 @@ function MonthDayViewImpl({
           ) : (
             <FlatList
               data={dayEvents}
-              keyExtractor={(e, i) => `${e.calendarId}-${e.uid}-${e.dtstart.getTime()}-${i}`}
+              keyExtractor={(e, i) => `${e.accountId}-${e.calendarId}-${e.uid}-${e.dtstart.getTime()}-${i}`}
               renderItem={({ item }) => {
-                const pending = isEventPending(item, activeAccount);
+                const pending = isEventPending(
+                  item,
+                  accounts.find((a) => a.id === item.accountId) ?? null,
+                );
                 return (
                 <TouchableOpacity
                   style={[

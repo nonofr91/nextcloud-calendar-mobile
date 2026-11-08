@@ -28,6 +28,7 @@ import * as tts from '@/services/voice/tts';
 import * as stt from '@/services/voice/stt';
 import { parseUtterance, MUTATION_LIKE, type VoiceIntent } from '@/services/voice/intents';
 import { decideMoveEventScope } from '@/features/calendar/utils/moveEventScope';
+import { calendarKey } from '@/utils/calendars';
 import { askAgent, isAgentAvailable, AgentError } from '@/services/voice/agent';
 import {
     eventsOnDay,
@@ -121,9 +122,9 @@ export function useVoiceAssistant(account: Account | null, calendars: CalendarMe
     const closeRef = useRef<(() => void) | undefined>(undefined);
     const abortRef = useRef<AbortController | null>(null);
 
-    const createEvent = useCreateEvent(account!, calendars);
-    const updateEvent = useUpdateEvent(account!, calendars);
-    const deleteEvent = useDeleteEvent(account!);
+    const createEvent = useCreateEvent(account ? [account] : [], calendars);
+    const updateEvent = useUpdateEvent(account ? [account] : [], calendars);
+    const deleteEvent = useDeleteEvent(account ? [account] : []);
 
     // Deep links can fire before useCalendars resolves (cold mount) — wait
     // briefly instead of failing "no writable calendar" on a warm cache.
@@ -318,7 +319,7 @@ export function useVoiceAssistant(account: Account | null, calendars: CalendarMe
                             if (genRef.current !== gen) return;
                             const busyEvents = [
                                 ...fbBusy,
-                                ...events.filter((e) => busyIds.has(e.calendarId)),
+                                ...events.filter((e) => busyIds.has(calendarKey(e.accountId, e.calendarId))),
                             ];
                             for (const s of findFreeSlots(busyEvents, day, {
                                 durationMin,
@@ -575,7 +576,7 @@ export function useVoiceAssistant(account: Account | null, calendars: CalendarMe
                             useCalendarStore.getState().availabilityCalendarOverrides,
                         );
                         if (genRef.current !== gen) return;
-                        const busyEvents = events.filter((e) => busyIds.has(e.calendarId));
+                        const busyEvents = events.filter((e) => busyIds.has(calendarKey(e.accountId, e.calendarId)));
                         // Resolve named attendees first: a good slot is free for them too.
                         let attendees: Attendee[] = [];
                         if (intent.names?.length) {

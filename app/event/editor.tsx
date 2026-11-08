@@ -47,16 +47,18 @@ const DIRECT_EDITING_BRIDGE = `(function() {
 true;`;
 
 export default function AttachmentEditorScreen() {
-  const { path, editorId, name } = useLocalSearchParams<{
+  const { path, editorId, name, accountId: paramAccountId } = useLocalSearchParams<{
     path?: string;
     editorId?: string;
     name?: string;
+    accountId?: string;
   }>();
   const router = useRouter();
   const theme = useTheme();
   const { t } = useTranslation();
   const activeAccountId = useAccountStore((s) => s.activeAccountId);
-  const account = useActiveAccount(activeAccountId);
+  // The file lives on a specific account's server — the route carries its id.
+  const account = useActiveAccount(paramAccountId ?? activeAccountId);
 
   // A pre-minted create URL comes through the session slot (not params) so a
   // restored screen falls back to `requestUrl` instead of a dead token.

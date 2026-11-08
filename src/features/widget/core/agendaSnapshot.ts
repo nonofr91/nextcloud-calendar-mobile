@@ -92,7 +92,7 @@ function toItem(event: CalendarEvent, locale: string | undefined, tz: string, us
     allDay: event.allDay,
     color: event.color || '#3b82f6',
     timeLabel: timeLabel(event, locale, tz, use24h),
-    deepLink: eventDeepLink(event.uid),
+    deepLink: eventDeepLink(event.uid, event.accountId),
   };
 }
 

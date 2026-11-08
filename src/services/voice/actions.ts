@@ -6,6 +6,7 @@ import { database } from '@/database';
 import Event from '@/database/models/Event';
 import { mapEventToShared } from '@/database/mappers/event';
 import { normalizeEvents } from '@/utils/normalizeEvent';
+import { calendarKeyOf, hasCalendarFlag } from '@/utils/calendars';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { fetchSharees } from '@/services/nextcloud/sharees';
 import type { VoiceIntent } from './intents';
@@ -26,7 +27,7 @@ async function eventsInRange(accountId: string, rangeStart: number, rangeEnd: nu
         )
         .fetch();
     const hidden = useCalendarStore.getState().hiddenCalendarIds;
-    return normalizeEvents(rows.map(mapEventToShared).filter((e) => !hidden.includes(e.calendarId)));
+    return normalizeEvents(rows.map(mapEventToShared).filter((e) => !hasCalendarFlag(hidden, e.accountId, e.calendarId)));
 }
 
 export async function eventsOnDay(accountId: string, day: Date): Promise<CalendarEvent[]> {
@@ -79,10 +80,10 @@ export async function findEventTargets(
  * informational. `overrides` = the user's per-calendar flag.
  */
 export function busyCalendarIds(
-    calendars: { id: string; isReadOnly?: boolean }[],
+    calendars: { id: string; accountId: string; isReadOnly?: boolean }[],
     overrides: Record<string, boolean> = {},
 ): Set<string> {
-    return new Set(calendars.filter((c) => overrides[c.id] ?? !c.isReadOnly).map((c) => c.id));
+    return new Set(calendars.filter((c) => overrides[calendarKeyOf(c)] ?? !c.isReadOnly).map(calendarKeyOf));
 }
 
 export interface FreeSlot {

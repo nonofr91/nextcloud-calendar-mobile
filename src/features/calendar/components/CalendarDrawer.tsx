@@ -8,8 +8,11 @@ import { useTheme } from 'expo-router';
 import { AvatarImage } from '@/components/AvatarImage';
 import { AccountSwitcher } from '@/features/account/components/AccountSwitcher';
 import { Item, List, SectionHeader, Stack, Toggle, Typography } from '@/ui/components';
+import { useAccounts } from '@/hooks/useAccounts';
+import { useAccountStore } from '@/stores/accountStore';
+import { hostnameOf } from '@/features/account/utils/account';
 import type { Account, CalendarMeta } from '@/types';
-import { CALENDAR_GROUPS, calendarGroup } from '@/utils/calendars';
+import { CALENDAR_GROUPS, calendarGroup, calendarKeyOf, hasCalendarFlag } from '@/utils/calendars';
 
 import { CalendarDrawerRow } from './CalendarDrawerRow';
 
@@ -20,6 +23,8 @@ interface CalendarDrawerProps {
   drawerWidth: number;
   insets: { top: number };
   activeAccount: Account | null;
+  /** Accounts contributing calendars to the merged view. */
+  accounts: Account[];
   calendars: CalendarMeta[];
   hiddenCalendarIds: string[];
   notifDisabledCalendarIds: string[];
@@ -38,6 +43,7 @@ export function CalendarDrawer({
   drawerWidth,
   insets,
   activeAccount,
+  accounts,
   calendars,
   hiddenCalendarIds,
   notifDisabledCalendarIds,
@@ -51,6 +57,12 @@ export function CalendarDrawer({
   const { colors } = useTheme();
   const { t } = useTranslation();
   const safeInsets = useSafeAreaInsets();
+  const allAccounts = useAccounts();
+  const visibleAccountIds = useAccountStore((s) => s.visibleAccountIds);
+  const toggleAccountVisibility = useAccountStore((s) => s.toggleAccountVisibility);
+  const allAccountIds = allAccounts.map((a) => a.id);
+  const multiAccount = allAccounts.length > 1;
+  const isAccountVisible = (id: string) => visibleAccountIds === null || visibleAccountIds.includes(id);
   const groupTitles = {
     personal: t('calendar.drawerCalendars'),
     shared: t('calendar.drawerShared'),
@@ -134,6 +146,64 @@ export function CalendarDrawer({
                 </Typography>
               </Stack>
             </>
+          ) : multiAccount ? (
+            <Stack gap={24} hAlign="stretch">
+              {allAccounts.map((account) => {
+                const visible = isAccountVisible(account.id);
+                const accountCalendars = visible
+                  ? calendars.filter((c) => c.accountId === account.id)
+                  : [];
+                return (
+                  <Stack key={account.id} gap={8} hAlign="stretch">
+                    <Item
+                      leading={<AvatarImage account={account} size={28} />}
+                      title={
+                        <Typography variant="body2" numberOfLines={1} ellipsizeMode="tail">
+                          {account.displayName || account.username}
+                        </Typography>
+                      }
+                      description={
+                        <Typography variant="caption" color="secondary" numberOfLines={1} ellipsizeMode="middle">
+                          {hostnameOf(account.baseUrl)}
+                        </Typography>
+                      }
+                      trailing={
+                        <Toggle
+                          value={visible}
+                          onValueChange={() => toggleAccountVisibility(account.id, allAccountIds)}
+                          accessibilityLabel={`${account.displayName || account.username} — ${hostnameOf(account.baseUrl)}`}
+                        />
+                      }
+                    />
+                    {accountCalendars.length > 0 && (
+                      <Stack gap={16} hAlign="stretch">
+                        {CALENDAR_GROUPS.map((group) => {
+                          const groupCalendars = accountCalendars.filter((cal) => calendarGroup(cal) === group);
+                          if (groupCalendars.length === 0) return null;
+                          return (
+                            <View key={group}>
+                              <SectionHeader title={groupTitles[group]} />
+                              <List>
+                                {groupCalendars.map((cal) => (
+                                  <CalendarDrawerRow
+                                    key={calendarKeyOf(cal)}
+                                    calendar={cal}
+                                    visible={!hasCalendarFlag(hiddenCalendarIds, cal.accountId, cal.id)}
+                                    notifies={!hasCalendarFlag(notifDisabledCalendarIds, cal.accountId, cal.id)}
+                                    onToggleVisibility={() => toggleCalendarVisibility(calendarKeyOf(cal))}
+                                    onToggleNotifications={() => toggleCalendarNotifications(calendarKeyOf(cal))}
+                                  />
+                                ))}
+                              </List>
+                            </View>
+                          );
+                        })}
+                      </Stack>
+                    )}
+                  </Stack>
+                );
+              })}
+            </Stack>
           ) : (
             <Stack gap={24} hAlign="stretch">
               {CALENDAR_GROUPS.map((group) => {
@@ -145,12 +215,12 @@ export function CalendarDrawer({
                     <List>
                       {groupCalendars.map((cal) => (
                         <CalendarDrawerRow
-                          key={cal.id}
+                          key={calendarKeyOf(cal)}
                           calendar={cal}
-                          visible={!hiddenCalendarIds.includes(cal.id)}
-                          notifies={!notifDisabledCalendarIds.includes(cal.id)}
-                          onToggleVisibility={() => toggleCalendarVisibility(cal.id)}
-                          onToggleNotifications={() => toggleCalendarNotifications(cal.id)}
+                          visible={!hasCalendarFlag(hiddenCalendarIds, cal.accountId, cal.id)}
+                          notifies={!hasCalendarFlag(notifDisabledCalendarIds, cal.accountId, cal.id)}
+                          onToggleVisibility={() => toggleCalendarVisibility(calendarKeyOf(cal))}
+                          onToggleNotifications={() => toggleCalendarNotifications(calendarKeyOf(cal))}
                         />
                       ))}
                     </List>

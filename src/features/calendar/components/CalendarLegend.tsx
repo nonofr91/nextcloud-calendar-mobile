@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import type { CalendarMeta } from '@/types';
 import { useCalendarStore } from '@/stores/calendarStore';
+import { calendarKeyOf, hasCalendarFlag } from '@/utils/calendars';
 
 interface Props {
   calendars: CalendarMeta[];
@@ -13,12 +14,12 @@ export function CalendarLegend({ calendars }: Props) {
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll}>
       {calendars.map((cal) => {
-        const hidden = hiddenCalendarIds.includes(cal.id);
+        const hidden = hasCalendarFlag(hiddenCalendarIds, cal.accountId, cal.id);
         return (
           <TouchableOpacity
-            key={cal.id}
+            key={calendarKeyOf(cal)}
             style={[styles.chip, hidden && styles.chipHidden]}
-            onPress={() => toggleCalendarVisibility(cal.id)}
+            onPress={() => toggleCalendarVisibility(calendarKeyOf(cal))}
           >
             <View style={[styles.dot, { backgroundColor: cal.color }]} />
             <Text style={[styles.label, hidden && styles.labelHidden]}>{cal.displayName}</Text>

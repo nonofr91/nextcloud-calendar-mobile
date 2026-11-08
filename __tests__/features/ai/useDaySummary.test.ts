@@ -125,7 +125,7 @@ describe('useDaySummary', () => {
     activate(account('a1'), false);
     renderHook(() => useDaySummary('2025-01-15'));
     expect(eventsForRange).toHaveBeenCalledWith(
-      'a1',
+      ['a1'],
       new Date(2025, 0, 15),
       new Date(2025, 0, 16)
     );
@@ -215,7 +215,7 @@ describe('useDaySummary', () => {
       accountId: a.id,
     };
     eventsForRange.mockReturnValue([{ ...event, accountId: a.id }, hiddenEvent]);
-    useCalendarStore.setState({ hiddenCalendarIds: ['cal-hidden'] });
+    useCalendarStore.setState({ hiddenCalendarIds: ['a7|cal-hidden'] });
 
     const { result } = renderHook(() => useDaySummary('2025-01-15'));
     await waitFor(() => expect(result.current.state).toBe('done'));

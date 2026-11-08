@@ -32,7 +32,7 @@ export default function AccountDetailScreen() {
   const setStoreId = useAccountStore((s) => s.setActiveAccountId);
   const remove = useDeleteAccount();
   const authStatus = useAccountAuthStatus(account);
-  const calendars = useCalendarsFromDb(account?.id ?? null);
+  const calendars = useCalendarsFromDb(account ? [account.id] : []);
   const storedDefaultId = useSettingsStore((s) =>
     account ? s.defaultCalendarByAccount[account.id] : undefined,
   );

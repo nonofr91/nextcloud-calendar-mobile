@@ -63,7 +63,7 @@ describe('useEventsForRange', () => {
     };
     (useDatabase as jest.Mock).mockReturnValue({ get: jest.fn(() => mockCollection) });
 
-    renderHook(() => useEventsForRange('a1', start, end));
+    renderHook(() => useEventsForRange(['a1'], start, end));
 
     const conditions = mockCollection.query.mock.calls[0] as Array<{
       type: string;
@@ -78,7 +78,7 @@ describe('useEventsForRange', () => {
   it('maps events on first emission', async () => {
     const start = new Date('2026-08-25T08:00:00.000Z');
     const end = new Date('2026-08-25T20:00:00.000Z');
-    const { result } = renderHook(() => useEventsForRange('a1', start, end));
+    const { result } = renderHook(() => useEventsForRange(['a1'], start, end));
     const row = makeRow(
       'e1',
       Date.parse('2026-08-25T10:00:00.000Z'),
@@ -98,7 +98,7 @@ describe('useEventsForRange', () => {
   it('updates when the same row instance is re-emitted with changed start/end', async () => {
     const start = new Date('2026-08-25T08:00:00.000Z');
     const end = new Date('2026-08-25T20:00:00.000Z');
-    const { result } = renderHook(() => useEventsForRange('a1', start, end));
+    const { result } = renderHook(() => useEventsForRange(['a1'], start, end));
     const row = makeRow(
       'e1',
       Date.parse('2026-08-25T10:00:00.000Z'),
@@ -125,7 +125,7 @@ describe('useEventsForRange', () => {
   it('updates when only the summary changes and start/end stay the same', async () => {
     const start = new Date('2026-08-25T08:00:00.000Z');
     const end = new Date('2026-08-25T20:00:00.000Z');
-    const { result } = renderHook(() => useEventsForRange('a1', start, end));
+    const { result } = renderHook(() => useEventsForRange(['a1'], start, end));
     const row = makeRow(
       'e1',
       Date.parse('2026-08-25T10:00:00.000Z'),

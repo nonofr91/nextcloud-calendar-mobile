@@ -3,14 +3,14 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { useCalendarData } from '@/features/calendar/hooks/useCalendarData';
 import { syncVisibleRange } from '@/database/sync';
 import { useEventsForRange } from '@/database/useEvents';
-import { useCalendars } from '@/hooks/useCalendars';
+import { useMultiCalendars } from '@/hooks/useCalendars';
 import { setAccounts } from '@/hooks/useAccounts';
 import { useAccountStore } from '@/stores/accountStore';
 import type { Account, CalendarMeta } from '@/types';
 
 jest.mock('@/database/sync', () => ({ syncVisibleRange: jest.fn() }));
 jest.mock('@/database/useEvents', () => ({ useEventsForRange: jest.fn(() => []) }));
-jest.mock('@/hooks/useCalendars', () => ({ useCalendars: jest.fn() }));
+jest.mock('@/hooks/useCalendars', () => ({ useMultiCalendars: jest.fn() }));
 
 const account = {
   id: 'a1',
@@ -42,7 +42,7 @@ function deferred<T = void>() {
 }
 
 function mockCalendars(list: CalendarMeta[]) {
-  (useCalendars as jest.Mock).mockReturnValue({ data: list, isFetching: false });
+  (useMultiCalendars as jest.Mock).mockReturnValue({ data: list, isFetching: false });
 }
 
 beforeEach(() => {

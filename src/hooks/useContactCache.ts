@@ -1,17 +1,22 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAccounts } from '@/hooks/useAccounts';
-import { useAccountStore } from '@/stores/accountStore';
 import { prefetchContacts } from '@/services/nextcloud/contactCache';
 
+// Attendee pickers can now target any visible account — warm every cache.
 export function useContactCache(): void {
-  const activeAccountId = useAccountStore((s) => s.activeAccountId);
   const accounts = useAccounts();
-  const activeAccount = accounts.find((a) => a.id === activeAccountId);
+  const accountsKey = accounts.map((a) => a.id).join(',');
+  // The effect keys on ids only — keep a live ref so a refreshed account list
+  // (new appPassword, baseUrl) is used without waiting for an id change.
+  const accountsRef = useRef(accounts);
+  useEffect(() => { accountsRef.current = accounts; }, [accounts]);
 
   useEffect(() => {
-    if (!activeAccount) return;
-    void prefetchContacts(activeAccount).catch((e) => {
-      console.warn('[useContactCache] prefetch failed:', String(e));
-    });
-  }, [activeAccount]);
+    for (const account of accountsRef.current) {
+      void prefetchContacts(account).catch((e) => {
+        console.warn('[useContactCache] prefetch failed:', String(e));
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountsKey]);
 }

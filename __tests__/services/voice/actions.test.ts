@@ -16,7 +16,7 @@ jest.mock('@/utils/normalizeEvent', () => ({
 }));
 
 jest.mock('@/stores/calendarStore', () => ({
-    useCalendarStore: { getState: () => ({ hiddenCalendarIds: ['hidden-cal'] }) },
+    useCalendarStore: { getState: () => ({ hiddenCalendarIds: ['a1|hidden-cal'] }) },
 }));
 
 const mockFetchSharees = jest.fn();
@@ -250,21 +250,25 @@ describe('findFreeSlots', () => {
 
 describe('busyCalendarIds', () => {
     const cals = [
-        { id: 'perso' },
-        { id: 'boulot' },
-        { id: 'clara', isReadOnly: true },
-        { id: 'deck', isReadOnly: true },
+        { id: 'perso', accountId: 'a1' },
+        { id: 'boulot', accountId: 'a1' },
+        { id: 'clara', accountId: 'a1', isReadOnly: true },
+        { id: 'deck', accountId: 'a1', isReadOnly: true },
     ];
 
     it('defaults: writable counts, read-only is informational', () => {
-        expect(busyCalendarIds(cals)).toEqual(new Set(['perso', 'boulot']));
+        expect(busyCalendarIds(cals)).toEqual(new Set(['a1|perso', 'a1|boulot']));
     });
 
     it('override can mark a read-only calendar as blocking', () => {
-        expect(busyCalendarIds(cals, { clara: true })).toEqual(new Set(['perso', 'boulot', 'clara']));
+        expect(busyCalendarIds(cals, { 'a1|clara': true })).toEqual(new Set(['a1|perso', 'a1|boulot', 'a1|clara']));
     });
 
     it('override can mark a writable calendar as non-blocking', () => {
-        expect(busyCalendarIds(cals, { boulot: false })).toEqual(new Set(['perso']));
+        expect(busyCalendarIds(cals, { 'a1|boulot': false })).toEqual(new Set(['a1|perso']));
+    });
+
+    it('an override set on another account does not leak into this one', () => {
+        expect(busyCalendarIds(cals, { 'a2|boulot': false })).toEqual(new Set(['a1|perso', 'a1|boulot']));
     });
 });

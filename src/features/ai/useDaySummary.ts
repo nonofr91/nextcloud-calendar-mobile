@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { useEventsForRange } from '@/database/useEvents';
 import { useAccountStore } from '@/stores/accountStore';
+import { useVisibleAccountIds } from '@/hooks/useAccounts';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { CalendarEvent } from '@/types';
 
+import { hasCalendarFlag } from '@/utils/calendars';
 import { dayEventsToPrompt } from './prompts';
 import { templateSummary } from './templateSummary';
 import { useTaskTypes } from './useTaskTypes';
@@ -45,23 +47,25 @@ export function useDaySummary(dayIso: string): {
   const { state, output, run, reset } = useTextTask();
 
   const { start, end } = useMemo(() => dayRange(dayIso), [dayIso]);
-  const events = useEventsForRange(activeAccountId ?? '', start, end);
+  const visibleAccountIds = useVisibleAccountIds();
+  const events = useEventsForRange(visibleAccountIds, start, end);
   // useEventsForRange keeps the previous range's rows until the new subscription
-  // emits — drop anything that does not belong to this account/day before it can
-  // reach the AI prompt or the template. Hidden calendars are excluded too so
-  // their titles/locations never reach the AI provider.
+  // emits — drop anything that does not belong to a visible account/day before
+  // it can reach the AI prompt or the template. Hidden calendars are excluded
+  // too so their titles/locations never reach the AI provider.
+  const visibleSet = useMemo(() => new Set(visibleAccountIds), [visibleAccountIds]);
   const summaryEvents = useMemo(
     () =>
       events
         .filter(
           (e) =>
-            e.accountId === activeAccountId &&
+            visibleSet.has(e.accountId) &&
             e.dtstart < end &&
             e.dtend >= start &&
-            !hiddenCalendarIds.includes(e.calendarId)
+            !hasCalendarFlag(hiddenCalendarIds, e.accountId, e.calendarId)
         )
         .map(toSummaryEvent),
-    [events, activeAccountId, start, end, hiddenCalendarIds]
+    [events, visibleSet, start, end, hiddenCalendarIds]
   );
 
   const template = useMemo(

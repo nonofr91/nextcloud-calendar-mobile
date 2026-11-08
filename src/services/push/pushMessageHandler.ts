@@ -27,7 +27,8 @@ export function listenToPushMessages(): () => void {
     const data = (event.request.content.data ?? {}) as PushMessageData;
     console.log('[pushMessageHandler] received', data);
 
-    if (activeAccount && activePrivateKey && data.subject) {
+    const account = activeAccount;
+    if (account && activePrivateKey && data.subject) {
       try {
         const decrypted = decryptPushSubject(data.subject, activePrivateKey);
         const payload = JSON.parse(decrypted) as {
@@ -46,13 +47,15 @@ export function listenToPushMessages(): () => void {
         }
 
         if (payload.delete && payload.nid) {
-          useNotificationStore.getState().removeNotification(payload.nid);
+          useNotificationStore.getState().removeNotification(account.id, payload.nid);
           return;
         }
 
         // Refresh OCS notifications so the store is up to date.
-        const notifications = await fetchNotifications(activeAccount);
-        useNotificationStore.getState().addOrUpdateNotifications(notifications.map(withSeenFlag));
+        const notifications = await fetchNotifications(account);
+        useNotificationStore.getState().addOrUpdateNotifications(
+          notifications.map((n) => withSeenFlag(n, account.id)),
+        );
 
         // If the payload contains the notification id, try to present a local alert.
         if (payload.nid) {
@@ -73,10 +76,12 @@ export function listenToPushMessages(): () => void {
       }
     } else {
       // No private key / account available; refresh anyway.
-      if (activeAccount) {
+      if (account) {
         try {
-          const notifications = await fetchNotifications(activeAccount);
-          useNotificationStore.getState().addOrUpdateNotifications(notifications.map(withSeenFlag));
+          const notifications = await fetchNotifications(account);
+          useNotificationStore.getState().addOrUpdateNotifications(
+            notifications.map((n) => withSeenFlag(n, account.id)),
+          );
         } catch (err) {
           console.warn('[pushMessageHandler] refresh failed:', err);
         }

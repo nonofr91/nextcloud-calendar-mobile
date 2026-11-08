@@ -24,6 +24,7 @@ export const SPEAK_ALERT_TASK = 'alert-speak-task';
 
 export interface AlertSpeakData {
   uid?: string;
+  accountId?: string;
   summary?: string;
   dtstart?: string;
   dtend?: string;

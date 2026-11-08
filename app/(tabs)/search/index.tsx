@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { useActiveAccount } from '@/hooks/useAccounts';
+import { useActiveAccount, useVisibleAccountIds } from '@/hooks/useAccounts';
 import { useAccountStore } from '@/stores/accountStore';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { useRecentSearchStore, type RecentSearch } from '@/stores/recentSearchStore';
@@ -50,13 +50,16 @@ export default function SearchScreen() {
   const selected = useIsSelectedTab();
   const accountId = useAccountStore((state) => state.activeAccountId);
   const account = useActiveAccount(accountId);
+  const visibleAccountIds = useVisibleAccountIds();
   const hiddenCalendarIds = useCalendarStore((state) => state.hiddenCalendarIds);
   const online = useIsOnline();
   const navGuard = useRef(createNavigationGuard()).current;
   const [openingHref, setOpeningHref] = useState<string | null>(null);
 
   const [model, dispatch] = useReducer(reducer, EMPTY_MODEL);
-  const local = useLocalSearch(selected ? accountId : null, toTerm(model));
+  // Local results span every visible account; server-side search stays on the
+  // default account (hits open through it anyway).
+  const local = useLocalSearch(selected ? visibleAccountIds : [], toTerm(model));
   const data = local.suggestionData;
   const resolve = useCallback<Resolve>((key, raw) => resolveValue(key, raw, data), [data]);
   const send = useCallback((action: SearchAction) => dispatch({ action, resolve }), [resolve]);
@@ -84,7 +87,9 @@ export default function SearchScreen() {
 
   const openEvent = (event: CalendarEvent) => {
     remember();
-    navGuard(() => router.push(`/event/${encodeURIComponent(event.uid)}`));
+    navGuard(() => router.push(
+      `/event/${encodeURIComponent(event.uid)}?accountId=${encodeURIComponent(event.accountId)}`,
+    ));
   };
 
   const openHit = async (hit: ServerHit) => {
@@ -93,7 +98,9 @@ export default function SearchScreen() {
     setOpeningHref(hit.href);
     try {
       const uid = await openServerHit(account, hit);
-      navGuard(() => router.push(`/event/${encodeURIComponent(uid)}`));
+      navGuard(() => router.push(
+        `/event/${encodeURIComponent(uid)}?accountId=${encodeURIComponent(account.id)}`,
+      ));
     } catch {
       Alert.alert(t('search.openFailed'));
     } finally {

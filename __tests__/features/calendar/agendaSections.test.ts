@@ -97,6 +97,20 @@ describe('buildAgendaSections', () => {
     expect(agendaRowKey('2026-09-14', a)).not.toBe(agendaRowKey('2026-09-14', b));
   });
 
+  it('keeps identical events from different accounts as distinct rows', () => {
+    // Two Nextcloud accounts both expose a 'personal' calendar and may share
+    // event uids (e.g. the same imported ICS) — the dedupe key must not drop one.
+    const a = ev('same-uid', new Date(2026, 8, 14, 10), new Date(2026, 8, 14, 11));
+    const b = { ...a, accountId: 'a2', href: 'https://b.example/cal/same-uid.ics' };
+    const sections = buildAgendaSections(
+      [a, b],
+      new Date(2026, 8, 14),
+      new Date(2026, 8, 15),
+    );
+    expect(sections[0].data).toHaveLength(2);
+    expect(agendaRowKey('2026-09-14', a)).not.toBe(agendaRowKey('2026-09-14', b));
+  });
+
   it('gives recurring occurrences and same-day rows unique keys', () => {
     const occ1 = { ...ev('r', new Date(2026, 8, 14, 9), new Date(2026, 8, 14, 10)), uid: 'r_occ_1000' };
     const occ2 = { ...ev('r', new Date(2026, 8, 14, 17), new Date(2026, 8, 14, 18)), uid: 'r_occ_1000' };

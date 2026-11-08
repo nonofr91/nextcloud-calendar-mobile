@@ -45,14 +45,21 @@ function eventsFingerprint(rows: Event[]): string {
   return keys.join('\0');
 }
 
-export function useEventsForRange(accountId: string, start: Date, end: Date, refresh = 0) {
+export function useEventsForRange(accountIds: readonly string[], start: Date, end: Date, refresh = 0) {
   const database = useDatabase();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const fingerprintRef = useRef<string>('');
+  const idsKey = accountIds.join('\0');
 
   useEffect(() => {
+    const ids = idsKey ? idsKey.split('\0') : [];
+    if (ids.length === 0) {
+      fingerprintRef.current = '';
+      setEvents([]);
+      return;
+    }
     const query = database.get<Event>('events').query(
-      Q.where('account_id', accountId),
+      Q.where('account_id', Q.oneOf(ids)),
       Q.where('start', Q.lt(end.getTime())),
       Q.where('end', Q.gte(start.getTime())),
     );
@@ -68,27 +75,31 @@ export function useEventsForRange(accountId: string, start: Date, end: Date, ref
       setEvents(next);
     });
     return () => subscription.unsubscribe();
-  }, [accountId, start, end, database, refresh]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idsKey, start, end, database, refresh]);
 
   return events;
 }
 
-export function useAllEvents(accountId: string | null) {
+export function useAllEvents(accountIds: readonly string[]) {
   const database = useDatabase();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const idsKey = accountIds.join('\0');
 
   useEffect(() => {
-    if (!accountId) {
+    const ids = idsKey ? idsKey.split('\0') : [];
+    if (ids.length === 0) {
       setEvents([]);
       return;
     }
     const subscription = database
       .get<Event>('events')
-      .query(Q.where('account_id', accountId))
+      .query(Q.where('account_id', Q.oneOf(ids)))
       .observeWithColumns(EVENT_OBSERVED_COLUMNS)
       .subscribe((rows) => setEvents(rows.map(mapEventToShared)));
     return () => subscription.unsubscribe();
-  }, [accountId, database]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idsKey, database]);
 
   return events;
 }

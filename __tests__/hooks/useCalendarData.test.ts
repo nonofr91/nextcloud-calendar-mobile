@@ -15,10 +15,11 @@ jest.mock('@/database/useEvents', () => ({
   useEventsForRange: jest.fn(() => []),
 }));
 jest.mock('@/hooks/useCalendars', () => ({
-  useCalendars: jest.fn(() => ({ data: mockCalendars, isFetching: false })),
+  useMultiCalendars: jest.fn(() => ({ data: mockCalendars, isFetching: false })),
 }));
 jest.mock('@/hooks/useAccounts', () => ({
   useActiveAccount: jest.fn(() => mockAccount),
+  useVisibleAccounts: jest.fn(() => [mockAccount]),
 }));
 jest.mock('@/services/shared/network', () => ({
   useIsOnline: jest.fn(() => true),

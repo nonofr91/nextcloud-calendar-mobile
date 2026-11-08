@@ -83,8 +83,9 @@ export interface WidgetSurface<P> {
   canPromote?(): boolean;
 }
 
-export function eventDeepLink(uid: string): string {
-  return `${APP_SCHEME}://event/${encodeURIComponent(uid)}`;
+export function eventDeepLink(uid: string, accountId?: string): string {
+  const base = `${APP_SCHEME}://event/${encodeURIComponent(uid)}`;
+  return accountId ? `${base}?accountId=${encodeURIComponent(accountId)}` : base;
 }
 
 export function listenDeepLink(): string {

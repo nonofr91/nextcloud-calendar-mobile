@@ -7,6 +7,7 @@ export function eventToInput(event: CalendarEvent, account: Account): CreateEven
   return {
     summary: event.summary,
     calendarId: event.calendarId,
+    calendarAccountId: event.accountId,
     dtstart: event.dtstart,
     dtend: event.dtend,
     allDay: event.allDay,

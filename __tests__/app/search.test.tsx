@@ -116,9 +116,11 @@ beforeEach(() => {
   (useIsFocused as jest.Mock).mockReturnValue(true);
   mockTabState.index = 1;
   (useIsOnline as jest.Mock).mockReturnValue(true);
-  (useEventsForRange as jest.Mock).mockImplementation((accountId: string) => (accountId ? events : []));
-  (useCalendarsFromDb as jest.Mock).mockImplementation((accountId: string | null) =>
-    accountId ? [makeCalendar('work', 'Work'), makeCalendar('perso', 'Perso')] : [],
+  (useEventsForRange as jest.Mock).mockImplementation((accountIds: readonly string[]) =>
+    accountIds.length > 0 ? events : [],
+  );
+  (useCalendarsFromDb as jest.Mock).mockImplementation((accountIds: readonly string[]) =>
+    accountIds.length > 0 ? [makeCalendar('work', 'Work'), makeCalendar('perso', 'Perso')] : [],
   );
   (useRemoteSearch as jest.Mock).mockReturnValue({ entries: [], loading: false, failed: false });
   act(() => {
@@ -139,8 +141,8 @@ it('shows the filter menu when empty', () => {
 it('a multi-day event shows its full date range in the result line', async () => {
   const retreat = makeEvent('retreat', 'work', 'Retreat', now + DAY_MS);
   retreat.dtend = new Date(retreat.dtstart.getTime() + 3 * DAY_MS);
-  (useEventsForRange as jest.Mock).mockImplementation((accountId: string) =>
-    accountId ? [...events, retreat] : [],
+  (useEventsForRange as jest.Mock).mockImplementation((accountIds: readonly string[]) =>
+    accountIds.length > 0 ? [...events, retreat] : [],
   );
   renderScreen();
   fireEvent.changeText(input(), 'retreat');
@@ -172,7 +174,7 @@ it('opening a result saves a recent search and pushes /event/<uid>', async () =>
   renderScreen();
   fireEvent.changeText(input(), 'dentist');
   fireEvent.press(await screen.findByTestId('result-event-dentist'));
-  expect(router.push).toHaveBeenCalledWith('/event/dentist');
+  expect(router.push).toHaveBeenCalledWith('/event/dentist?accountId=a1');
   expect(recentTerms()).toEqual(['dentist']);
 });
 
@@ -195,7 +197,7 @@ it('tapping a server hit calls openServerHit then pushes its uid; failure shows 
   const row = await screen.findByTestId('result-server-/remote.php/dav/calendars/alice/work/old.ics');
 
   fireEvent.press(row);
-  await waitFor(() => expect(router.push).toHaveBeenCalledWith('/event/old_occ_1700049600'));
+  await waitFor(() => expect(router.push).toHaveBeenCalledWith('/event/old_occ_1700049600?accountId=a1'));
   expect((openServerHit as jest.Mock).mock.calls[0][0]).toEqual(account);
   expect((openServerHit as jest.Mock).mock.calls[0][1]).toMatchObject({
     href: 'https://cloud.test/remote.php/dav/calendars/alice/work/old.ics',
@@ -214,7 +216,7 @@ it('hiding a calendar removes its local rows and server hit', async () => {
   renderScreen();
   fireEvent.changeText(input(), 'lunch');
   expect(await screen.findByText('Old lunch')).toBeTruthy();
-  act(() => useCalendarStore.setState({ hiddenCalendarIds: ['work'] }));
+  act(() => useCalendarStore.setState({ hiddenCalendarIds: ['a1|work'] }));
   await waitFor(() => expect(screen.queryByText('Old lunch')).toBeNull());
   expect(screen.queryByTestId('result-event-lunch-work')).toBeNull();
   expect(screen.getByTestId('result-event-lunch-perso')).toBeTruthy();
@@ -240,7 +242,7 @@ it('keeps results while an event screen is pushed on top', async () => {
   (useIsFocused as jest.Mock).mockReturnValue(false);
   (useEventsForRange as jest.Mock).mockClear();
   fireEvent.changeText(input(), 'dentist ');
-  for (const [accountId] of (useEventsForRange as jest.Mock).mock.calls) expect(accountId).toBe('a1');
+  for (const [accountIds] of (useEventsForRange as jest.Mock).mock.calls) expect(accountIds).toEqual(['a1']);
   expect(screen.getByTestId('result-event-dentist')).toBeTruthy();
 });
 
@@ -255,6 +257,6 @@ it('does not subscribe to events while another tab is selected', () => {
   mockTabState.index = 0;
   renderScreen();
   fireEvent.changeText(input(), 'dentist');
-  for (const [accountId] of (useEventsForRange as jest.Mock).mock.calls) expect(accountId).toBe('');
+  for (const [accountIds] of (useEventsForRange as jest.Mock).mock.calls) expect(accountIds).toEqual([]);
   for (const [accountId] of (useRemoteSearch as jest.Mock).mock.calls) expect(accountId).toBeNull();
 });

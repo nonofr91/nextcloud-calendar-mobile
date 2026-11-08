@@ -31,6 +31,7 @@ import { releasePending } from '@/database/pendingWrites';
 import { eventKey, syncCalendarDelta } from '@/database/sync';
 
 import { occurrenceSlot } from '@/features/event/occurrenceTarget';
+import { calendarKeyOf } from '@/utils/calendars';
 import type { Account, CalendarMeta, CalendarEvent, CreateEventInput, RecurrenceEditScope } from '@/types';
 
 const TALK_URL_PATTERN = /\/call\//;
@@ -210,8 +211,21 @@ function masterTzid(ics: string): string | undefined {
   return tzid && isValidTimeZone(tzid) ? tzid : undefined;
 }
 
-function resolveCalendar(calendars: CalendarMeta[], calendarId: string): CalendarMeta | undefined {
-  return calendars.find((c) => c.id === calendarId) ?? calendars[0];
+function resolveCalendar(calendars: CalendarMeta[], calendarId: string, accountId?: string): CalendarMeta | undefined {
+  if (accountId) {
+    // Disambiguated pick — never fall back to another account's calendar.
+    return (
+      calendars.find((c) => c.accountId === accountId && c.id === calendarId) ??
+      calendars.find((c) => c.accountId === accountId)
+    );
+  }
+  // A composite picker key may arrive unpaired if the list shifted — match it
+  // exactly before falling back to the bare remote id.
+  return (
+    calendars.find((c) => c.id === calendarId) ??
+    calendars.find((c) => calendarKeyOf(c) === calendarId) ??
+    calendars[0]
+  );
 }
 
 function resolveAlarms(input: CreateEventInput): number[] | undefined {
@@ -344,11 +358,14 @@ function expandOccurrences(
   );
 }
 
-export function useCreateEvent(account: Account, calendars: CalendarMeta[]) {
+export function useCreateEvent(accounts: readonly Account[], calendars: CalendarMeta[]) {
   return useAction<CreateEventInput, MutationResult>(
     useCallback(async (input: CreateEventInput): Promise<MutationResult> => {
-      const calendar = resolveCalendar(calendars, input.calendarId);
-      if (!calendar) return 'failed';
+      const calendar = resolveCalendar(calendars, input.calendarId, input.calendarAccountId);
+      // The target account is derived from the chosen calendar, never from
+      // activeAccountId — writes must land on the calendar's owner server.
+      const account = calendar ? accounts.find((a) => a.id === calendar.accountId) : undefined;
+      if (!calendar || !account) return 'failed';
 
       const uid = input.uid ?? Crypto.randomUUID();
       const timezone = inputTimezone(input) ?? resolveTimezone(account);
@@ -425,21 +442,34 @@ export function useCreateEvent(account: Account, calendars: CalendarMeta[]) {
         }
       }
       return 'ok';
-    }, [account, calendars]),
+    }, [accounts, calendars]),
   );
 }
 
-export function useUpdateEvent(account: Account, calendars: CalendarMeta[]) {
+export function useUpdateEvent(accounts: readonly Account[], calendars: CalendarMeta[]) {
   return useAction<{ event: CalendarEvent; input: CreateEventInput; scope?: RecurrenceEditScope; datesOnly?: boolean }, MutationResult>(
     useCallback(async ({ event, input, scope = 'all', datesOnly = false }): Promise<MutationResult> => {
+      // Writes go to the event's own account — an event from server B must be
+      // editable while account A is the default.
+      const account = accounts.find((a) => a.id === event.accountId);
+      if (!account) return 'failed';
       const base = seriesBaseUid(event.uid);
       const snapshot = await snapshotByBase(account.id, base);
 
       const { dtstart, dtend } = inputDates(input);
       const { deltaStart, deltaEnd } = seriesDeltas(event, dtstart, dtend);
       const shiftsWholeSeries = event.isRecurring && scope === 'all';
-      const calendarChanged = !event.isRecurring && input.calendarId !== event.calendarId;
-      const targetCal = calendarChanged ? calendars.find((c) => c.id === input.calendarId) : undefined;
+      const targetAccountId = input.calendarAccountId ?? event.accountId;
+      const calendarChanged =
+        !event.isRecurring &&
+        (input.calendarId !== event.calendarId || targetAccountId !== event.accountId);
+      const targetCal = calendarChanged
+        ? calendars.find((c) => c.id === input.calendarId && c.accountId === targetAccountId) ??
+          calendars.find((c) => calendarKeyOf(c) === input.calendarId)
+        : undefined;
+      // CalDAV MOVE is intra-server: a target calendar owned by another account
+      // would need delete+create on two servers — not supported.
+      if (targetCal && targetCal.accountId !== account.id) return 'failed';
 
       const nonTemporalPatch = {
         summary: input.summary,
@@ -543,10 +573,8 @@ export function useUpdateEvent(account: Account, calendars: CalendarMeta[]) {
             }
             warnAttachmentFailures(delta.failures);
           }
-          if (!event.isRecurring && input.calendarId !== event.calendarId) {
-            const cal = calendars.find((c) => c.id === input.calendarId);
-            if (!cal) throw new Error('Target calendar not found');
-            await moveEvent(account, event.href, cal, event.uid);
+          if (targetCal) {
+            await moveEvent(account, event.href, targetCal, event.uid);
           }
         } else if (scope === 'this') {
           const { ics: masterIcs, etag } = await fetchEventIcsWithEtag(account, event.href);
@@ -586,7 +614,9 @@ export function useUpdateEvent(account: Account, calendars: CalendarMeta[]) {
           timezone = inputTimezone(input) ?? masterTzid(masterIcs) ?? timezone;
 
           const oneDayBefore = dayjs(occurrenceSlot(event)).subtract(1, 'day').endOf('day').toDate();
-          const cal = calendars.find((c) => c.id === event.calendarId) ?? calendars.find((c) => c.id === input.calendarId);
+          const cal =
+            calendars.find((c) => c.id === event.calendarId && c.accountId === event.accountId) ??
+            calendars.find((c) => c.id === input.calendarId && c.accountId === targetAccountId);
           if (!cal) throw new Error('Calendar not found for new series');
           const newUid = Crypto.randomUUID();
           const seriesIcs = buildIcsForInput(newUid, scheduled, location, description, timezone, 0, extractExtraVeventLines(masterIcs), extractVtimezoneLines(masterIcs, timezone));
@@ -603,13 +633,13 @@ export function useUpdateEvent(account: Account, calendars: CalendarMeta[]) {
           warnAttachmentFailures(delta.failures);
         }
         // Resync the source calendar and, when the event moved, the target one.
-        const affectedCalIds = new Set([event.calendarId, input.calendarId]);
-        for (const id of affectedCalIds) {
-          await resyncAfterAttachmentDelta(
-            account,
-            calendars.find((c) => c.id === id),
-            input,
-          );
+        const affectedCals = new Map<string, CalendarMeta>();
+        const sourceCal = calendars.find((c) => c.id === event.calendarId && c.accountId === event.accountId);
+        if (sourceCal) affectedCals.set(calendarKeyOf(sourceCal), sourceCal);
+        const targetResyncCal = calendars.find((c) => c.id === input.calendarId && c.accountId === targetAccountId);
+        if (targetResyncCal) affectedCals.set(calendarKeyOf(targetResyncCal), targetResyncCal);
+        for (const cal of affectedCals.values()) {
+          await resyncAfterAttachmentDelta(account, cal, input);
         }
         releasePending(marked);
         return 'ok';
@@ -619,13 +649,15 @@ export function useUpdateEvent(account: Account, calendars: CalendarMeta[]) {
         Alert.alert(i18n.t('event.errorUpdateFailed'), describeMutationError(error));
         return 'failed';
       }
-    }, [account, calendars]),
+    }, [accounts, calendars]),
   );
 }
 
-export function useDeleteEvent(account: Account) {
+export function useDeleteEvent(accounts: readonly Account[]) {
   return useAction<{ event: CalendarEvent; scope?: RecurrenceEditScope }, MutationResult>(
     useCallback(async ({ event, scope = 'all' }): Promise<MutationResult> => {
+      const account = accounts.find((a) => a.id === event.accountId);
+      if (!account) return 'failed';
       const base = seriesBaseUid(event.uid);
       let removed: CalendarEvent[] = [];
       let marked: string[] = [];
@@ -671,6 +703,6 @@ export function useDeleteEvent(account: Account) {
         Alert.alert(i18n.t('event.errorDeleteFailed'), describeMutationError(error));
         return 'failed';
       }
-    }, [account]),
+    }, [accounts]),
   );
 }

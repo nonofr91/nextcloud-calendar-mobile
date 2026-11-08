@@ -1,6 +1,7 @@
 import { Appearance } from 'react-native';
 
 import { useAccountStore } from '@/stores/accountStore';
+import { setAccounts } from '@/hooks/useAccounts';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { CalendarEvent } from '@/types';
@@ -87,9 +88,17 @@ describe('syncWidget calendar filtering', () => {
   beforeEach(() => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
     jest.spyOn(Date, 'now').mockReturnValue(new Date('2026-08-01T09:00:00Z').getTime());
+    setAccounts([{
+      id: 'acc-1',
+      displayName: 'Test',
+      baseUrl: 'https://cloud.example.com',
+      username: 'u',
+      appPassword: 'p',
+      davUserId: 'u',
+    }]);
+    useAccountStore.getState().setActiveAccountId('acc-1');
     useAccountStore.setState({
-      activeAccountId: 'acc-1',
-      capabilities: { talkEnabled: false, calendarApp: 'available' },
+      capabilitiesByAccount: { 'acc-1': { talkEnabled: false, calendarApp: 'available' } },
     });
     useCalendarStore.setState({
       hiddenCalendarIds: [],
@@ -109,7 +118,7 @@ describe('syncWidget calendar filtering', () => {
 
   it('excludes widget-disabled calendars from the pushed timeline', async () => {
     mockRows = [ev('visible', 'cal-a'), ev('hidden-by-widget', 'cal-b')];
-    useCalendarStore.setState({ widgetDisabledCalendarIds: ['cal-b'] });
+    useCalendarStore.setState({ widgetDisabledCalendarIds: ['acc-1|cal-b'] });
 
     await syncWidget(new Date('2026-08-01T09:00:00Z'));
 
@@ -121,7 +130,7 @@ describe('syncWidget calendar filtering', () => {
 
   it('excludes drawer-hidden calendars via readUpcomingEvents', async () => {
     mockRows = [ev('visible', 'cal-a'), ev('hidden-by-drawer', 'cal-c')];
-    useCalendarStore.setState({ hiddenCalendarIds: ['cal-c'] });
+    useCalendarStore.setState({ hiddenCalendarIds: ['acc-1|cal-c'] });
 
     await syncWidget(new Date('2026-08-01T09:00:00Z'));
 
@@ -137,7 +146,7 @@ describe('syncWidget calendar filtering', () => {
     await syncWidget(new Date('2026-08-01T09:00:00Z'));
     expect(snapshotEvents()).toEqual(expect.arrayContaining(['a', 'b']));
 
-    useCalendarStore.setState({ widgetDisabledCalendarIds: ['cal-b'] });
+    useCalendarStore.setState({ widgetDisabledCalendarIds: ['acc-1|cal-b'] });
     mockHomeUpdate.mockClear();
     await syncWidget(new Date('2026-08-01T09:05:00Z'));
 

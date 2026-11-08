@@ -14,8 +14,7 @@ import { useTimeFormat } from '@/hooks/useTimeFormat';
 import {
   AGENDA_FUTURE_DAYS, AGENDA_PAST_DAYS, agendaRowKey, buildAgendaSections,
 } from '../utils/agendaSections';
-import { useAccountStore } from '@/stores/accountStore';
-import { useActiveAccount } from '@/hooks/useAccounts';
+import { useAccounts } from '@/hooks/useAccounts';
 import { isEventPending } from '@/utils/eventPending';
 
 dayjs.extend(localizedFormat);
@@ -79,9 +78,11 @@ interface EventRowProps {
 const EventRow = memo(({ event, theme, onPress }: EventRowProps) => {
   const { t } = useTranslation();
   const { formatTime } = useTimeFormat();
-  const activeAccountId = useAccountStore((s) => s.activeAccountId);
-  const activeAccount = useActiveAccount(activeAccountId);
-  const pending = isEventPending(event, activeAccount);
+  const accounts = useAccounts();
+  const pending = isEventPending(
+    event,
+    accounts.find((a) => a.id === event.accountId) ?? null,
+  );
   const duration = event.allDay
     ? null
     : (() => {

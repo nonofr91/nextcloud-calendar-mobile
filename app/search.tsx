@@ -12,7 +12,9 @@ dayjs.extend(localizedFormat);
 import { useAccountStore } from '@/stores/accountStore';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useVisibleAccountIds } from '@/hooks/useAccounts';
 import { useAllEvents } from '@/database/useEvents';
+import { hasCalendarFlag } from '@/utils/calendars';
 import { searchEvents } from '@/features/search/searchEvents';
 import {
   IconButton,
@@ -43,10 +45,11 @@ export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
 
-  const events = useAllEvents(activeAccountId);
+  const visibleAccountIds = useVisibleAccountIds();
+  const events = useAllEvents(visibleAccountIds);
 
   const results = useMemo(() => {
-    const visible = events.filter((e) => !hiddenCalendarIds.includes(e.calendarId));
+    const visible = events.filter((e) => !hasCalendarFlag(hiddenCalendarIds, e.accountId, e.calendarId));
     return searchEvents(visible, deferredQuery);
   }, [events, hiddenCalendarIds, deferredQuery]);
 
@@ -87,12 +90,14 @@ export default function SearchScreen() {
 
         <FlatList
           data={results}
-          keyExtractor={(item) => `${item.calendarId}|${item.uid}`}
+          keyExtractor={(item) => `${item.accountId}|${item.calendarId}|${item.uid}`}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
             <Item
-              onPress={() => router.push(`/event/${encodeURIComponent(item.uid)}`)}
+              onPress={() => router.push(
+                `/event/${encodeURIComponent(item.uid)}?accountId=${encodeURIComponent(item.accountId)}`,
+              )}
               leading={<View style={[styles.dot, { backgroundColor: item.color }]} />}
               title={
                 <Typography variant="body1" numberOfLines={1}>

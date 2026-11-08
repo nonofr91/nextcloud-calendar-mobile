@@ -97,7 +97,7 @@ import { speak as mockSpeak } from '@/services/voice/tts';
 const account = {
     id: 'a1', baseUrl: 'https://nc.test', username: 'u', appPassword: 'p',
 } as unknown as Account;
-const calendars = [{ id: 'cal1', displayName: 'Personnel' }] as never[];
+const calendars = [{ id: 'cal1', accountId: 'a1', displayName: 'Personnel' }] as never[];
 
 function ev(partial: Partial<CalendarEvent> & { dtstart: Date; dtend: Date }): CalendarEvent {
     return {
@@ -420,9 +420,9 @@ describe('mutations behind the confirmation gate', () => {
 describe('create — calendar resolution', () => {
     const start = new Date(2030, 0, 5, 14, 30);
     const multi = [
-        { id: 'cal1', displayName: 'Personnel' },
-        { id: 'cal2', displayName: 'Planning clara' },
-        { id: 'cal3', displayName: 'Perma SIPC' },
+        { id: 'cal1', accountId: 'a1', displayName: 'Personnel' },
+        { id: 'cal2', accountId: 'a1', displayName: 'Planning clara' },
+        { id: 'cal3', accountId: 'a1', displayName: 'Perma SIPC' },
     ] as CalendarMeta[];
     const renderMulti = () => renderHook(() => useVoiceAssistant(account, multi));
 
@@ -494,9 +494,9 @@ describe('create — calendar resolution', () => {
 
     it('read-only calendars are excluded from the candidates', async () => {
         const mixed = [
-            { id: 'ro', displayName: 'Jours fériés', isReadOnly: true },
-            { id: 'cal1', displayName: 'Personnel' },
-            { id: 'cal2', displayName: 'Pro' },
+            { id: 'ro', accountId: 'a1', displayName: 'Jours fériés', isReadOnly: true },
+            { id: 'cal1', accountId: 'a1', displayName: 'Personnel' },
+            { id: 'cal2', accountId: 'a1', displayName: 'Pro' },
         ] as CalendarMeta[];
         mockParse.mockReturnValue({ kind: 'create', summary: 'Dentiste', start, names: [] });
         const { result } = renderHook(() => useVoiceAssistant(account, mixed));
@@ -508,10 +508,10 @@ describe('create — calendar resolution', () => {
 
     it('subscribed calendars are excluded from the candidates', async () => {
         const mixed = [
-            { id: 'sub1', displayName: 'PSG', isSubscribed: true },
-            { id: 'sub2', displayName: 'Jours fériés', isSubscribed: true },
-            { id: 'cal1', displayName: 'Personnel' },
-            { id: 'cal2', displayName: 'Pro' },
+            { id: 'sub1', accountId: 'a1', displayName: 'PSG', isSubscribed: true },
+            { id: 'sub2', accountId: 'a1', displayName: 'Jours fériés', isSubscribed: true },
+            { id: 'cal1', accountId: 'a1', displayName: 'Personnel' },
+            { id: 'cal2', accountId: 'a1', displayName: 'Pro' },
         ] as CalendarMeta[];
         mockParse.mockReturnValue({ kind: 'create', summary: 'Dentiste', start, names: [] });
         const { result } = renderHook(() => useVoiceAssistant(account, mixed));
@@ -538,8 +538,8 @@ describe('create — calendar resolution', () => {
 
     it('all calendars read-only → error, no mutation', async () => {
         const readOnly = [
-            { id: 'ro1', displayName: 'A', isReadOnly: true },
-            { id: 'ro2', displayName: 'B', isReadOnly: true },
+            { id: 'ro1', accountId: 'a1', displayName: 'A', isReadOnly: true },
+            { id: 'ro2', accountId: 'a1', displayName: 'B', isReadOnly: true },
         ] as CalendarMeta[];
         mockParse.mockReturnValue({ kind: 'create', summary: 'Dentiste', start, names: [] });
         const { result } = renderHook(() => useVoiceAssistant(account, readOnly));
@@ -552,9 +552,9 @@ describe('create — calendar resolution', () => {
     it('default pointing at a read-only calendar is ignored → asks', async () => {
         useSettingsStore.setState({ defaultCalendarByAccount: { a1: 'ro' } });
         const mixed = [
-            { id: 'ro', displayName: 'Jours fériés', isReadOnly: true },
-            { id: 'cal1', displayName: 'Personnel' },
-            { id: 'cal2', displayName: 'Pro' },
+            { id: 'ro', accountId: 'a1', displayName: 'Jours fériés', isReadOnly: true },
+            { id: 'cal1', accountId: 'a1', displayName: 'Personnel' },
+            { id: 'cal2', accountId: 'a1', displayName: 'Pro' },
         ] as CalendarMeta[];
         mockParse.mockReturnValue({ kind: 'create', summary: 'Dentiste', start, names: [] });
         const { result } = renderHook(() => useVoiceAssistant(account, mixed));
@@ -568,8 +568,8 @@ describe('create — calendar resolution', () => {
 describe('create — busy attendee alternatives', () => {
     const at = (h: number, m = 0) => new Date(2030, 0, 6, h, m);
     const multi = [
-        { id: 'cal1', displayName: 'Personnel' },
-        { id: 'cal2', displayName: 'Planning clara' },
+        { id: 'cal1', accountId: 'a1', displayName: 'Personnel' },
+        { id: 'cal2', accountId: 'a1', displayName: 'Planning clara' },
     ] as CalendarMeta[];
     const renderMulti = () => renderHook(() => useVoiceAssistant(account, multi));
 
@@ -672,8 +672,8 @@ describe('slot — free-slot proposals', () => {
 
     it('busy day → slot candidates → pick → calendar ask → confirm → created with attendees', async () => {
         const multi = [
-            { id: 'cal1', displayName: 'Personnel' },
-            { id: 'cal2', displayName: 'Planning clara' },
+            { id: 'cal1', accountId: 'a1', displayName: 'Personnel' },
+            { id: 'cal2', accountId: 'a1', displayName: 'Planning clara' },
         ] as CalendarMeta[];
         mockParse.mockReturnValue(slotIntent);
         mockEventsOnDay.mockResolvedValue([ev({ dtstart: at(9), dtend: at(12) })]);
@@ -715,8 +715,8 @@ describe('slot — free-slot proposals', () => {
 
     it('events on a read-only informational calendar do not block by default', async () => {
         const cals = [
-            { id: 'cal1', displayName: 'Personnel' },
-            { id: 'clara', displayName: 'Planning clara', isReadOnly: true },
+            { id: 'cal1', accountId: 'a1', displayName: 'Personnel' },
+            { id: 'clara', accountId: 'a1', displayName: 'Planning clara', isReadOnly: true },
         ] as CalendarMeta[];
         mockParse.mockReturnValue(slotIntent);
         // busy 09–12 but on clara's read-only calendar → still free
@@ -730,10 +730,10 @@ describe('slot — free-slot proposals', () => {
 
     it('marking that calendar as blocking in settings makes its events count', async () => {
         const cals = [
-            { id: 'cal1', displayName: 'Personnel' },
-            { id: 'clara', displayName: 'Planning clara', isReadOnly: true },
+            { id: 'cal1', accountId: 'a1', displayName: 'Personnel' },
+            { id: 'clara', accountId: 'a1', displayName: 'Planning clara', isReadOnly: true },
         ] as CalendarMeta[];
-        useCalendarStore.setState({ availabilityCalendarOverrides: { clara: true } });
+        useCalendarStore.setState({ availabilityCalendarOverrides: { 'a1|clara': true } });
         mockParse.mockReturnValue(slotIntent);
         mockEventsOnDay.mockResolvedValue([ev({ calendarId: 'clara', dtstart: at(9), dtend: at(12) })]);
         const { result } = renderHook(() => useVoiceAssistant(account, cals));
@@ -745,7 +745,7 @@ describe('slot — free-slot proposals', () => {
     });
 
     it('attendee free/busy periods block proposed slots', async () => {
-        const cals = [{ id: 'cal1', displayName: 'Personnel' }] as CalendarMeta[];
+        const cals = [{ id: 'cal1', accountId: 'a1', displayName: 'Personnel' }] as CalendarMeta[];
         mockParse.mockReturnValue(slotIntent); // names:['Devin']
         mockEventsOnDay.mockResolvedValue([]); // own day is empty
         mockResolveAttendees.mockResolvedValue({
@@ -771,7 +771,7 @@ describe('slot — free-slot proposals', () => {
     });
 
     it('free/busy failure falls back to own calendars only', async () => {
-        const cals = [{ id: 'cal1', displayName: 'Personnel' }] as CalendarMeta[];
+        const cals = [{ id: 'cal1', accountId: 'a1', displayName: 'Personnel' }] as CalendarMeta[];
         mockParse.mockReturnValue(slotIntent);
         mockEventsOnDay.mockResolvedValue([]);
         mockResolveAttendees.mockResolvedValue({
@@ -876,8 +876,8 @@ describe('lifecycle', () => {
 
     it('speaks prompts aloud — question, confirmation card and error alike', async () => {
         const multi = [
-            { id: 'cal1', displayName: 'Personnel' },
-            { id: 'cal2', displayName: 'Pro' },
+            { id: 'cal1', accountId: 'a1', displayName: 'Personnel' },
+            { id: 'cal2', accountId: 'a1', displayName: 'Pro' },
         ] as CalendarMeta[];
         const start = new Date(2030, 0, 5, 14, 30);
         mockParse.mockReturnValue({ kind: 'create', summary: 'Dentiste', start, names: [] });

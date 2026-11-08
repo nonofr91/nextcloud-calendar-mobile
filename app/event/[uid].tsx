@@ -63,6 +63,7 @@ import {
 } from '@/services/nextcloud/files';
 import { isOwnFileRef, publicShareToken } from '@/services/nextcloud/fileLinks';
 import { DavFilePicker } from '@/features/event/components/DavFilePicker';
+import { hostnameOf } from '@/features/account/utils/account';
 import { askRecurrenceScope, type RecurrenceScopeStrings } from '@/features/event/recurrenceScope';
 import { decideMoveEventScope } from '@/features/calendar/utils/moveEventScope';
 import {
@@ -78,17 +79,24 @@ import { gmtOffsetLabel } from '@/utils/vtimezone';
 dayjs.extend(localizedFormat);
 
 export default function EventDetailScreen() {
-  const { uid } = useLocalSearchParams<{ uid: string }>();
+  const { uid, accountId: paramAccountId } = useLocalSearchParams<{ uid: string; accountId?: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t, i18n } = useTranslation();
   const activeAccountId = useAccountStore((s) => s.activeAccountId);
   const accounts = useAccounts();
-  const activeAccount = accounts.find((a) => a.id === activeAccountId) ?? null;
-  const { data: calendars = [] } = useCalendars(activeAccount);
 
-  const event = useEventByUid(activeAccountId, uid);
+  // uids are only unique per account — the route carries accountId so an event
+  // from any account stays addressable; old links fall back to the active one.
+  const event = useEventByUid(paramAccountId ?? activeAccountId, uid);
+  // Writes/uploads/DAV calls target the event's own account, never the active one.
+  const eventAccount =
+    (event ? accounts.find((a) => a.id === event.accountId) : undefined) ??
+    accounts.find((a) => a.id === paramAccountId) ??
+    accounts.find((a) => a.id === activeAccountId) ??
+    null;
+  const { data: calendars = [] } = useCalendars(eventAccount);
   const talkOpenMode = useSettingsStore((s) => s.talkOpenMode);
   const { formatTime } = useTimeFormat();
 
@@ -106,16 +114,16 @@ export default function EventDetailScreen() {
   }, [navigation]);
 
   const calendar = calendars.find((c) => c.id === event?.calendarId);
-  const deleteMutation = useDeleteEvent(activeAccount!);
-  const toggleTaskMutation = useToggleTask(activeAccount!);
-  const attachments = useEventAttachments(activeAccount, event, calendar);
+  const deleteMutation = useDeleteEvent(accounts);
+  const toggleTaskMutation = useToggleTask(accounts);
+  const attachments = useEventAttachments(eventAccount, event, calendar);
 
 
   const canEdit = !calendar?.isReadOnly && !calendar?.isSubscribed && !event?.isTask;
   const canToggleTask = !!event?.isTask && !calendar?.isReadOnly && !calendar?.isSubscribed;
-  const respondMutation = useUpdateAttendeeStatus(activeAccount);
-  const isAttendee = !!event && activeAccount !== null && isCurrentUserAttendee(event, activeAccount);
-  const myPartstat = event && activeAccount ? getAttendeePartstat(event, activeAccount) : undefined;
+  const respondMutation = useUpdateAttendeeStatus(eventAccount);
+  const isAttendee = !!event && eventAccount !== null && isCurrentUserAttendee(event, eventAccount);
+  const myPartstat = event && eventAccount ? getAttendeePartstat(event, eventAccount) : undefined;
   const eventsLoading = event === undefined;
 
   const [copied, setCopied] = useState(false);
@@ -154,8 +162,8 @@ export default function EventDetailScreen() {
     let on = true;
     setEditors([]);
     setCreators([]);
-    if (activeAccount) {
-      fetchDirectEditing(activeAccount)
+    if (eventAccount) {
+      fetchDirectEditing(eventAccount)
         .then((caps) => {
           if (!on) return;
           setEditors(caps.editors);
@@ -168,21 +176,21 @@ export default function EventDetailScreen() {
         });
     }
     return () => { on = false; };
-  }, [activeAccount]);
+  }, [eventAccount]);
 
   const isEditable = useCallback(
     (att: EventAttachment) =>
-      canEditAttachment(att, activeAccount) &&
+      canEditAttachment(att, eventAccount) &&
       !!editorForMime(
         editors,
         att.fmttype ?? mimeFromName(att.filename ?? att.uri?.split('?')[0].split('/').pop()),
       ),
-    [activeAccount, editors],
+    [eventAccount, editors],
   );
 
   const handleEditAttachment = useCallback(
     async (att: EventAttachment) => {
-      const session = await prepareAttachmentEdit(att, activeAccount);
+      const session = await prepareAttachmentEdit(att, eventAccount);
       if (session) {
         router.push({
           pathname: '/event/editor',
@@ -190,28 +198,29 @@ export default function EventDetailScreen() {
             path: session.path,
             editorId: session.editorId,
             name: session.name,
+            accountId: eventAccount?.id,
           },
         });
       }
     },
-    [activeAccount, router],
+    [eventAccount, router],
   );
 
   const [sourceSheetOpen, setSourceSheetOpen] = useState(false);
 
   const handleNewDocument = useCallback(
     async (creator: DirectCreator) => {
-      if (!activeAccount || !event) return;
+      if (!eventAccount || !event) return;
       try {
         const ext = creator.extension.replace(/^\./, '');
         const base = `${event.summary || 'document'}.${ext}`;
         const { path, filename } = await availableAttachmentPath(
-          activeAccount,
+          eventAccount,
           base,
         );
         // Creates the file server-side and mints the one-time editor URL.
         const url = await createDirectEditingUrl(
-          activeAccount,
+          eventAccount,
           path,
           creator.editor,
           creator.id,
@@ -219,7 +228,7 @@ export default function EventDetailScreen() {
         // addRemote swallows its own errors (alerts) — a failure leaves the
         // created file in /Calendar, still editable, just unattached.
         await attachments.addRemote({
-          uri: fileDavUrl(activeAccount, path),
+          uri: fileDavUrl(eventAccount, path),
           filename,
           fmttype: creator.mimetype,
         });
@@ -228,14 +237,14 @@ export default function EventDetailScreen() {
         setPendingEditorUrl(url);
         router.push({
           pathname: '/event/editor',
-          params: { path, editorId: creator.editor, name: filename },
+          params: { path, editorId: creator.editor, name: filename, accountId: eventAccount.id },
         });
       } catch (error) {
         console.warn('[attachments] new document failed', error);
         Alert.alert(t('event.attachmentAddError'));
       }
     },
-    [activeAccount, event, attachments, router, t],
+    [eventAccount, event, attachments, router, t],
   );
 
   const handleAddAttachment = useCallback(() => {
@@ -244,10 +253,10 @@ export default function EventDetailScreen() {
 
   const handleRemoveAttachment = useCallback((att: EventAttachment) => {
     const deletable =
-      !!activeAccount &&
-      (isOwnDavFile(activeAccount, att) || isOwnFileRef(activeAccount, att));
+      !!eventAccount &&
+      (isOwnDavFile(eventAccount, att) || isOwnFileRef(eventAccount, att));
     const revocable =
-      !!activeAccount && !!att.uri && !!publicShareToken(activeAccount, att.uri);
+      !!eventAccount && !!att.uri && !!publicShareToken(eventAccount, att.uri);
     Alert.alert(
       t('event.attachmentRemove'),
       deletable
@@ -291,7 +300,7 @@ export default function EventDetailScreen() {
               },
             ],
     );
-  }, [attachments, activeAccount, t]);
+  }, [attachments, eventAccount, t]);
 
   const recurrenceScopeStrings: RecurrenceScopeStrings = {
     message: t('event.recurrenceScopeMessage'),
@@ -303,17 +312,18 @@ export default function EventDetailScreen() {
 
   function handleEdit() {
     if (!event) return;
+    const accountId = event.accountId;
     const decision = decideMoveEventScope(event);
     if (decision.kind === 'commit') {
       if (decision.scope === 'this') {
-        router.push({ pathname: `/event/edit/${uid}`, params: { scope: 'this' } });
+        router.push({ pathname: `/event/edit/${uid}`, params: { accountId, scope: 'this' } });
       } else {
-        router.push(`/event/edit/${uid}`);
+        router.push({ pathname: `/event/edit/${uid}`, params: { accountId } });
       }
       return;
     }
     askRecurrenceScope(t('event.editEvent'), recurrenceScopeStrings, (scope) => {
-      router.push({ pathname: `/event/edit/${uid}`, params: { scope } });
+      router.push({ pathname: `/event/edit/${uid}`, params: { accountId, scope } });
     });
   }
 
@@ -402,7 +412,7 @@ export default function EventDetailScreen() {
   // A foreign-zone event shows its wall time in its own zone, plus the zone
   // itself as a separate row so the displayed times are unambiguous.
   const eventTz = event.allDay ? undefined : event.timezone;
-  const accountTz = resolveAccountTimezone(activeAccount);
+  const accountTz = resolveAccountTimezone(eventAccount);
   // Non-IANA TZIDs (e.g. Outlook's "W. Europe Standard Time") can't be
   // formatted by Intl — treat them like the default zone rather than crash.
   const showZone = !!eventTz && isValidTimeZone(eventTz) && eventTz !== accountTz;
@@ -506,6 +516,11 @@ export default function EventDetailScreen() {
                 <Item
                   leading={<Icon size={20}><CalendarDays color={calendar.color} /></Icon>}
                   title={calendar.displayName}
+                  description={
+                    accounts.length > 1 && eventAccount
+                      ? hostnameOf(eventAccount.baseUrl)
+                      : undefined
+                  }
                 />
               )}
               {event.location && (
@@ -592,7 +607,7 @@ export default function EventDetailScreen() {
                     void pickDeviceFile();
                   }}
                 />
-                {activeAccount?.davUserId && (
+                {eventAccount?.davUserId && (
                   <Item
                     title={t('event.attachFromNextcloud')}
                     leading={<FolderOpen size={20} color={theme.colors.text} />}
@@ -618,14 +633,14 @@ export default function EventDetailScreen() {
             </Sheet>
 
             <DavFilePicker
-              visible={davPickerOpen && !!activeAccount?.davUserId}
-              account={activeAccount}
+              visible={davPickerOpen && !!eventAccount?.davUserId}
+              account={eventAccount}
               onClose={() => setDavPickerOpen(false)}
               onSelect={(entry) => {
                 setDavPickerOpen(false);
-                if (!activeAccount) return;
+                if (!eventAccount) return;
                 void attachments.addRemote({
-                  uri: fileDavUrl(activeAccount, entry.path),
+                  uri: fileDavUrl(eventAccount, entry.path),
                   filename: entry.name,
                   fmttype: entry.mime,
                   size: entry.size,
@@ -780,7 +795,7 @@ export default function EventDetailScreen() {
                             isEditable(att)
                               ? () => void handleEditAttachment(att)
                               : isOpenableAttachment(att)
-                                ? () => openAttachment(att, activeAccount, event.href)
+                                ? () => openAttachment(att, eventAccount, event.href)
                                 : undefined
                           }
                           trailing={

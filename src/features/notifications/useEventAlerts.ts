@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import * as Notifications from 'expo-notifications';
 
-import { useAccountStore } from '@/stores/accountStore';
+import { useVisibleAccountIds } from '@/hooks/useAccounts';
 import { EVENT_OBSERVED_COLUMNS } from '@/database/observedColumns';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useCalendarStore } from '@/stores/calendarStore';
@@ -26,7 +26,8 @@ const onAlertResponse = (r: Notifications.NotificationResponse): void => {
 };
 
 export function useEventAlerts(): void {
-  const activeAccountId = useAccountStore((s) => s.activeAccountId);
+  const visibleAccountIds = useVisibleAccountIds();
+  const visibleKey = visibleAccountIds.join(',');
   const timedAlerts = useSettingsStore((s) => s.timedAlerts);
   const allDayAlerts = useSettingsStore((s) => s.allDayAlerts);
   const notifDisabledCalendarIds = useCalendarStore((s) => s.notifDisabledCalendarIds);
@@ -44,11 +45,11 @@ export function useEventAlerts(): void {
   }, []);
 
   useEffect(() => {
-    if (!activeAccountId) return;
+    if (visibleAccountIds.length === 0) return;
 
     void scheduleEventAlerts();
 
-    const sub = observeTodayEventsQuery(activeAccountId)
+    const sub = observeTodayEventsQuery(visibleAccountIds)
       .observeWithColumns(EVENT_OBSERVED_COLUMNS)
       .subscribe(() => {
         void scheduleEventAlerts();
@@ -63,5 +64,6 @@ export function useEventAlerts(): void {
       sub.unsubscribe();
       appSub.remove();
     };
-  }, [activeAccountId, timedAlerts, allDayAlerts, notifDisabledCalendarIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleKey, timedAlerts, allDayAlerts, notifDisabledCalendarIds]);
 }

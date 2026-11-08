@@ -7,6 +7,7 @@ import { eventsOnDay, busyCalendarIds, findFreeSlots, type FreeSlot } from '@/se
 import { fetchFreeBusy } from '@/services/nextcloud/freeBusy';
 import { mergeBusySlots } from '@/utils/freeBusy';
 import { resolveOrganizer } from '@/features/event/utils/organizer';
+import { calendarKey } from '@/utils/calendars';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { useTimeFormat } from '@/hooks/useTimeFormat';
 import { Button, Sheet, Spinner, Stack, Typography } from '@/ui/components';
@@ -36,7 +37,7 @@ export function FindTimeSheet({ visible, onClose, account, calendars, day, durat
         try {
             const events = await eventsOnDay(account.id, day);
             const busyIds = busyCalendarIds(calendars, useCalendarStore.getState().availabilityCalendarOverrides);
-            const busyEvents = events.filter((e) => busyIds.has(e.calendarId));
+            const busyEvents = events.filter((e) => busyIds.has(calendarKey(e.accountId, e.calendarId)));
             if (attendees.length && account.davUserId) {
                 try {
                     const { organizerEmail, organizerName } = resolveOrganizer(account as Account);
