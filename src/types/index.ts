@@ -153,6 +153,8 @@ export type CreateEventInput = {
     alarms?: number[];
     transp?: EventTransp;
     status?: EventStatus;
+    uid?: string;
+    extraLines?: string[];
 };
 
 export type CalendarAppStatus = 'unknown' | 'available' | 'unconfigured';

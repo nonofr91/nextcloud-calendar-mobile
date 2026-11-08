@@ -27,7 +27,7 @@ import type { CalendarMeta, Attendee, CreateEventInput, RecurrenceRule, TalkRoom
 
 dayjs.extend(localizedFormat);
 
-interface InitialValues {
+export interface InitialValues {
   summary?: string;
   calendarId?: string;
   allDay?: boolean;
@@ -41,6 +41,9 @@ interface InitialValues {
   transp?: EventTransp;
   status?: EventStatus;
   timezone?: string;
+  uid?: string;
+  extraLines?: string[];
+
 }
 
 interface Props {
@@ -254,6 +257,9 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
       description, location, attendees, withTalkRoom, talkRoomType,
       organizerEmail, organizerName, rrule, alarms, transp, status,
       timezone: allDay ? undefined : timezone,
+      uid: initialValues?.uid,
+      extraLines: initialValues?.extraLines,
+
     });
   }
 

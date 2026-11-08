@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import dayjs from 'dayjs';
 
-import { putEvent, updateEvent, deleteEvent, moveEvent, fetchEventIcs } from '@/services/nextcloud/caldav';
+import { putEvent, updateEvent, deleteEvent, moveEvent, fetchEventIcs, buildEventHref } from '@/services/nextcloud/caldav';
 import { createTalkRoom } from '@/services/nextcloud/talk';
 import { describeMutationError } from '@/services/shared/errors';
 import { enqueue, isNetworkFailure } from '@/services/pendingMutations';
@@ -118,13 +118,18 @@ function buildIcsForInput(
   calendarLines: string[] = [],
 ): string {
   const alarms = resolveAlarms(input);
+  // A preserved raw RRULE (import path) must not survive next to a rule the
+  // user explicitly set in the form — VEVENT allows a single RRULE.
+  const extras = input.rrule
+    ? extraLines.filter((line) => !/^RRULE:/i.test(line))
+    : extraLines;
   return input.allDay
     ? buildAllDayIcs({
         uid, summary: input.summary, description, location,
         dtstart: input.dtstart, dtend: input.dtend,
         organizerEmail: input.organizerEmail, organizerName: input.organizerName,
         attendees: input.attendees, rrule: input.rrule, alarms,
-        sequence, status: input.status, transp: input.transp, extraLines, calendarLines,
+        sequence, status: input.status, transp: input.transp, extraLines: extras, calendarLines,
 
       })
     : buildIcs({
@@ -132,7 +137,7 @@ function buildIcsForInput(
         dtstart: input.dtstart, dtend: input.dtend,
         organizerEmail: input.organizerEmail, organizerName: input.organizerName,
         attendees: input.attendees, timezone, rrule: input.rrule, alarms,
-        sequence, status: input.status, transp: input.transp, extraLines, calendarLines,
+        sequence, status: input.status, transp: input.transp, extraLines: extras, calendarLines,
 
       });
 }
@@ -180,7 +185,7 @@ function eventFromInput(
   const { dtstart, dtend } = inputDates(input);
   return {
     uid,
-    href: `${calendar.url}${uid}.ics`,
+    href: buildEventHref(calendar, uid),
     calendarId: calendar.id,
     accountId: account.id,
     summary: input.summary,
@@ -209,12 +214,16 @@ function expandOccurrences(
   calendar: CalendarMeta,
   account: Account,
   timezone: string,
+  resolved?: { location: string; description: string },
 ): CalendarEvent[] {
-  const ics = buildIcsForInput(baseUid, input, input.location ?? '', input.description ?? '', timezone);
+  const location = resolved?.location ?? input.location ?? '';
+  const description = resolved?.description ?? input.description ?? '';
+  const ics = buildIcsForInput(baseUid, input, location, description, timezone, 0, input.extraLines);
+
   const rangeStart = dayjs(input.dtstart).subtract(1, 'month').toDate();
   const rangeEnd = dayjs(input.dtstart).add(3, 'month').toDate();
   return parseIcsObjects(
-    [{ ics, href: `${calendar.url}${baseUid}.ics` }],
+    [{ ics, href: buildEventHref(calendar, baseUid) }],
     { calendarId: calendar.id, accountId: account.id, color: calendar.color },
     rangeStart,
     rangeEnd,
@@ -227,8 +236,9 @@ export function useCreateEvent(account: Account, calendars: CalendarMeta[]) {
       const calendar = resolveCalendar(calendars, input.calendarId);
       if (!calendar) return 'failed';
 
-      const uid = Crypto.randomUUID();
+      const uid = input.uid ?? Crypto.randomUUID();
       const timezone = inputTimezone(input) ?? resolveTimezone(account);
+
       const optimistic = input.rrule
         ? expandOccurrences(uid, input, calendar, account, timezone)
         : [eventFromInput(uid, input, calendar, account, undefined, timezone)];
@@ -253,11 +263,11 @@ export function useCreateEvent(account: Account, calendars: CalendarMeta[]) {
       try {
         marked = await insertEvents(optimistic);
         const resolved = await resolveLocationAndDescription(account, input);
-        ics = buildIcsForInput(uid, input, resolved.location, resolved.description, timezone);
+        ics = buildIcsForInput(uid, input, resolved.location, resolved.description, timezone, 0, input.extraLines);
         await putEvent(account, calendar, uid, ics);
 
         const real = input.rrule
-          ? expandOccurrences(uid, input, calendar, account, timezone)
+          ? expandOccurrences(uid, input, calendar, account, timezone, resolved)
           : [eventFromInput(uid, input, calendar, account, resolved, timezone)];
         await insertEvents(real, { trackPending: false });
         releasePending(marked);
@@ -306,6 +316,7 @@ export function useUpdateEvent(account: Account, calendars: CalendarMeta[]) {
       };
 
       let marked: string[] = [];
+
       try {
         if (shiftsWholeSeries) {
           marked = await shiftSeriesDates(account.id, base, deltaStart, deltaEnd, datesOnly ? {} : nonTemporalPatch);
