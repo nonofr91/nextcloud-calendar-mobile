@@ -53,6 +53,13 @@ export function serializeAlarms(alarms?: number[]): string | undefined {
     return JSON.stringify([...new Set(alarms)].sort((a, b) => b - a));
 }
 
+export function serializeAttachments(attachments?: CalendarEvent['attachments']): string | undefined {
+  if (!attachments?.length) return undefined;
+  const sorted = [...attachments].sort((a, b) =>
+    (a.filename ?? a.uri ?? '').localeCompare(b.filename ?? b.uri ?? ''));
+  return JSON.stringify(sorted);
+}
+
 export function writeEvent(row: Event, ev: CalendarEvent): void {
     row.accountId = ev.accountId;
     row.calendarId = ev.calendarId;
@@ -80,6 +87,7 @@ export function writeEvent(row: Event, ev: CalendarEvent): void {
     row.taskStatus = ev.taskStatus ?? undefined;
     row.taskCompletedAt = ev.taskCompletedAt?.getTime() ?? undefined;
     row.taskPercent = ev.taskPercent ?? undefined;
+    row.attachments = serializeAttachments(ev.attachments);
 }
 
 function calendarUnchanged(row: Calendar, c: CalendarMeta): boolean {
@@ -119,7 +127,8 @@ function eventUnchanged(row: Event, ev: CalendarEvent): boolean {
         (row.timezone ?? undefined) === (ev.timezone ?? undefined) &&
         (row.taskStatus ?? undefined) === (ev.taskStatus ?? undefined) &&
         (row.taskCompletedAt ?? undefined) === (ev.taskCompletedAt?.getTime() ?? undefined) &&
-        (row.taskPercent ?? undefined) === (ev.taskPercent ?? undefined)
+        (row.taskPercent ?? undefined) === (ev.taskPercent ?? undefined) &&
+        (row.attachments ?? undefined) === serializeAttachments(ev.attachments)
     );
 }
 
@@ -402,18 +411,43 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
     await safeWrite(db, async () => {
         const ops = [];
         const deletedSet = new Set(result.deleted);
+        const fetchedByKey = new Map(
+            fetched.map((ev) => [eventKey(ev.accountId, ev.calendarId, ev.uid), ev]),
+        );
+        // Rows kept because the fetched event is identical — avoids churning a
+        // delete+recreate (bridge ops + observer re-queries) on every delta sync,
+        // and keeps rows alive under screens currently observing them.
+        const keptKeys = new Set<string>();
+        const keepOrDrop = (r: Event) => {
+            const k = rowKey(r);
+            const fresh = fetchedByKey.get(k);
+            if (fresh && eventUnchanged(r, fresh) && !keptKeys.has(k)) {
+                keptKeys.add(k);
+            } else {
+                ops.push(r.prepareMarkAsDeleted());
+            }
+        };
+
         const touched = new Set<string>([...result.deleted, ...returnedHrefs]);
         const existing = await collectByHref(events, account.id, touched);
         const pending = pendingKeys();
         for (const r of existing) {
             if (pending.has(rowKey(r))) continue;
-            if (deletedSet.has(r.href) || returnedHrefs.has(r.href)) {
+            if (deletedSet.has(r.href)) {
+                ops.push(r.prepareMarkAsDeleted());
+            } else if (returnedHrefs.has(r.href)) {
+                keepOrDrop(r);
+            } else if (changedSet.has(r.href)) {
+                // Deleted remotely, or the resource now expands to zero events.
                 ops.push(r.prepareMarkAsDeleted());
             }
         }
 
+        const createdKeys = new Set<string>();
         for (const ev of fetched) {
-            if (pending.has(eventKey(ev.accountId, ev.calendarId, ev.uid))) continue;
+            const k = eventKey(ev.accountId, ev.calendarId, ev.uid);
+            if (keptKeys.has(k) || createdKeys.has(k) || pending.has(k)) continue;
+            createdKeys.add(k);
             ops.push(prepareCreateEvent(events, ev));
         }
         pushSyncTokenOp(ops, calendars, row, calendar, account, result.newToken, now);

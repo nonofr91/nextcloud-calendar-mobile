@@ -67,6 +67,28 @@ export type RecurrenceRule = {
 
 export type RecurrenceEditScope = 'this' | 'thisAndFollowing' | 'all';
 
+export type EventAttachment = {
+    uri?: string;
+    base64?: string;
+    /** True when binary content exists in the server ICS but was stripped locally (occurrence rows, oversized embeds). */
+    inline?: boolean;
+    /** Content fingerprint of a stripped base64 payload — lets a re-fetch pick the right ATTACH when metadata is ambiguous. */
+    digest?: string;
+    filename?: string;
+    fmttype?: string;
+    size?: number;
+    /** Nextcloud file id — written as X-NC-FILE-ID so the web app can preview. */
+    fileId?: number;
+};
+
+/** A file picked on the device, buffered until the event is saved. */
+export type PendingAttachment = {
+    name: string;
+    contentBase64: string;
+    mimeType?: string;
+    size?: number;
+};
+
 export type TalkRoomType = 'public' | 'private';
 
 export type TalkOpenMode = 'app' | 'browser' | 'ask';
@@ -132,6 +154,8 @@ export type CalendarEvent = {
     readOnly?: boolean;
     transp?: EventTransp;
     status?: EventStatus;
+    attachments?: EventAttachment[];
+
 };
 
 export type CreateEventInput = {
@@ -155,6 +179,15 @@ export type CreateEventInput = {
     status?: EventStatus;
     uid?: string;
     extraLines?: string[];
+    /** Device files to upload to Nextcloud and attach on save. */
+    pendingAttachments?: PendingAttachment[];
+    /** Files already on Nextcloud to attach by URI on save (no upload). */
+    remoteAttachments?: EventAttachment[];
+    /** Write new attachments as public `/s/<token>` links (for events with attendees). */
+    shareAttachments?: boolean;
+    /** Existing ATTACH properties to strip on save (edit only). */
+    removedAttachments?: EventAttachment[];
+
 };
 
 export type CalendarAppStatus = 'unknown' | 'available' | 'unconfigured';

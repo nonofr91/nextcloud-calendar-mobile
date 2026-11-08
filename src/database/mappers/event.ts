@@ -1,4 +1,4 @@
-import type { Attendee, CalendarEvent, EventStatus, EventTransp } from '@/types';
+import type { Attendee, CalendarEvent, EventStatus, EventTransp, EventAttachment } from '@/types';
 import { dedupeAttendees } from '@/utils/attendees';
 import { taskIsCompleted } from '@/utils/vtodo';
 
@@ -26,6 +26,16 @@ function parseAlarms(raw?: string, legacyMinutes?: number): number[] | undefined
     }
   }
   return legacyMinutes != null ? [legacyMinutes] : undefined;
+}
+
+function parseAttachments(raw?: string): EventAttachment[] | undefined {
+  if (!raw) return undefined;
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length ? (parsed as EventAttachment[]) : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export function mapEventToShared(event: Event): CalendarEvent {
@@ -56,5 +66,6 @@ export function mapEventToShared(event: Event): CalendarEvent {
     taskCompletedAt: event.taskCompletedAt != null ? new Date(event.taskCompletedAt) : undefined,
     taskPercent: event.taskPercent ?? undefined,
     taskCompleted: taskIsCompleted(event.taskStatus, event.taskCompletedAt, event.taskPercent),
+    attachments: parseAttachments(event.attachments ?? undefined),
   };
 }

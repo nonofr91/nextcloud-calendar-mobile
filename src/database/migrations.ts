@@ -3,6 +3,37 @@ import { schemaMigrations, addColumns, unsafeExecuteSql } from '@nozbe/watermelo
 export const migrations = schemaMigrations({
   migrations: [
     {
+      toVersion: 13,
+      steps: [
+        addColumns({
+          table: 'events',
+          columns: [{ name: 'attachments', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
+    {
+      toVersion: 12,
+      steps: [
+        addColumns({
+          table: 'events',
+          columns: [
+            { name: 'task_status', type: 'string', isOptional: true },
+            { name: 'task_completed_at', type: 'number', isOptional: true },
+            { name: 'task_percent', type: 'number', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    {
+      toVersion: 11,
+      steps: [
+        addColumns({
+          table: 'events',
+          columns: [{ name: 'timezone', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
+    {
       toVersion: 10,
       steps: [
         addColumns({
@@ -10,9 +41,6 @@ export const migrations = schemaMigrations({
           columns: [
             { name: 'transp', type: 'string', isOptional: true },
             { name: 'status', type: 'string', isOptional: true },
-            { name: 'task_status', type: 'string', isOptional: true },
-            { name: 'task_completed_at', type: 'number', isOptional: true },
-            { name: 'task_percent', type: 'number', isOptional: true },
           ],
         }),
       ],
@@ -32,11 +60,6 @@ export const migrations = schemaMigrations({
         addColumns({
           table: 'calendars',
           columns: [{ name: 'calendar_order', type: 'number', isOptional: true }],
-      toVersion: 11,
-      steps: [
-        addColumns({
-          table: 'events',
-          columns: [{ name: 'timezone', type: 'string', isOptional: true }],
         }),
       ],
     },

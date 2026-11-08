@@ -9,6 +9,7 @@ import { Sparkles } from 'lucide-react-native';
 import { TalkToggle } from './TalkToggle';
 import { AttendeesField } from './AttendeesField';
 import { FindTimeSheet } from './FindTimeSheet';
+import { AttachmentsField } from './AttachmentsField';
 import { requestAlertPermission } from '@/features/notifications/scheduleAlerts';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { isWritableCalendar } from '@/utils/calendars';
@@ -23,7 +24,10 @@ import type { SelectOption } from '@/ui/components';
 import { useTaskTypes } from '@/features/ai/useTaskTypes';
 import { useTextTask } from '@/features/ai/useTextTask';
 import { draftDescriptionPrompt } from '@/features/ai/prompts';
-import type { CalendarMeta, Attendee, CreateEventInput, RecurrenceRule, TalkRoomType, Account, EventTransp, EventStatus } from '@/types';
+import type {
+  CalendarMeta, Attendee, CreateEventInput, EventAttachment, PendingAttachment,
+  RecurrenceRule, TalkRoomType, Account, EventTransp, EventStatus,
+} from '@/types';
 
 dayjs.extend(localizedFormat);
 
@@ -43,7 +47,7 @@ export interface InitialValues {
   timezone?: string;
   uid?: string;
   extraLines?: string[];
-
+  attachments?: EventAttachment[];
 }
 
 interface Props {
@@ -54,7 +58,7 @@ interface Props {
   onSubmit: (input: CreateEventInput) => void;
   initialValues?: InitialValues;
   disableCalendarChange?: boolean;
-  account?: (Pick<Account, 'id' | 'baseUrl' | 'username' | 'appPassword' | 'timezone'> & Partial<Account>) | null;
+  account?: (Pick<Account, 'id' | 'baseUrl' | 'username' | 'appPassword' | 'timezone' | 'davUserId'> & Partial<Account>) | null;
 }
 
 export interface EventFormHandle {
@@ -133,6 +137,9 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
   const [alarms, setAlarms] = useState<number[] | undefined>(initialValues?.alarms);
   const [transp, setTransp] = useState<EventTransp>(initialValues?.transp ?? 'opaque');
   const [status, setStatus] = useState<EventStatus>(initialValues?.status ?? 'confirmed');
+  const [removedAttachments, setRemovedAttachments] = useState<EventAttachment[]>([]);
+  const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
+  const [remoteAttachments, setRemoteAttachments] = useState<EventAttachment[]>([]);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [calendarError, setCalendarError] = useState<string | null>(null);
   const [endError, setEndError] = useState<string | null>(null);
@@ -259,7 +266,9 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
       timezone: allDay ? undefined : timezone,
       uid: initialValues?.uid,
       extraLines: initialValues?.extraLines,
-
+      pendingAttachments: pendingAttachments.length ? pendingAttachments : undefined,
+      remoteAttachments: remoteAttachments.length ? remoteAttachments : undefined,
+      removedAttachments: removedAttachments.length ? removedAttachments : undefined,
     });
   }
 
@@ -543,6 +552,34 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
           account={account}
           onInputLayout={(e) => onFieldLayout('attendee', e)}
           onInputFocus={() => scrollToField('attendee')}
+        />
+
+        <AttachmentsField
+          existing={(initialValues?.attachments ?? []).filter(
+            (a) => !removedAttachments.includes(a),
+          )}
+          pending={pendingAttachments}
+          remote={remoteAttachments}
+          account={account}
+          onAdd={(f) => setPendingAttachments((prev) => [...prev, f])}
+          onAddRemote={(att) =>
+            // Skip if the same file is already attached to the event.
+            setRemoteAttachments((prev) =>
+              prev.some((r) => r.uri === att.uri) ||
+              (initialValues?.attachments ?? []).some(
+                (e) => e.uri === att.uri && !removedAttachments.includes(e),
+              )
+                ? prev
+                : [...prev, att],
+            )
+          }
+          onRemoveExisting={(a) => setRemovedAttachments((prev) => [...prev, a])}
+          onRemovePending={(i) =>
+            setPendingAttachments((prev) => prev.filter((_, idx) => idx !== i))
+          }
+          onRemoveRemote={(i) =>
+            setRemoteAttachments((prev) => prev.filter((_, idx) => idx !== i))
+          }
         />
 
         <TalkToggle
