@@ -50,5 +50,6 @@ export function mapEventToShared(event: Event): CalendarEvent {
     isTask: !!event.isTask,
     transp: event.transp as EventTransp | undefined,
     status: event.status as EventStatus | undefined,
+    timezone: event.timezone ?? undefined,
   };
 }

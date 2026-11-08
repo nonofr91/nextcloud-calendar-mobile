@@ -20,5 +20,6 @@ export function eventToInput(event: CalendarEvent, account: Account): CreateEven
     alarms: event.alarms,
     transp: event.transp,
     status: event.status,
+    timezone: event.timezone,
   };
 }

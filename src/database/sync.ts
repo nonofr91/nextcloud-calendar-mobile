@@ -76,6 +76,7 @@ export function writeEvent(row: Event, ev: CalendarEvent): void {
     row.isTask = ev.isTask ?? false;
     row.transp = ev.transp;
     row.status = ev.status;
+    row.timezone = ev.timezone ?? undefined;
 }
 
 function calendarUnchanged(row: Calendar, c: CalendarMeta): boolean {
@@ -111,7 +112,8 @@ function eventUnchanged(row: Event, ev: CalendarEvent): boolean {
         (row.alarms ?? undefined) === serializeAlarms(ev.alarms) &&
         (row.attendees ?? '[]') === JSON.stringify(ev.attendees ?? []) &&
         (row.transp ?? undefined) === (ev.transp ?? undefined) &&
-        (row.status ?? undefined) === (ev.status ?? undefined)
+        (row.status ?? undefined) === (ev.status ?? undefined) &&
+        (row.timezone ?? undefined) === (ev.timezone ?? undefined)
     );
 }
 

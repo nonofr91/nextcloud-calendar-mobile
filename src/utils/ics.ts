@@ -1,5 +1,6 @@
 import type {Attendee, EventStatus, EventTransp, RecurrenceRule} from '@/types';
 import {minutesToTrigger, NO_ALARM_PROP} from '@/features/notifications/alerts';
+import {vtimezoneLines} from '@/utils/vtimezone';
 
 const PRODID = '-//Nextcloud Calendar Mobile//EN';
 
@@ -108,11 +109,12 @@ function attendeeLines(attendees: Attendee[]): string[] {
     });
 }
 
-function serialize(veventBody: string[]): string {
+function serialize(veventBody: string[], calendarLines: string[] = []): string {
     return [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
         `PRODID:${PRODID}`,
+        ...calendarLines,
         'BEGIN:VEVENT',
         ...veventBody,
         'END:VEVENT',
@@ -122,7 +124,11 @@ function serialize(veventBody: string[]): string {
         .join('');
 }
 
-type ExtraLines = { extraLines?: string[] };
+type ExtraLines = {
+    extraLines?: string[];
+    /** Extra VCALENDAR-level lines (e.g. VTIMEZONE blocks preserved from a rewrite). */
+    calendarLines?: string[];
+};
 
 export interface BuildIcsParams extends ExtraLines {
     uid: string;
@@ -159,7 +165,8 @@ export function buildIcs(params: BuildIcsParams): string {
         sequence = 0,
         status,
         transp,
-        extraLines = []
+        extraLines = [],
+        calendarLines = []
     } = params;
 
     return serialize([
@@ -173,7 +180,7 @@ export function buildIcs(params: BuildIcsParams): string {
         ...schedulingLines(organizerName, organizerEmail, attendees),
         ...extraLines,
         ...alarmLines(alarms),
-    ]);
+    ], [...vtimezoneLines(timezone, dtstart), ...calendarLines]);
 }
 
 export type BuildAllDayIcsParams = Omit<BuildIcsParams, 'timezone'>;
@@ -194,7 +201,8 @@ export function buildAllDayIcs(params: BuildAllDayIcsParams): string {
         sequence = 0,
         status,
         transp,
-        extraLines = []
+        extraLines = [],
+        calendarLines = []
     } = params;
     const endExclusive = new Date(dtend.getFullYear(), dtend.getMonth(), dtend.getDate() + 1);
 
@@ -209,10 +217,12 @@ export function buildAllDayIcs(params: BuildAllDayIcsParams): string {
         ...schedulingLines(organizerName, organizerEmail, attendees),
         ...extraLines,
         ...alarmLines(alarms),
-    ]);
+    ], calendarLines);
 }
 
-export function buildExceptionIcs(params: BuildIcsParams & { recurrenceId: Date; allDay?: boolean }): string {
+export function buildExceptionIcs(
+    params: BuildIcsParams & { recurrenceId: Date; allDay?: boolean; recurrenceIdTzid?: string },
+): string {
     const {
         uid,
         summary,
@@ -230,10 +240,14 @@ export function buildExceptionIcs(params: BuildIcsParams & { recurrenceId: Date;
         sequence = 0,
         status,
         transp,
-        extraLines = []
+        extraLines = [],
+        calendarLines = []
     } = params;
     // RECURRENCE-ID must have the master DTSTART's value type: DATE for an all-day series.
     const endExclusive = new Date(dtend.getFullYear(), dtend.getMonth(), dtend.getDate() + 1);
+    // RECURRENCE-ID identifies the occurrence in the master's coordinates:
+    // it must keep the master's TZID even when the exception overrides it.
+    const ridTzid = params.recurrenceIdTzid ?? timezone;
     const dates = allDay
         ? [
             `RECURRENCE-ID;VALUE=DATE:${dateStamp(recurrenceId)}`,
@@ -241,7 +255,7 @@ export function buildExceptionIcs(params: BuildIcsParams & { recurrenceId: Date;
             `DTEND;VALUE=DATE:${dateStamp(endExclusive)}`,
         ]
         : [
-            `RECURRENCE-ID;TZID=${timezone}:${localStamp(recurrenceId, timezone)}`,
+            `RECURRENCE-ID;TZID=${ridTzid}:${localStamp(recurrenceId, ridTzid)}`,
             `DTSTART;TZID=${timezone}:${localStamp(dtstart, timezone)}`,
             `DTEND;TZID=${timezone}:${localStamp(dtend, timezone)}`,
         ];
@@ -259,7 +273,7 @@ export function buildExceptionIcs(params: BuildIcsParams & { recurrenceId: Date;
         ...schedulingLines(organizerName, organizerEmail, attendees),
         ...extraLines,
         ...alarmLines(alarms),
-    ]);
+    ], [...vtimezoneLines(timezone, dtstart), ...calendarLines]);
 }
 
 function editMasterVevent(ics: string, edit: (block: string) => string): string {

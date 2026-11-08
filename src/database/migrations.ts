@@ -29,6 +29,11 @@ export const migrations = schemaMigrations({
         addColumns({
           table: 'calendars',
           columns: [{ name: 'calendar_order', type: 'number', isOptional: true }],
+      toVersion: 11,
+      steps: [
+        addColumns({
+          table: 'events',
+          columns: [{ name: 'timezone', type: 'string', isOptional: true }],
         }),
       ],
     },

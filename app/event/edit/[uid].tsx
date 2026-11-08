@@ -84,6 +84,7 @@ export default function EditEventScreen() {
     rrule: parseRrule(event.rrule),
     transp: event.transp,
     status: event.status,
+    timezone: event.timezone,
   };
 
   const scopeLabel =

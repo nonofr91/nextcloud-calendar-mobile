@@ -21,6 +21,7 @@ export function sameDisplayedEvent(a: CalendarEvent, b: CalendarEvent): boolean 
     a.isRecurring === b.isRecurring &&
     (a.transp ?? 'opaque') === (b.transp ?? 'opaque') &&
     (a.status ?? 'confirmed') === (b.status ?? 'confirmed') &&
+    a.timezone === b.timezone &&
     sameAttendees(a.attendees, b.attendees)
   );
 }

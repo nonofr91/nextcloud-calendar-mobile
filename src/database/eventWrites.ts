@@ -41,6 +41,7 @@ function applyPatch(row: Event, patch: Partial<CalendarEvent>): void {
   }
   if (patch.transp !== undefined) row.transp = patch.transp;
   if (patch.status !== undefined) row.status = patch.status;
+  if ('timezone' in patch) row.timezone = patch.timezone ?? undefined;
 }
 
 /**
