@@ -86,6 +86,13 @@
         "calendarVisibility": "Mostra {{name}}",
         "pendingSync": "{{count}} modifica/he in attesa — tocca per riprovare"
   },
+  "search": {
+    "title": "Cerca",
+    "placeholder": "Cerca eventi",
+    "hint": "Cerca per titolo, descrizione, luogo o partecipante.",
+    "noResults": "Nessun evento corrispondente",
+    "clear": "Cancella ricerca"
+  },
   "event": {
     "titleLabel": "Titolo *",
     "titlePlaceholder": "Titolo dell'evento",

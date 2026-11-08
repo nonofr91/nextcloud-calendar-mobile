@@ -86,6 +86,13 @@
         "calendarVisibility": "Show {{name}}",
         "pendingSync": "{{count}} change(s) pending sync — tap to retry"
   },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search events",
+    "hint": "Search by title, description, location or attendee.",
+    "noResults": "No matching events",
+    "clear": "Clear search"
+  },
   "event": {
     "titleLabel": "Title *",
     "titlePlaceholder": "Event title",

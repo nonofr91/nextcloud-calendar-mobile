@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Menu, Headphones, Mic, Sparkles } from 'lucide-react-native';
+import { Menu, Headphones, Mic, Sparkles, Search } from 'lucide-react-native';
 import { useTheme } from 'expo-router';
 import { Stack, Typography, Chip, Icon, AnimatedPressable } from '@/ui/components';
 import type { ViewMode } from '@/types';
@@ -13,6 +13,7 @@ interface Props {
   isToday: boolean;
   viewMode: ViewMode;
   onOpenDrawer: () => void;
+  onOpenSearch: () => void;
   onToday: () => void;
   onSwitchMode: (mode: ViewMode) => void;
   onListen?: () => void;
@@ -28,7 +29,7 @@ const VIEW_MODE_KEYS: Record<ViewMode, string> = {
   schedule: 'calendar.schedule',
 };
 
-function CalendarTopBarImpl({ headerTitle, isToday, viewMode, onOpenDrawer, onToday, onSwitchMode, onListen, onOpenVoice, onOpenSummary }: Props) {
+function CalendarTopBarImpl({ headerTitle, isToday, viewMode, onOpenDrawer, onOpenSearch, onToday, onSwitchMode, onListen, onOpenVoice, onOpenSummary }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const todayDisabled = isToday;
@@ -100,6 +101,18 @@ function CalendarTopBarImpl({ headerTitle, isToday, viewMode, onOpenDrawer, onTo
         </AnimatedPressable>
 
         <AnimatedPressable
+          onPress={onOpenSearch}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('search.title')}
+          style={styles.searchBtn}
+        >
+          <Icon size={22}>
+            <Search color={colors.primary} />
+          </Icon>
+        </AnimatedPressable>
+
+        <AnimatedPressable
           testID="calendar-today"
           onPress={onToday}
           disabled={todayDisabled}
@@ -129,6 +142,7 @@ const styles = StyleSheet.create({
   headerRow: { height: 44, paddingHorizontal: 12, paddingBottom: 4, alignItems: 'center' },
   hamburger: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginLeft: -4 },
   listenBtn: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
+  searchBtn: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
   title: { flex: 1, marginHorizontal: 4 },
   summaryBtn: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
   todayBtn: { minWidth: 44, height: 44, paddingLeft: 6, alignItems: 'flex-end', justifyContent: 'center' },

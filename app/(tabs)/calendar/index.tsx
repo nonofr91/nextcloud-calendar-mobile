@@ -197,6 +197,7 @@ export default function CalendarScreen() {
         isToday={isToday}
         viewMode={viewMode}
         onOpenDrawer={drawer.openDrawer}
+        onOpenSearch={() => navGuard(() => router.push('/search'))}
         onToday={nav.goToday}
         onSwitchMode={nav.switchMode}
         onListen={voiceAssistantEnabled ? undefined : handleListen}

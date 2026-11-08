@@ -86,6 +86,13 @@
         "calendarVisibility": "{{name}} tonen",
         "pendingSync": "{{count}} wijziging(en) in de wacht — tik om opnieuw te proberen"
   },
+  "search": {
+    "title": "Zoeken",
+    "placeholder": "Afspraken zoeken",
+    "hint": "Zoek op titel, beschrijving, locatie of deelnemer.",
+    "noResults": "Geen overeenkomende afspraken",
+    "clear": "Zoekopdracht wissen"
+  },
   "event": {
     "titleLabel": "Titel *",
     "titlePlaceholder": "Titel van afspraak",
