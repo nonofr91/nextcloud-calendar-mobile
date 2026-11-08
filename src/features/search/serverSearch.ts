@@ -4,6 +4,7 @@ import type { CalendarSearchEntry } from '@/services/nextcloud/search';
 import { base64ToUtf8 } from '@/services/shared/base64';
 import type { CalendarMeta } from '@/types';
 
+import { hasCalendarFlag } from '@/utils/calendars';
 import { foldText } from './matchEvent';
 import type { DateTerm, SearchQuery } from './parseQuery';
 
@@ -105,7 +106,7 @@ export function toServerHits(
   const hidden = new Set(context.hiddenCalendarIds);
   const calendarByPath = new Map(
     context.calendars
-      .filter((calendar) => !calendar.isSubscribed && !hidden.has(calendar.id))
+      .filter((calendar) => !calendar.isSubscribed && !hasCalendarFlag(hidden, calendar.accountId, calendar.id))
       .map((calendar) => [withoutTrailingSlash(hrefPath(calendar.url)), calendar]),
   );
   const calendarNeedles = context.query.calendar.map(foldText);

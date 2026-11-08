@@ -5,6 +5,7 @@ import type { CalendarEvent } from '@/types';
 import { eventDayKeys } from '@/features/calendar/utils/eventDays';
 import { dayKey } from '@/features/calendar/utils/grid';
 
+import { calendarKey } from '@/utils/calendars';
 import { readContactBirthdayCalendarIds, readWidgetEvents } from './readEvents';
 import type { MonthWidgetDay, MonthWidgetSnapshot } from './types';
 
@@ -60,7 +61,7 @@ export async function buildMonthWidgetSnapshot(
         uid: event.uid,
         title: formatMonthWidgetEventTitle(
           event.summary || '(no title)',
-          contactBirthdayCalendarIds.has(event.calendarId),
+          contactBirthdayCalendarIds.has(calendarKey(event.accountId, event.calendarId)),
         ),
         color: event.color || '#0082C9',
       })),

@@ -2,10 +2,11 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef } from 'react
 import { View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useAccounts, useVisibleAccountIds } from '@/hooks/useAccounts';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
-import { useAccountStore } from '@/stores/accountStore';
+import { useAccountStore, anyCalendarConfigured } from '@/stores/accountStore';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { ViewContainer, Spinner } from '@/ui/components';
@@ -42,7 +43,10 @@ export default function CalendarScreen() {
   const { date: dateParam } = useLocalSearchParams<{ date?: string }>();
   const { t } = useTranslation();
 
-  const calendarApp = useAccountStore((s) => s.capabilities.calendarApp);
+  const accounts = useAccounts();
+  const visibleAccountIds = useVisibleAccountIds();
+  // The merged view is usable while at least one visible account serves CalDAV.
+  const calendarUnavailable = !useAccountStore((s) => anyCalendarConfigured(s, visibleAccountIds));
   const weekStartsOn = useSettingsStore((s) => s.weekStartsOn);
   const language = useSettingsStore((s) => s.language);
   const monthViewStyle = useSettingsStore((state) => state.monthViewStyle);
@@ -82,15 +86,16 @@ export default function CalendarScreen() {
 
   const { hourRowHeight, cellHeight, commitZoom } = useZoom();
   const {
-    activeAccount, calendars, allEvents, agendaEvents, showFullOverlay, showSmallLoader,
-    syncFailed, retrySync,
+    activeAccount, visibleAccounts, calendars, allEvents, agendaEvents,
+    showFullOverlay, showSmallLoader, syncFailed, retrySync,
   } = useCalendarData(fetchDate, viewMode === 'schedule');
-  const { data: invitations } = useInvitations(activeAccount);
+  const { data: invitations } = useInvitations(visibleAccounts);
   const pendingInvitationsCount = invitations.length;
   const insets = useSafeAreaInsets();
   const drawer = useCalendarDrawer();
 
-  const calendarEvents = useMemo(() => toGridEvents(allEvents, activeAccount), [allEvents, activeAccount]);
+
+  const calendarEvents = useMemo(() => toGridEvents(allEvents, accounts), [allEvents, accounts]);
 
   const allDayEvents = useMemo(() => allEvents.filter((e) => e.allDay), [allEvents]);
   const nowHour = useMemo(() => Math.max(0, new Date().getHours() - 1), []);
@@ -99,12 +104,18 @@ export default function CalendarScreen() {
 
   const handlePressGridEvent = useCallback(
     (event: { _event: CalendarEvent }) => {
-      navGuard(() => router.push(`/event/${encodeURIComponent(event._event.uid)}`));
+      navGuard(() => router.push(
+        `/event/${encodeURIComponent(event._event.uid)}?accountId=${encodeURIComponent(event._event.accountId)}`,
+      ));
     },
     [router, navGuard]
   );
   const handlePressEventFromMonth = useCallback(
-    (event: CalendarEvent) => { navGuard(() => router.push(`/event/${encodeURIComponent(event.uid)}`)); },
+    (event: CalendarEvent) => {
+      navGuard(() => router.push(
+        `/event/${encodeURIComponent(event.uid)}?accountId=${encodeURIComponent(event.accountId)}`,
+      ));
+    },
     [router, navGuard]
   );
   const handlePressCell = useCallback(
@@ -112,7 +123,7 @@ export default function CalendarScreen() {
     [router, navGuard]
   );
 
-  const updateMutation = useUpdateEvent(activeAccount!, calendars);
+  const updateMutation = useUpdateEvent(accounts, calendars);
   const { mutateAsync } = updateMutation;
 
   const recurrenceScopeStrings = useMemo(
@@ -128,12 +139,13 @@ export default function CalendarScreen() {
 
   const handleMoveEvent = useCallback(
     (gridEvent: GridEvent, nextStart: Date, nextEnd: Date) => {
-      if (!activeAccount) return;
       const event = gridEvent._event;
+      const owner = accounts.find((a) => a.id === event.accountId);
+      if (!owner) return;
       const apply = (scope: RecurrenceEditScope) => {
         void mutateAsync({
           event,
-          input: { ...eventToInput(event, activeAccount), dtstart: nextStart, dtend: nextEnd },
+          input: { ...eventToInput(event, owner), dtstart: nextStart, dtend: nextEnd },
           scope,
           datesOnly: true,
         });
@@ -145,7 +157,7 @@ export default function CalendarScreen() {
       }
       apply(decision.scope);
     },
-    [activeAccount, mutateAsync, t, recurrenceScopeStrings]
+    [accounts, mutateAsync, t, recurrenceScopeStrings]
   );
 
   const isToday = viewMode === 'schedule'
@@ -182,7 +194,7 @@ export default function CalendarScreen() {
     [nav.onPageChange]
   );
 
-  if (calendarApp === 'unconfigured') {
+  if (calendarUnavailable) {
     return <CalendarUnavailable />;
   }
 
@@ -275,6 +287,7 @@ export default function CalendarScreen() {
         drawerWidth={drawer.drawerWidth}
         insets={insets}
         activeAccount={activeAccount}
+        accounts={visibleAccounts}
         calendars={calendars}
         hiddenCalendarIds={hiddenCalendarIds}
         notifDisabledCalendarIds={notifDisabledCalendarIds}

@@ -26,25 +26,28 @@ export function mapCalendarToMeta(c: Calendar): CalendarMeta {
   };
 }
 
-export function useCalendarsFromDb(accountId: string | null): CalendarMeta[] {
+export function useCalendarsFromDb(accountIds: readonly string[]): CalendarMeta[] {
   const database = useDatabase();
   const [calendars, setCalendars] = useState<CalendarMeta[]>([]);
+  const idsKey = accountIds.join('\0');
 
   useEffect(() => {
-    if (!accountId) {
+    const ids = idsKey ? idsKey.split('\0') : [];
+    if (ids.length === 0) {
       setCalendars([]);
       return;
     }
     const subscription = database
       .get<Calendar>('calendars')
-      .query(Q.where('account_id', accountId))
+      .query(Q.where('account_id', Q.oneOf(ids)))
       .observeWithColumns(CALENDAR_OBSERVED_COLUMNS)
       .subscribe((rows) => {
         const next = rows.map(mapCalendarToMeta).sort(byServerOrder);
         setCalendars((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
       });
     return () => subscription.unsubscribe();
-  }, [accountId, database]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idsKey, database]);
 
   return calendars;
 }

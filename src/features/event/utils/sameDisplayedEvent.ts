@@ -12,6 +12,7 @@ export function sameDisplayedEvent(a: CalendarEvent, b: CalendarEvent): boolean 
     a.dtstart.getTime() === b.dtstart.getTime() &&
     a.dtend.getTime() === b.dtend.getTime() &&
     a.allDay === b.allDay &&
+    a.accountId === b.accountId &&
     a.calendarId === b.calendarId &&
     a.color === b.color &&
     a.href === b.href &&

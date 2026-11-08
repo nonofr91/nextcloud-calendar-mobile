@@ -7,9 +7,8 @@ import { Check } from 'lucide-react-native';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 
-import { useAccounts } from '@/hooks/useAccounts';
-import { useCalendars } from '@/hooks/useCalendars';
-import { useAccountStore } from '@/stores/accountStore';
+import { useAccounts, useVisibleAccounts } from '@/hooks/useAccounts';
+import { useMultiCalendars } from '@/hooks/useCalendars';
 import { useCreateEvent } from '@/features/event/hooks/useMutateEvent';
 import { useImportIcs } from '@/features/event/hooks/useImportIcs';
 import { resolveOrganizer } from '@/features/event/utils/organizer';
@@ -52,10 +51,11 @@ export function IcsImportScreen({ uri }: Props) {
   const formRef = useRef<EventFormHandle>(null);
   const { loading, error, events, originalIcs, reload } = useImportIcs(uri);
 
-  const activeAccountId = useAccountStore((s) => s.activeAccountId);
+  // The import target may be any visible account's calendar — the owner is
+  // resolved from the chosen calendarId, like in EventForm.
   const accounts = useAccounts();
-  const activeAccount = accounts.find((a) => a.id === activeAccountId) ?? null;
-  const { data: calendars = [] } = useCalendars(activeAccount);
+  const visibleAccounts = useVisibleAccounts();
+  const { data: calendars = [] } = useMultiCalendars(visibleAccounts);
 
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [savedUids, setSavedUids] = useState<Set<string>>(new Set());
@@ -70,7 +70,7 @@ export function IcsImportScreen({ uri }: Props) {
     [events, savedUids],
   );
 
-  const createMutation = useCreateEvent(activeAccount!, calendars);
+  const createMutation = useCreateEvent(visibleAccounts, calendars);
 
   const runImport = useCallback(
     async (input: CreateEventInput) => {
@@ -95,10 +95,15 @@ export function IcsImportScreen({ uri }: Props) {
   const handleSubmit = useCallback(
     async (input: CreateEventInput) => {
       const uid = input.uid;
+      // The form emits the chosen calendar's owner — remote ids collide across
+      // accounts, so the duplicate check must not resolve on the bare id.
+      const targetAccountId =
+        input.calendarAccountId ??
+        calendars.find((c) => c.id === input.calendarId)?.accountId;
       if (
         uid &&
-        activeAccount &&
-        (await eventExists(activeAccount.id, input.calendarId, uid))
+        targetAccountId &&
+        (await eventExists(targetAccountId, input.calendarId, uid))
       ) {
         Alert.alert(t('import.duplicateTitle'), t('import.duplicateMessage'), [
           { text: t('common.cancel'), style: 'cancel' },
@@ -112,10 +117,10 @@ export function IcsImportScreen({ uri }: Props) {
       }
       await runImport(input);
     },
-    [activeAccount, runImport, t],
+    [calendars, runImport, t],
   );
 
-  if (!activeAccount) {
+  if (accounts.length === 0 || visibleAccounts.length === 0) {
     return (
       <ViewContainer>
         <SafeAreaView style={styles.flex}>
@@ -171,7 +176,7 @@ export function IcsImportScreen({ uri }: Props) {
   }
 
   if (selectedEvent) {
-    const { organizerEmail, organizerName } = resolveOrganizer(activeAccount);
+    const { organizerEmail, organizerName } = resolveOrganizer(visibleAccounts[0]);
     const importedEmail = selectedEvent.organizerEmail ?? organizerEmail;
     const importedName =
       extractOrganizerName(originalIcs, selectedEvent.uid) ?? organizerName;
@@ -203,6 +208,7 @@ export function IcsImportScreen({ uri }: Props) {
             organizerEmail={importedEmail}
             organizerName={importedName}
             onSubmit={handleSubmit}
+            accounts={visibleAccounts}
             initialValues={eventToFormValues(selectedEvent, originalIcs)}
           />
         </SafeAreaView>

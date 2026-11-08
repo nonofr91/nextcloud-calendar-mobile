@@ -51,7 +51,7 @@ export function usePushSync(): void {
           void fetchNotifications(current)
             .then((notifications) => {
               const store = useNotificationStore.getState();
-              const incoming = notifications.map(withSeenFlag);
+              const incoming = notifications.map((n) => withSeenFlag(n, current.id));
               store.addOrUpdateNotifications(incoming);
             })
             .catch((err) => {

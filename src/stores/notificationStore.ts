@@ -6,6 +6,9 @@ import type { OcsNotification } from '@/services/nextcloud/notifications';
 
 export type CalendarNotification = OcsNotification & {
   seen: boolean;
+  // notificationId is a per-server sequence — the owner account is required
+  // to make an entry (and its dismissal/deep-link) unique across accounts.
+  accountId: string;
 };
 
 interface NotificationState {
@@ -14,16 +17,19 @@ interface NotificationState {
   unreadCount: number;
   setNotifications: (notifications: CalendarNotification[]) => void;
   addOrUpdateNotifications: (notifications: CalendarNotification[]) => void;
-  markAsSeen: (notificationId: number) => void;
-  removeNotification: (notificationId: number) => void;
+  markAsSeen: (accountId: string, notificationId: number) => void;
+  removeNotification: (accountId: string, notificationId: number) => void;
   markAllSeen: () => void;
   clear: () => void;
   refreshBadge: () => void;
 }
 
-export function withSeenFlag(n: OcsNotification): CalendarNotification {
-  return { ...n, seen: false };
+export function withSeenFlag(n: OcsNotification, accountId: string): CalendarNotification {
+  return { ...n, seen: false, accountId };
 }
+
+const notifKey = (n: Pick<CalendarNotification, 'accountId' | 'notificationId'>) =>
+  `${n.accountId}|${n.notificationId}`;
 
 function updateBadgeCount(notifications: CalendarNotification[]): number {
   const count = notifications.filter((n) => !n.seen).length;
@@ -39,31 +45,33 @@ export const useNotificationStore = create<NotificationState>()(
       unreadCount: 0,
       setNotifications: (notifications) => {
         const prev = get().notifications;
-        const prevSeen = new Map(prev.map((n) => [n.notificationId, n.seen]));
-        const merged = notifications.map((n) => ({ ...n, seen: prevSeen.get(n.notificationId) ?? n.seen }));
+        const prevSeen = new Map(prev.map((n) => [notifKey(n), n.seen]));
+        const merged = notifications.map((n) => ({ ...n, seen: prevSeen.get(notifKey(n)) ?? n.seen }));
         const unreadCount = updateBadgeCount(merged);
         set({ notifications: merged, unreadCount, lastFetchedAt: Date.now() });
       },
       addOrUpdateNotifications: (incoming) => {
         const current = get().notifications;
-        const byId = new Map(current.map((n) => [n.notificationId, n]));
+        const byId = new Map(current.map((n) => [notifKey(n), n]));
         for (const n of incoming) {
-          const existing = byId.get(n.notificationId);
-          byId.set(n.notificationId, { ...n, seen: existing?.seen ?? n.seen });
+          const existing = byId.get(notifKey(n));
+          byId.set(notifKey(n), { ...n, seen: existing?.seen ?? n.seen });
         }
         const notifications = Array.from(byId.values());
         const unreadCount = updateBadgeCount(notifications);
         set({ notifications, unreadCount, lastFetchedAt: Date.now() });
       },
-      markAsSeen: (notificationId) => {
+      markAsSeen: (accountId, notificationId) => {
         const notifications = get().notifications.map((n) =>
-          n.notificationId === notificationId ? { ...n, seen: true } : n,
+          n.accountId === accountId && n.notificationId === notificationId ? { ...n, seen: true } : n,
         );
         const unreadCount = updateBadgeCount(notifications);
         set({ notifications, unreadCount });
       },
-      removeNotification: (notificationId) => {
-        const notifications = get().notifications.filter((n) => n.notificationId !== notificationId);
+      removeNotification: (accountId, notificationId) => {
+        const notifications = get().notifications.filter(
+          (n) => !(n.accountId === accountId && n.notificationId === notificationId),
+        );
         const unreadCount = updateBadgeCount(notifications);
         set({ notifications, unreadCount });
       },

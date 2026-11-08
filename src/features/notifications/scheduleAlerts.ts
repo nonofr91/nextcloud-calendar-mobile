@@ -5,6 +5,7 @@ import { readUpcomingEvents } from '@/features/widget/core/readEvents';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useCalendarStore } from '@/stores/calendarStore';
 import i18n from '@/utils/i18n';
+import { hasCalendarFlag } from '@/utils/calendars';
 
 import { alertBody } from './alertContent';
 import { alertTimes } from './alerts';
@@ -68,7 +69,7 @@ export async function scheduleEventAlerts(now: Date = new Date()): Promise<void>
 
       const notifDisabled = useCalendarStore.getState().notifDisabledCalendarIds;
       const events = (await readUpcomingEvents(HORIZON_DAYS, now))
-        .filter((event) => !notifDisabled.includes(event.calendarId));
+        .filter((event) => !hasCalendarFlag(notifDisabled, event.accountId, event.calendarId));
 
       const due = events
         .flatMap((event) => alertTimes(event, timedAlerts, allDayAlerts).map((at) => ({ event, at })))
@@ -81,7 +82,7 @@ export async function scheduleEventAlerts(now: Date = new Date()): Promise<void>
           content: {
             title: event.summary,
             body: alertBody(event, at),
-            data: { uid: event.uid },
+            data: { uid: event.uid, accountId: event.accountId },
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,

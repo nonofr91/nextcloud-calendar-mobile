@@ -10,11 +10,12 @@ import type { Account, CalendarEvent } from '@/types';
 
 import { useAction } from './useMutateEvent';
 
-export function useToggleTask(account: Account) {
-  return useAction<CalendarEvent>(
+export function useToggleTask(accounts: readonly Account[]) {
+  return useAction<CalendarEvent, void>(
     useCallback(
       async (event) => {
-        if (!event.isTask || event.readOnly) return;
+        const account = accounts.find((a) => a.id === event.accountId);
+        if (!account || !event.isTask || event.readOnly) return;
         const next = !event.taskCompleted;
 
         const rollback = {
@@ -37,7 +38,7 @@ export function useToggleTask(account: Account) {
           Alert.alert(i18n.t('event.errorUpdateFailed'), describeMutationError(error));
         }
       },
-      [account],
+      [accounts],
     ),
   );
 }

@@ -135,7 +135,7 @@ describe('useUpdateEvent — attachment delta on scope "this"', () => {
   });
 
   it('applies the delta to the master, not to the exception VEVENT', async () => {
-    const { result } = renderHook(() => useUpdateEvent(account, [calendar]));
+    const { result } = renderHook(() => useUpdateEvent([account], [calendar]));
 
     await act(async () => {
       await result.current.mutateAsync({ event: occurrence, input, scope: 'this' });
@@ -164,7 +164,7 @@ describe('useUpdateEvent — attachment delta on scope "this"', () => {
 
   it('deletes the orphaned upload when the master update fails', async () => {
     mockUpdate.mockRejectedValueOnce(new Error('HTTP 412'));
-    const { result } = renderHook(() => useUpdateEvent(account, [calendar]));
+    const { result } = renderHook(() => useUpdateEvent([account], [calendar]));
 
     await act(async () => {
       await result.current.mutateAsync({ event: occurrence, input, scope: 'this' });

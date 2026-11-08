@@ -76,6 +76,11 @@ describe('searchEvents', () => {
     expect(search(shared, 'standup').upcoming).toHaveLength(2);
   });
 
+  it('keeps one row per series per account', () => {
+    const shared = [occurrence(1), { ...occurrence(1), accountId: 'account-2' }];
+    expect(search(shared, 'standup').upcoming).toHaveLength(2);
+  });
+
   it('orders upcoming ascending and past descending', () => {
     const events = [
       makeEvent('later', now + 3 * DAY_MS),
@@ -134,27 +139,27 @@ describe('useLocalSearch', () => {
 
   afterEach(() => jest.restoreAllMocks());
 
-  it('subscribes with an empty account id when accountId is null', () => {
+  it('subscribes with an empty account list when there is no account', () => {
     (useEventsForRange as jest.Mock).mockReturnValue([]);
     (useCalendarsFromDb as jest.Mock).mockReturnValue([]);
-    renderHook(() => useLocalSearch(null, 'lunch'));
-    expect((useEventsForRange as jest.Mock).mock.calls[0][0]).toBe('');
-    expect(useCalendarsFromDb).toHaveBeenCalledWith(null);
+    renderHook(() => useLocalSearch([], 'lunch'));
+    expect((useEventsForRange as jest.Mock).mock.calls[0][0]).toEqual([]);
+    expect(useCalendarsFromDb).toHaveBeenCalledWith([]);
   });
 
   it('searches every stored event of the account', async () => {
-    const { result } = renderHook(() => useLocalSearch('account-1', 'lunch'));
+    const { result } = renderHook(() => useLocalSearch(['account-1'], 'lunch'));
     await waitFor(() => expect(uids(result.current.upcoming)).toEqual(['work-lunch', 'perso-lunch']));
-    const [accountId, start, end] = (useEventsForRange as jest.Mock).mock.calls[0];
-    expect(accountId).toBe('account-1');
+    const [accountIds, start, end] = (useEventsForRange as jest.Mock).mock.calls[0];
+    expect(accountIds).toEqual(['account-1']);
     expect(start.getTime()).toBeLessThan(new Date(1900, 0, 1).getTime());
     expect(end.getTime()).toBeGreaterThan(new Date(2200, 0, 1).getTime());
   });
 
   it('drops events and suggestions of hidden calendars, and updates when a calendar is hidden', async () => {
-    const { result } = renderHook(() => useLocalSearch('account-1', 'lunch'));
+    const { result } = renderHook(() => useLocalSearch(['account-1'], 'lunch'));
     await waitFor(() => expect(result.current.upcoming).toHaveLength(2));
-    act(() => useCalendarStore.setState({ hiddenCalendarIds: ['perso'] }));
+    act(() => useCalendarStore.setState({ hiddenCalendarIds: ['account-1|perso'] }));
     await waitFor(() => expect(uids(result.current.upcoming)).toEqual(['work-lunch']));
     expect(result.current.calendars).toEqual([work]);
     expect(result.current.suggestionData).toEqual({
@@ -164,7 +169,7 @@ describe('useLocalSearch', () => {
   });
 
   it('matchedHrefs holds decoded paths of the matching rows only', async () => {
-    const { result } = renderHook(() => useLocalSearch('account-1', 'lunch calendar:perso'));
+    const { result } = renderHook(() => useLocalSearch(['account-1'], 'lunch calendar:perso'));
     await waitFor(() =>
       expect(result.current.matchedHrefs).toEqual(new Set(['/remote.php/dav/calendars/alice/my perso/perso-lunch.ics'])),
     );
@@ -186,7 +191,7 @@ describe('useLocalSearch', () => {
       }),
     );
     (useEventsForRange as jest.Mock).mockReturnValue(repeated);
-    const { result } = renderHook(() => useLocalSearch('account-1', ''));
+    const { result } = renderHook(() => useLocalSearch(['account-1'], ''));
     expect(result.current.suggestionData.people).toEqual([{ email: 'Bob@Example.org', displayName: 'Bob' }]);
   });
 
@@ -196,7 +201,7 @@ describe('useLocalSearch', () => {
     );
     (useEventsForRange as jest.Mock).mockReturnValue(repeated);
     const normalize = jest.spyOn(String.prototype, 'normalize');
-    renderHook(() => useLocalSearch('account-1', ''));
+    renderHook(() => useLocalSearch(['account-1'], ''));
     expect(normalize.mock.calls.length).toBeLessThan(20);
   });
 });

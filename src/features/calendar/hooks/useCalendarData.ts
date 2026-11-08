@@ -5,10 +5,11 @@ import { syncVisibleRange } from '@/database/sync';
 import { useEventsForRange } from '@/database/useEvents';
 import { useAccountStore } from '@/stores/accountStore';
 import { useCalendarStore } from '@/stores/calendarStore';
-import { useActiveAccount } from '@/hooks/useAccounts';
-import { useCalendars } from '@/hooks/useCalendars';
+import { useActiveAccount, useVisibleAccounts } from '@/hooks/useAccounts';
+import { useMultiCalendars } from '@/hooks/useCalendars';
 import { useIsOnline } from '@/services/shared/network';
 import { normalizeEvents } from '@/utils/normalizeEvent';
+import { calendarKey, calendarKeyOf, hasCalendarFlag } from '@/utils/calendars';
 import { monthRange } from '../utils/range';
 import { AGENDA_FUTURE_DAYS, AGENDA_PAST_DAYS } from '../utils/agendaSections';
 import type { CalendarEvent } from '@/types';
@@ -20,21 +21,24 @@ export function useCalendarData(date: Date, agendaEnabled = false) {
   const hiddenCalendarIds = useCalendarStore((s) => s.hiddenCalendarIds);
   const showCompletedTasks = useCalendarStore((s) => s.showCompletedTasks);
   const activeAccount = useActiveAccount(activeAccountId);
+  const visibleAccounts = useVisibleAccounts();
   const online = useIsOnline();
 
-  const { data: calendars = [], isFetching: calsFetching } = useCalendars(activeAccount);
+  const { data: calendars = [], isFetching: calsFetching } = useMultiCalendars(visibleAccounts);
+  const visibleIds = useMemo(() => visibleAccounts.map((a) => a.id), [visibleAccounts]);
+  const visibleIdsKey = visibleIds.join(',');
 
   const year = dayjs(date).year();
   const month = dayjs(date).month();
   const { start, end } = useMemo(() => monthRange(date), [year, month]);
 
-  const dbEvents = useEventsForRange(activeAccountId ?? '', start, end);
+  const dbEvents = useEventsForRange(visibleIds, start, end);
   const agendaRange = useMemo(() => ({
     start: dayjs().subtract(AGENDA_PAST_DAYS, 'day').startOf('day').toDate(),
     end: dayjs().add(AGENDA_FUTURE_DAYS, 'day').endOf('day').toDate(),
   }), []);
   const agendaDbEvents = useEventsForRange(
-    agendaEnabled ? activeAccountId ?? '' : '', agendaRange.start, agendaRange.end,
+    agendaEnabled ? visibleIds : [], agendaRange.start, agendaRange.end,
   );
 
   const [syncing, setSyncing] = useState(false);
@@ -43,7 +47,7 @@ export function useCalendarData(date: Date, agendaEnabled = false) {
   const attemptsRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const windowKey = `${activeAccount?.id ?? ''}|${start.getTime()}|${end.getTime()}`;
+  const windowKey = `${visibleIdsKey}|${start.getTime()}|${end.getTime()}`;
   const windowKeyRef = useRef(windowKey);
   if (windowKeyRef.current !== windowKey) {
     windowKeyRef.current = windowKey;
@@ -79,10 +83,11 @@ export function useCalendarData(date: Date, agendaEnabled = false) {
   }, [online]);
 
   useEffect(() => {
-    if (!activeAccount || calendars.length === 0) return;
-    if (calendars.some((c) => c.accountId !== activeAccount.id)) {
+    if (visibleAccounts.length === 0 || calendars.length === 0) return;
+    const allowed = new Set(visibleAccounts.map((a) => a.id));
+    if (calendars.some((c) => !allowed.has(c.accountId))) {
       if (__DEV__) {
-        console.warn('[useCalendarData] stale calendars for account, skipping sync', activeAccount.id);
+        console.warn('[useCalendarData] stale calendars for account set, skipping sync', visibleIdsKey);
       }
       return;
     }
@@ -90,20 +95,27 @@ export function useCalendarData(date: Date, agendaEnabled = false) {
     setSyncing(true);
     (async () => {
       try {
-        const { failedCount } = await syncVisibleRange(activeAccount, calendars, start, end);
-        if (active) {
-          setSyncFailed(failedCount > 0);
-          if (failedCount > 0) scheduleRetry();
-          else {
-            attemptsRef.current = 0;
-            clearRetryTimer();
-          }
-        }
-      } catch (error) {
-        console.warn('[useCalendarData] syncVisibleRange failed:', String(error));
-        if (active) {
-          setSyncFailed(true);
-          scheduleRetry();
+        // Per-account isolation: one unreachable server must not block the others.
+        const results = await Promise.allSettled(
+          visibleAccounts.map((account) =>
+            syncVisibleRange(
+              account,
+              calendars.filter((c) => c.accountId === account.id),
+              start,
+              end,
+            ),
+          ),
+        );
+        if (!active) return;
+        const failedCount = results.reduce(
+          (sum, r) => sum + (r.status === 'rejected' ? 1 : (r.value?.failedCount ?? 0)),
+          0,
+        );
+        setSyncFailed(failedCount > 0);
+        if (failedCount > 0) scheduleRetry();
+        else {
+          attemptsRef.current = 0;
+          clearRetryTimer();
         }
       } finally {
         if (active) setSyncing(false);
@@ -114,20 +126,20 @@ export function useCalendarData(date: Date, agendaEnabled = false) {
       setSyncing(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeAccount?.id, calendars, start.getTime(), end.getTime(), retryNonce]);
+  }, [visibleIdsKey, calendars, start.getTime(), end.getTime(), retryNonce]);
 
   const prepare = useMemo(() => {
     const nonEditableCalendarIds = new Set(
-      calendars.filter((c) => c.isReadOnly || c.isSubscribed).map((c) => c.id),
+      calendars.filter((c) => c.isReadOnly || c.isSubscribed).map(calendarKeyOf),
     );
     return (events: CalendarEvent[]) => normalizeEvents(
       events.filter(
         (e) =>
-          !hiddenCalendarIds.includes(e.calendarId) &&
+          !hasCalendarFlag(hiddenCalendarIds, e.accountId, e.calendarId) &&
           (showCompletedTasks || !e.isTask || !e.taskCompleted),
       ),
     ).map((e) =>
-      nonEditableCalendarIds.has(e.calendarId) ? { ...e, readOnly: true } : e,
+      nonEditableCalendarIds.has(calendarKey(e.accountId, e.calendarId)) ? { ...e, readOnly: true } : e,
     );
   }, [hiddenCalendarIds, showCompletedTasks, calendars]);
   const allEvents = useMemo(() => prepare(dbEvents), [prepare, dbEvents]);
@@ -139,10 +151,10 @@ export function useCalendarData(date: Date, agendaEnabled = false) {
   }, [allEvents]);
   useEffect(() => {
     hadEventsRef.current = false;
-  }, [activeAccountId]);
+  }, [visibleIdsKey]);
 
   const showFullOverlay = !hadEventsRef.current && syncing && allEvents.length === 0;
   const showSmallLoader = (syncing || calsFetching) && !showFullOverlay;
 
-  return { activeAccount, calendars, allEvents, agendaEvents, showFullOverlay, showSmallLoader, syncFailed, retrySync };
+  return { activeAccount, visibleAccounts, calendars, allEvents, agendaEvents, showFullOverlay, showSmallLoader, syncFailed, retrySync };
 }

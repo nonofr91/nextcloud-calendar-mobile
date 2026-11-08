@@ -25,7 +25,7 @@ describe('eventsInRangeQuery', () => {
 
   it('includes events whose end is exactly the range start (inclusive all-day ends)', () => {
     const now = new Date(2026, 9, 1, 15, 30);
-    observeTodayEventsQuery('a1', now);
+    observeTodayEventsQuery(['a1'], now);
     expect(endClause()?.comparison?.operator).toBe('gte');
     expect(endClause()?.comparison?.right.value).toBe(
       new Date(2026, 9, 1).getTime(),
@@ -34,7 +34,7 @@ describe('eventsInRangeQuery', () => {
 
   it('keeps the same inclusive bound for multi-day windows', () => {
     const now = new Date(2026, 9, 1, 15, 30);
-    observeAgendaEventsQuery('a1', 7, now);
+    observeAgendaEventsQuery(['a1'], 7, now);
     expect(endClause()?.comparison?.operator).toBe('gte');
   });
 });

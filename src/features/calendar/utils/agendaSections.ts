@@ -11,7 +11,7 @@ export interface AgendaSection {
 }
 
 export function agendaRowKey(dayKey: string, e: CalendarEvent): string {
-  return `i-${dayKey}-${e.calendarId}-${e.uid}-${e.dtstart.getTime()}`;
+  return `i-${dayKey}-${e.accountId}-${e.calendarId}-${e.uid}-${e.dtstart.getTime()}`;
 }
 
 export function buildAgendaSections(

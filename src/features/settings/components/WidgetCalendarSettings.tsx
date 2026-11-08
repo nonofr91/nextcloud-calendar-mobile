@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useAccountStore } from '@/stores/accountStore';
-import { useActiveAccount } from '@/hooks/useAccounts';
-import { useCalendars } from '@/hooks/useCalendars';
+import { useAccounts } from '@/hooks/useAccounts';
+import { useMultiCalendars } from '@/hooks/useCalendars';
+import { hostnameOf } from '@/features/account/utils/account';
 import {
   type MonthWidgetCardStyle,
   type MonthWidgetDayTap,
@@ -13,15 +13,16 @@ import {
   useCalendarStore,
 } from '@/stores/calendarStore';
 import { refreshWidgets } from '@/features/widget';
+import { calendarKeyOf, hasCalendarFlag } from '@/utils/calendars';
 import { Divider, Select, Stack, Toggle, Typography, type SelectOption } from '@/ui/components';
 
 const cardOuter = { marginHorizontal: 16, marginBottom: 4 };
 
 export function WidgetCalendarSettings() {
   const { t } = useTranslation();
-  const activeAccountId = useAccountStore((s) => s.activeAccountId);
-  const activeAccount = useActiveAccount(activeAccountId);
-  const { data: calendars = [] } = useCalendars(activeAccount);
+  const accounts = useAccounts();
+  // The widget renders merged events — its toggles cover every account.
+  const { data: calendars = [] } = useMultiCalendars(accounts);
   const hiddenCalendarIds = useCalendarStore((s) => s.hiddenCalendarIds);
   const widgetDisabledCalendarIds = useCalendarStore((s) => s.widgetDisabledCalendarIds);
   const toggleWidget = useCalendarStore((s) => s.toggleCalendarWidget);
@@ -77,15 +78,22 @@ export function WidgetCalendarSettings() {
         </Typography>
       ) : (
         calendars.map((cal, i) => {
-          const hidden = hiddenCalendarIds.includes(cal.id);
-          const on = !hidden && !widgetDisabledCalendarIds.includes(cal.id);
+          const key = calendarKeyOf(cal);
+          const hidden = hasCalendarFlag(hiddenCalendarIds, cal.accountId, cal.id);
+          const on = !hidden && !hasCalendarFlag(widgetDisabledCalendarIds, cal.accountId, cal.id);
 
+          const owner = accounts.find((a) => a.id === cal.accountId);
           return (
-            <Stack key={cal.id} gap={12} hAlign="stretch">
+            <Stack key={key} gap={12} hAlign="stretch">
               {i > 0 && <Divider />}
               <Stack direction="horizontal" vAlign="center" gap={12}>
                 <Stack gap={2} style={{ flex: 1 }}>
                   <Typography variant="body1" numberOfLines={1}>{cal.displayName}</Typography>
+                  {accounts.length > 1 && owner && (
+                    <Typography variant="caption" color="secondary">
+                      {hostnameOf(owner.baseUrl)}
+                    </Typography>
+                  )}
                   {hidden && (
                     <Typography variant="caption" color="secondary">
                       {t('settings.widgets.calendarHidden')}
@@ -95,7 +103,7 @@ export function WidgetCalendarSettings() {
                 <Toggle
                   value={on}
                   disabled={hidden}
-                  onValueChange={() => setWidget(cal.id)}
+                  onValueChange={() => setWidget(key)}
                   accessibilityLabel={cal.displayName}
                 />
               </Stack>

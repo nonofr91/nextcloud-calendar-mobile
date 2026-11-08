@@ -13,15 +13,13 @@ import { Bell, X } from 'lucide-react-native';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { List, Item, Stack, Typography, IconButton, Chip } from '@/ui/components';
 import { dismissNotification } from '@/services/nextcloud/notifications';
-import { useActiveAccount } from '@/hooks/useAccounts';
-import { useAccountStore } from '@/stores/accountStore';
+import { useAccounts } from '@/hooks/useAccounts';
 
 export function NotificationCenter() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
-  const activeAccountId = useAccountStore((s) => s.activeAccountId);
-  const account = useActiveAccount(activeAccountId);
+  const accounts = useAccounts();
   const allNotifications = useNotificationStore((s) => s.notifications);
   const notifications = useMemo(
     () => allNotifications.filter((n) => n.app === 'calendar' || n.app === 'event_update_notification'),
@@ -33,16 +31,17 @@ export function NotificationCenter() {
   useFocusEffect(
     useCallback(() => {
       notifications.forEach((n) => {
-        if (!n.seen) markAsSeen(n.notificationId);
+        if (!n.seen) markAsSeen(n.accountId, n.notificationId);
       });
     }, [notifications, markAsSeen]),
   );
 
-  const onDismiss = async (id: number) => {
-    if (!account) return;
+  const onDismiss = async (accountId: string, id: number) => {
+    const owner = accounts.find((a) => a.id === accountId);
+    if (!owner) return;
     try {
-      await dismissNotification(account, id);
-      removeNotification(id);
+      await dismissNotification(owner, id);
+      removeNotification(accountId, id);
     } catch (err) {
       console.warn('[NotificationCenter] dismiss failed:', err);
     }
@@ -85,7 +84,9 @@ function getNotificationType(subjectRich: string, subject: string): Notification
                 const eventParams = item.subjectRichParameters?.event as { id?: string } | undefined;
                 const eventUid = eventParams?.id;
                 if (eventUid) {
-                  router.push(`/event/${eventUid}`);
+                  router.push(
+                    `/event/${encodeURIComponent(eventUid)}?accountId=${encodeURIComponent(item.accountId)}`,
+                  );
                 } else if (item.link) {
                   Linking.openURL(item.link).catch((err) =>
                     console.warn('[NotificationCenter] failed to open link:', err),
@@ -128,7 +129,7 @@ function getNotificationType(subjectRich: string, subject: string): Notification
               }
               trailing={
                 <IconButton
-                  onPress={() => onDismiss(item.notificationId)}
+                  onPress={() => onDismiss(item.accountId, item.notificationId)}
                   size={36}
                   variant="plain"
                   round

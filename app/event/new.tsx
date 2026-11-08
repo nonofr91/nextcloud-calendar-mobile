@@ -4,8 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, useTheme } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react-native';
-import { useAccounts } from '@/hooks/useAccounts';
-import { useCalendars } from '@/hooks/useCalendars';
+import { useAccounts, useVisibleAccounts } from '@/hooks/useAccounts';
+import { useMultiCalendars } from '@/hooks/useCalendars';
 import { useCreateEvent } from '@/features/event/hooks/useMutateEvent';
 import { resolveOrganizer } from '@/features/event/utils/organizer';
 import { askAttachmentShareMode } from '@/features/event/utils/attachments';
@@ -24,11 +24,14 @@ export default function NewEventScreen() {
 
   const accounts = useAccounts();
   const activeAccount = accounts.find((a) => a.id === activeAccountId) ?? null;
-  const { data: calendars = [] } = useCalendars(activeAccount);
+  // The picker lists every visible account's calendars — the chosen calendar's
+  // owner is the write target, not necessarily the default account.
+  const visibleAccounts = useVisibleAccounts();
+  const { data: calendars = [] } = useMultiCalendars(visibleAccounts);
 
   const defaultDate = useMemo(() => (date ? new Date(date) : new Date()), [date]);
 
-  const createMutation = useCreateEvent(activeAccount!, calendars);
+  const createMutation = useCreateEvent(visibleAccounts, calendars);
   const formRef = useRef<EventFormHandle>(null);
 
   async function handleSubmit(input: CreateEventInput) {
@@ -87,6 +90,7 @@ export default function NewEventScreen() {
           organizerName={organizerName}
           onSubmit={handleSubmit}
           account={activeAccount}
+          accounts={visibleAccounts}
         />
       </SafeAreaView>
     </ViewContainer>

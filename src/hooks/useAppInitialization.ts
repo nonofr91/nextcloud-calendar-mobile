@@ -27,6 +27,7 @@ export function useAppInitialization() {
   const [isAppReady, setIsAppReady] = useState(false);
   const setStoreAccountId = useAccountStore((s) => s.setActiveAccountId);
   const setCapabilities = useAccountStore((s) => s.setCapabilities);
+  const setCapabilitiesFor = useAccountStore((s) => s.setCapabilitiesFor);
 
   useEffect(() => {
     const teardownOnline = setupOnlineManager();
@@ -62,9 +63,13 @@ export function useAppInitialization() {
           setStoreAccountId(id);
 
           const activeAccount = accounts.find((a) => a.id === id) ?? accounts[0];
-          void syncCalendars(activeAccount).catch((e) => {
-            console.warn('[useAppInitialization] syncCalendars failed:', String(e));
-          });
+          // Every account syncs its calendar list at boot — the merged view
+          // reads all of them, and a down server must not block the others.
+          for (const account of accounts) {
+            void syncCalendars(account).catch((e) => {
+              console.warn('[useAppInitialization] syncCalendars failed:', account.id, String(e));
+            });
+          }
           // Profile refresh only ever enriches display names and timezones. It
           // re-reads secure storage, so an empty result means that read failed,
           // never that the user signed out — dropping the accounts here would
@@ -77,13 +82,17 @@ export function useAppInitialization() {
             .catch((e) => {
               console.warn('[useAppInitialization] refreshAccountProfiles failed:', String(e));
             });
-          void fetchCapabilities(activeAccount)
-            .then((caps) => {
-              if (mounted && caps) setCapabilities(caps);
-            })
-            .catch((e) => {
-              console.warn('[useAppInitialization] fetchCapabilities failed:', String(e));
-            });
+          for (const account of accounts) {
+            void fetchCapabilities(account)
+              .then((caps) => {
+                if (!mounted || !caps) return;
+                setCapabilitiesFor(account.id, caps);
+                if (account.id === activeAccount.id) setCapabilities(caps);
+              })
+              .catch((e) => {
+                console.warn('[useAppInitialization] fetchCapabilities failed:', account.id, String(e));
+              });
+          }
         }
         if (mounted) setIsAppReady(true);
       } catch (e) {
@@ -107,7 +116,7 @@ export function useAppInitialization() {
       mounted = false;
       sub.remove();
     };
-  }, [setStoreAccountId, setCapabilities]);
+  }, [setStoreAccountId, setCapabilities, setCapabilitiesFor]);
 
   return { isAppReady };
 }

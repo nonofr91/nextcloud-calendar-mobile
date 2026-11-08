@@ -20,16 +20,22 @@ import { goBackOrHome } from '@/utils/navigationGuard';
 import type { CreateEventInput, RecurrenceEditScope } from '@/types';
 
 export default function EditEventScreen() {
-  const { uid, scope: scopeParam } = useLocalSearchParams<{ uid: string; scope?: string }>();
+  const { uid, accountId: paramAccountId, scope: scopeParam } = useLocalSearchParams<{ uid: string; accountId?: string; scope?: string }>();
   const router = useRouter();
   const { t } = useTranslation();
   const { colors } = useTheme();
   const activeAccountId = useAccountStore((s) => s.activeAccountId);
   const accounts = useAccounts();
-  const activeAccount = accounts.find((a) => a.id === activeAccountId) ?? null;
-  const { data: calendars = [] } = useCalendars(activeAccount);
 
-  const event = useEventByUid(activeAccountId, uid);
+  const event = useEventByUid(paramAccountId ?? activeAccountId, uid);
+  // Edits target the event's own account; restricting the calendar list to it
+  // also rules out cross-account moves (no CalDAV cross-server MOVE).
+  const eventAccount =
+    (event ? accounts.find((a) => a.id === event.accountId) : undefined) ??
+    accounts.find((a) => a.id === paramAccountId) ??
+    accounts.find((a) => a.id === activeAccountId) ??
+    null;
+  const { data: calendars = [] } = useCalendars(eventAccount);
 
   const eventsLoading = event === undefined;
 
@@ -38,11 +44,11 @@ export default function EditEventScreen() {
     : scopeParam === 'thisAndFollowing' ? 'thisAndFollowing'
     : 'all';
 
-  const updateMutation = useUpdateEvent(activeAccount!, calendars);
+  const updateMutation = useUpdateEvent(eventAccount ? [eventAccount] : [], calendars);
   const formRef = useRef<EventFormHandle>(null);
 
   async function handleSubmit(input: CreateEventInput) {
-    if (!activeAccount || !event) return;
+    if (!eventAccount || !event) return;
     // Attendees can't open private DAV links — offer a public share.
     const hasNewAttachments =
       !!input.pendingAttachments?.length || !!input.remoteAttachments?.length;
@@ -57,7 +63,7 @@ export default function EditEventScreen() {
 
   const isLoading = eventsLoading;
 
-  if (isLoading || !activeAccount || calendars.length === 0) {
+  if (isLoading || !eventAccount || calendars.length === 0) {
     return (
       <ViewContainer>
         <Stack flex vAlign="center" hAlign="center">
@@ -78,11 +84,12 @@ export default function EditEventScreen() {
     );
   }
 
-  const { organizerEmail, organizerName } = resolveOrganizer(activeAccount);
+  const { organizerEmail, organizerName } = resolveOrganizer(eventAccount);
 
   const initialValues = {
     summary: event.summary,
     calendarId: event.calendarId,
+    calendarAccountId: event.accountId,
     allDay: event.allDay,
     dtstart: event.dtstart,
     dtend: event.dtend,
@@ -131,7 +138,7 @@ export default function EditEventScreen() {
           onSubmit={handleSubmit}
           initialValues={initialValues}
           disableCalendarChange={event.isRecurring}
-          account={activeAccount}
+          account={eventAccount}
         />
       </SafeAreaView>
     </ViewContainer>

@@ -12,10 +12,12 @@ import {
   ViewContainer, ScreenHeader, Stack, Typography, Button, List, Item,
   Spinner, SectionHeader, Select, type SelectOption,
 } from '@/ui/components';
-import { useActiveAccount } from '@/hooks/useAccounts';
+import { useAccounts, useVisibleAccounts } from '@/hooks/useAccounts';
 import { useAccountStore } from '@/stores/accountStore';
-import { useCalendars } from '@/hooks/useCalendars';
+import { useMultiCalendars } from '@/hooks/useCalendars';
 import { useInvitations } from '@/features/invitations/hooks/useInvitations';
+import { hostnameOf } from '@/features/account/utils/account';
+import { calendarKeyOf } from '@/utils/calendars';
 import type { CalendarInvitation, CalendarMeta, InvitationResponse } from '@/types';
 import { goBackOrHome } from '@/utils/navigationGuard';
 import { Inbox } from 'lucide-react-native';
@@ -26,10 +28,12 @@ export default function InvitationsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const theme = useTheme();
+  const accounts = useAccounts();
   const activeAccountId = useAccountStore((s) => s.activeAccountId);
-  const activeAccount = useActiveAccount(activeAccountId);
-  const { data: calendars = [] } = useCalendars(activeAccount);
-  const { data: invitations, isFetching, error, refresh } = useInvitations(activeAccount);
+  const activeAccount = accounts.find((a) => a.id === activeAccountId) ?? accounts[0] ?? null;
+  const visibleAccounts = useVisibleAccounts();
+  const { data: calendars = [] } = useMultiCalendars(visibleAccounts);
+  const { data: invitations, isFetching, error, refresh } = useInvitations(visibleAccounts);
 
   const [responding, setResponding] = useState<Set<string>>(new Set());
 
@@ -39,24 +43,35 @@ export default function InvitationsScreen() {
   );
 
   const calendarOptions: SelectOption<string>[] = useMemo(
-    () => writableCalendars.map((c) => ({ value: c.id, label: c.displayName, leading: () => (
-      <View style={[styles.colorDot, { backgroundColor: c.color }]} />
-    ) })),
-    [writableCalendars],
+    () => writableCalendars.map((c) => {
+      const owner = accounts.find((a) => a.id === c.accountId);
+      const label = accounts.length > 1 && owner
+        ? `${c.displayName} — ${hostnameOf(owner.baseUrl)}`
+        : c.displayName;
+      return { value: calendarKeyOf(c), label, leading: () => (
+        <View style={[styles.colorDot, { backgroundColor: c.color }]} />
+      ) };
+    }),
+    [writableCalendars, accounts],
   );
 
   const [selectedCalendarId, setSelectedCalendarId] = useState<string | undefined>(undefined);
 
   const defaultCalendar = selectedCalendarId
-    ? writableCalendars.find((c) => c.id === selectedCalendarId)
+    ? writableCalendars.find((c) => calendarKeyOf(c) === selectedCalendarId)
     : writableCalendars[0];
 
   const handleRespond = useCallback(async (
     invitation: CalendarInvitation,
     response: InvitationResponse,
   ) => {
-    if (!activeAccount) return;
-    if (response !== 'declined' && !defaultCalendar) {
+    // Respond through the account that received the invitation.
+    const owner = accounts.find((a) => a.id === invitation.accountId) ?? activeAccount;
+    if (!owner) return;
+    const targetCalendar =
+      (defaultCalendar && defaultCalendar.accountId === invitation.accountId ? defaultCalendar : null) ??
+      writableCalendars.find((c) => c.accountId === invitation.accountId);
+    if (response !== 'declined' && !targetCalendar) {
       Alert.alert(t('invitations.error'), t('event.noWritableCalendars'));
       return;
     }
@@ -66,10 +81,12 @@ export default function InvitationsScreen() {
       // Lazy import: invitations.ts pulls in ical.js, which must load as late as possible.
       const { respondToInvitation } = await import('@/services/nextcloud/invitations');
       await respondToInvitation(
-        activeAccount,
+        owner,
         invitation,
         response,
-        response === 'declined' ? calendars[0] : defaultCalendar!,
+        response === 'declined'
+          ? (calendars.find((c) => c.accountId === invitation.accountId) ?? calendars[0])
+          : targetCalendar!,
       );
       refresh();
     } catch (e) {
@@ -81,7 +98,7 @@ export default function InvitationsScreen() {
         return next;
       });
     }
-  }, [activeAccount, defaultCalendar, calendars, refresh, t]);
+  }, [accounts, activeAccount, defaultCalendar, writableCalendars, calendars, refresh, t]);
 
   const formatDate = (inv: CalendarInvitation) => inv.allDay
     ? (dayjs(inv.dtstart).isSame(inv.dtend, 'day')
@@ -139,7 +156,7 @@ export default function InvitationsScreen() {
           ) : (
             <List>
               {invitations.map((inv) => (
-                <View key={inv.uid} style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+                <View key={`${inv.accountId}|${inv.uid}`} style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
                   <Item
                     title={
                       <Typography variant="body1" numberOfLines={1} ellipsizeMode="tail">

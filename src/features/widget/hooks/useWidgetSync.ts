@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 
-import { useAccountStore } from '@/stores/accountStore';
+import { useAccountStore, anyCalendarConfigured } from '@/stores/accountStore';
+import { useVisibleAccountIds } from '@/hooks/useAccounts';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { EVENT_OBSERVED_COLUMNS } from '@/database/observedColumns';
@@ -16,7 +17,7 @@ const REFRESH_MS = 60_000;
 
 export function useWidgetSync(): void {
   const activeAccountId = useAccountStore((s) => s.activeAccountId);
-  const calendarApp = useAccountStore((s) => s.capabilities.calendarApp);
+  const calendarApp = useAccountStore((s) => (anyCalendarConfigured(s, s.visibleAccountIds ?? []) ? 'configured' : 'unconfigured'));
   const hiddenCalendarIds = useCalendarStore((s) => s.hiddenCalendarIds);
   const notifDisabledCalendarIds = useCalendarStore((s) => s.notifDisabledCalendarIds);
   const widgetDisabledCalendarIds = useCalendarStore((s) => s.widgetDisabledCalendarIds);
@@ -28,7 +29,9 @@ export function useWidgetSync(): void {
   const timeFormat = useSettingsStore((s) => s.timeFormat);
   const language = useSettingsStore((s) => s.language);
   const weekStartsOn = useSettingsStore((s) => s.weekStartsOn);
-  const prevAccountRef = useRef<string | null | undefined>(undefined);
+  const visibleAccountIds = useVisibleAccountIds();
+  const visibleKey = visibleAccountIds.join(',');
+  const prevKeyRef = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     if (activeAccountId) void syncWidget();
@@ -49,11 +52,14 @@ export function useWidgetSync(): void {
   ]);
 
   useEffect(() => {
-    const prevAccount = prevAccountRef.current;
-    prevAccountRef.current = activeAccountId;
-    const accountChanged = prevAccount !== undefined && prevAccount !== activeAccountId;
+    // The widget surface resets when the default account OR the visible set
+    // changes — its timeline is rebuilt from the merged rows either way.
+    const key = `${activeAccountId ?? ''}|${visibleKey}`;
+    const prevKey = prevKeyRef.current;
+    prevKeyRef.current = key;
+    const accountChanged = prevKey !== undefined && prevKey !== key;
 
-    if (!activeAccountId) {
+    if (!activeAccountId || visibleAccountIds.length === 0) {
       if (accountChanged) void liveActivity.clear().catch(() => undefined);
       void unregisterWidgetBackgroundSync();
       return;
@@ -69,13 +75,13 @@ export function useWidgetSync(): void {
     })();
     void registerWidgetBackgroundSync();
 
-    const sub = observeAgendaEventsQuery(activeAccountId, AGENDA_DAYS)
+    const sub = observeAgendaEventsQuery(visibleAccountIds, AGENDA_DAYS)
       .observeWithColumns(EVENT_OBSERVED_COLUMNS)
       .subscribe(() => {
         void syncWidget();
       });
 
-    const monthSub = observeMonthWidgetEventsQuery(activeAccountId)
+    const monthSub = observeMonthWidgetEventsQuery(visibleAccountIds)
       .observeWithColumns(EVENT_OBSERVED_COLUMNS)
       .subscribe(() => {
         void syncWidget();
@@ -96,5 +102,6 @@ export function useWidgetSync(): void {
       clearInterval(tick);
       appSub.remove();
     };
-  }, [activeAccountId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAccountId, visibleKey]);
 }

@@ -6,6 +6,7 @@ import { useEventsForRange } from '@/database/useEvents';
 import { useCalendarStore } from '@/stores/calendarStore';
 import type { CalendarMeta } from '@/types';
 
+import { calendarKey, calendarKeyOf, hasCalendarFlag } from '@/utils/calendars';
 import { foldText, matchesQuery, toSearchable, type SearchableEvent } from './matchEvent';
 import { isEmptyQuery, parseQuery, type SearchQuery } from './parseQuery';
 import { hrefPath } from './serverSearch';
@@ -44,7 +45,7 @@ export function searchEvents(items: SearchableEvent[], query: SearchQuery, now: 
   for (const item of items) {
     if (!matchesQuery(item, query, now)) continue;
     matchedHrefs.add(hrefPath(item.event.href));
-    const seriesKey = `${item.event.calendarId}|${seriesBaseUid(item.event.uid)}`;
+    const seriesKey = `${item.event.accountId}|${item.event.calendarId}|${seriesBaseUid(item.event.uid)}`;
     const kept = representatives.get(seriesKey);
     if (!kept || isBetterRepresentative(item, kept, now)) representatives.set(seriesKey, item);
   }
@@ -74,24 +75,26 @@ function cachedFold(): (text: string) => string {
   };
 }
 
-export function useLocalSearch(accountId: string | null, term: string): LocalSearchResult {
+export function useLocalSearch(accountIds: readonly string[], term: string): LocalSearchResult {
   const deferredTerm = useDeferredValue(term);
   const query = useMemo(() => parseQuery(deferredTerm), [deferredTerm]);
-  const rows = useEventsForRange(accountId ?? '', MIN_DATE, MAX_DATE);
-  const accountCalendars = useCalendarsFromDb(accountId);
+  const rows = useEventsForRange(accountIds, MIN_DATE, MAX_DATE);
+  const accountCalendars = useCalendarsFromDb(accountIds);
   const hiddenCalendarIds = useCalendarStore((state) => state.hiddenCalendarIds);
 
   const calendars = useMemo(
-    () => accountCalendars.filter((calendar) => !hiddenCalendarIds.includes(calendar.id)),
+    () => accountCalendars.filter(
+      (calendar) => !hasCalendarFlag(hiddenCalendarIds, calendar.accountId, calendar.id),
+    ),
     [accountCalendars, hiddenCalendarIds],
   );
 
   const searchable = useMemo(() => {
-    const nameById = new Map(calendars.map((calendar) => [calendar.id, calendar.displayName]));
+    const nameById = new Map(calendars.map((calendar) => [calendarKeyOf(calendar), calendar.displayName]));
     const fold = cachedFold();
     const items: SearchableEvent[] = [];
     for (const event of rows) {
-      const calendarName = nameById.get(event.calendarId);
+      const calendarName = nameById.get(calendarKey(event.accountId, event.calendarId));
       if (calendarName !== undefined) items.push(toSearchable(event, calendarName, fold));
     }
     return items;

@@ -11,22 +11,24 @@ export interface GridEvent {
 }
 
 export function gridEventKey(e: CalendarEvent): string {
-  return `${e.calendarId}-${e.uid}-${e.dtstart.getTime()}`;
+  return `${e.accountId}|${e.calendarId}|${e.uid}|${e.dtstart.getTime()}`;
 }
 
-export function toGridEvents(events: CalendarEvent[], account?: Account | null): GridEvent[] {
+export function toGridEvents(events: CalendarEvent[], accounts?: readonly Account[]): GridEvent[] {
   const seen = new Set<string>();
   const out: GridEvent[] = [];
   for (const e of events) {
     const key = gridEventKey(e);
     if (seen.has(key)) continue;
     seen.add(key);
+    // Pending writes are namespaced per account — resolve the event's owner.
+    const owner = accounts?.find((a) => a.id === e.accountId) ?? null;
     out.push({
       title: e.summary,
       start: e.dtstart,
       end: e.dtend,
       color: e.color,
-      isPending: isEventPending(e, account ?? null),
+      isPending: isEventPending(e, owner),
       _event: e,
     });
   }

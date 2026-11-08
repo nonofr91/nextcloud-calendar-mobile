@@ -154,6 +154,10 @@ export type CalendarEvent = {
 export type CreateEventInput = {
     summary: string;
     calendarId: string;
+    /** Owner account of the chosen calendar — remote ids collide across
+     *  accounts, so the picker disambiguates with this when several accounts
+     *  contribute calendars. */
+    calendarAccountId?: string;
     dtstart: Date;
     dtend: Date;
     allDay: boolean;

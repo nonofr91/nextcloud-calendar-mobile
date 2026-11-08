@@ -1,7 +1,7 @@
 import { View, Text, Switch, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'expo-router';
-import { useAccountStore } from '@/stores/accountStore';
+import { useAccountStore, capabilitiesForAccount } from '@/stores/accountStore';
 import type { TalkRoomType } from '@/types';
 
 interface Props {
@@ -9,12 +9,14 @@ interface Props {
   onChange: (v: boolean) => void;
   roomType: TalkRoomType;
   onRoomTypeChange: (type: TalkRoomType) => void;
+  /** The calendar's owning account — Talk availability is per server. */
+  accountId?: string | null;
 }
 
-export function TalkToggle({ value, onChange, roomType, onRoomTypeChange }: Props) {
+export function TalkToggle({ value, onChange, roomType, onRoomTypeChange, accountId }: Props) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const talkEnabled = useAccountStore((s) => s.capabilities.talkEnabled);
+  const talkEnabled = useAccountStore((s) => capabilitiesForAccount(s, accountId).talkEnabled);
 
   if (!talkEnabled) return null;
 

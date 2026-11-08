@@ -14,15 +14,18 @@ import { useFindTimeStore } from '@/features/event/stores/findTimeStore';
 import { AttachmentsField } from './AttachmentsField';
 import { requestAlertPermission } from '@/features/notifications/scheduleAlerts';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { isWritableCalendar } from '@/utils/calendars';
+import { calendarKeyOf, isWritableCalendar } from '@/utils/calendars';
 import { useTimeFormat } from '@/hooks/useTimeFormat';
 import { getNativePickerLocale } from '@/utils/i18n';
 import { AlertPicker } from './AlertPicker';
 import { RecurrencePicker } from './RecurrencePicker';
-import { Stack, Typography, TextField, DateField, Button, Chip, Toggle, IconButton, Spinner } from '@/ui/components';
+import { Stack, Typography, TextField, DateField, Button, Chip, Toggle, IconButton, Spinner, Select } from '@/ui/components';
+import type { SelectOption } from '@/ui/components';
 import { reverseGeocode } from '@/features/map/utils/geocode';
 import { useSavedPlaces } from '@/features/places/useSavedPlaces';
 import { matchPlaces } from '@/features/places/matchPlaces';
+import { resolveOrganizer } from '@/features/event/utils/organizer';
+import { hostnameOf } from '@/features/account/utils/account';
 import type {
   CalendarMeta, Attendee, CreateEventInput, EventAttachment, PendingAttachment,
   RecurrenceRule, TalkRoomType, Account, SuggestedSlot,
@@ -35,6 +38,8 @@ dayjs.extend(localizedFormat);
 export interface InitialValues {
   summary?: string;
   calendarId?: string;
+  /** Owner of initialValues.calendarId — remote ids collide across accounts. */
+  calendarAccountId?: string;
   allDay?: boolean;
   dtstart?: Date;
   dtend?: Date;
@@ -58,7 +63,12 @@ interface Props {
   onSubmit: (input: CreateEventInput) => void;
   initialValues?: InitialValues;
   disableCalendarChange?: boolean;
-  account?: Pick<Account, 'id' | 'displayName' | 'baseUrl' | 'username' | 'appPassword' | 'davUserId' | 'timezone'> | null;
+  account?: (Pick<Account, 'id' | 'displayName' | 'baseUrl' | 'username' | 'appPassword' | 'timezone' | 'davUserId'> & Partial<Account>) | null;
+  /** Every account that contributes calendars — groups the picker and makes
+   * attendees/find-time/attachments follow the selected calendar's owner. */
+  accounts?: readonly Account[];
+
+
 }
 
 export interface EventFormHandle {
@@ -69,7 +79,7 @@ type AndroidPickerStep = null | { target: 'start' | 'end'; step: 'date' | 'time'
 
 export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
   calendars, defaultDate, organizerEmail, organizerName, onSubmit,
-  initialValues, disableCalendarChange = false, account,
+  initialValues, disableCalendarChange = false, account, accounts,
 }: Props, ref) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -87,15 +97,37 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
     account ? s.defaultCalendarByAccount[account.id] : undefined,
   );
 
-  const defaultCalendarId =
-    initialValues?.calendarId ??
-    (storedDefault && writableCalendars.some((c) => c.id === storedDefault)
-      ? storedDefault
-      : undefined) ??
-    writableCalendars.find((c) => c.slug.toLowerCase() === 'personal')?.id ??
-    writableCalendars[0]?.id ?? '';
-  const [calendarId, setCalendarId] = useState(defaultCalendarId);
+  // Selection is a composite account|remoteId key — remote ids collide across
+  // accounts, so a bare id cannot name a calendar in the merged picker.
+  const defaultCalendarKey = (() => {
+    const owner = initialValues?.calendarAccountId ?? account?.id;
+    const owned = (c: CalendarMeta) => !owner || c.accountId === owner;
+    const wanted = initialValues?.calendarId
+      ? calendars.find((c) => c.id === initialValues.calendarId && owned(c))
+      : undefined;
+    const stored = !wanted && storedDefault
+      ? writableCalendars.find((c) => c.id === storedDefault && owned(c))
+      : undefined;
+    const personal = !wanted && !stored
+      ? writableCalendars.find((c) => c.slug.toLowerCase() === 'personal' && owned(c))
+      : undefined;
+    const pick = wanted ?? stored ?? personal ?? writableCalendars[0];
+    return pick ? calendarKeyOf(pick) : '';
+  })();
+  const [selectedCalendarKey, setSelectedCalendarKey] = useState(defaultCalendarKey);
   const [allDay, setAllDay] = useState(initialValues?.allDay ?? false);
+
+  // The account that owns the selected calendar — attendees search, free/busy,
+  // find-time and DAV uploads must hit its server, not the default account's.
+  const selectedCal = calendars.find((c) => calendarKeyOf(c) === selectedCalendarKey);
+  const selectedOwnerAccount = accounts?.find(
+    (a) => a.id === selectedCal?.accountId,
+  );
+  const selectedAccount = selectedOwnerAccount ?? account;
+  const multiAccountPicker = new Set(writableCalendars.map((c) => c.accountId)).size > 1;
+  const submitOrganizer = selectedOwnerAccount
+    ? resolveOrganizer(selectedOwnerAccount)
+    : { organizerEmail, organizerName };
 
   // Timed events are edited as wall-clock times in the event's own zone:
   // dtstart/dtend below hold the zone's wall time as a device-local Date, and
@@ -276,7 +308,7 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
     setTitleError(null);
     setCalendarError(null);
     if (!summary.trim()) { setTitleError(t('event.errorTitleRequired')); return; }
-    if (!calendarId) { setCalendarError(t('event.errorSelectCalendar')); return; }
+    if (!selectedCalendarKey) { setCalendarError(t('event.errorSelectCalendar')); return; }
     if (allDay) {
       if (dayjs(dtend).startOf('day').isBefore(dayjs(dtstart).startOf('day'))) {
         setEndError(t('event.errorEndAfterStart')); return;
@@ -291,9 +323,13 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
     if (willAlert) void requestAlertPermission();
 
     onSubmit({
-      summary: summary.trim(), calendarId,
+      summary: summary.trim(),
+      calendarId: selectedCal?.id ?? selectedCalendarKey,
+      calendarAccountId: selectedCal?.accountId,
       description, location, geo, attendees, withTalkRoom, talkRoomType,
-      organizerEmail, organizerName, rrule, alarms,
+      organizerEmail: submitOrganizer.organizerEmail,
+      organizerName: submitOrganizer.organizerName,
+      rrule, alarms,
       uid: initialValues?.uid,
       extraLines: initialValues?.extraLines,
       pendingAttachments: pendingAttachments.length ? pendingAttachments : undefined,
@@ -399,20 +435,50 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
           {writableCalendars.length === 0 && (
             <Typography variant="caption" color="danger">{t('event.noWritableCalendars')}</Typography>
           )}
+          {multiAccountPicker ? (
+            // One section per account — calendar ids are only unique inside an
+            // account, so chips stay grouped by their owner.
+            (accounts ?? []).map((acc) => {
+              const accCals = writableCalendars.filter((c) => c.accountId === acc.id);
+              if (accCals.length === 0) return null;
+              return (
+                <Stack key={acc.id} gap={4}>
+                  <Typography variant="caption" color="secondary">
+                    {acc.displayName || acc.username} — {hostnameOf(acc.baseUrl)}
+                  </Typography>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.chipRow}>
+                    {accCals.map((cal) => (
+                      <Chip
+                        key={calendarKeyOf(cal)}
+                        rounded
+                        active={selectedCalendarKey === calendarKeyOf(cal)}
+                        activeColor={cal.color}
+                        disabled={disableCalendarChange}
+                        onPress={() => { setSelectedCalendarKey(calendarKeyOf(cal)); if (calendarError) setCalendarError(null); }}
+                      >
+                        {cal.displayName}
+                      </Chip>
+                    ))}
+                  </ScrollView>
+                </Stack>
+              );
+            })
+          ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.chipRow}>
             {writableCalendars.map((cal) => (
               <Chip
-                key={cal.id}
+                key={calendarKeyOf(cal)}
                 rounded
-                active={calendarId === cal.id}
+                active={selectedCalendarKey === calendarKeyOf(cal)}
                 activeColor={cal.color}
                 disabled={disableCalendarChange}
-                onPress={() => { setCalendarId(cal.id); if (calendarError) setCalendarError(null); }}
+                onPress={() => { setSelectedCalendarKey(calendarKeyOf(cal)); if (calendarError) setCalendarError(null); }}
               >
                 {cal.displayName}
               </Chip>
             ))}
           </ScrollView>
+          )}
           {calendarError ? (
             <Typography variant="caption" color="danger">{calendarError}</Typography>
           ) : null}
@@ -522,12 +588,12 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
         <AttendeesField
           attendees={attendees}
           onChange={setAttendees}
-          account={account}
+          account={selectedAccount}
           onInputLayout={(e) => onFieldLayout('attendee', e)}
           onInputFocus={scrollAttendeeToViewportBottom}
         />
 
-        {attendees.length > 0 && account && !allDay && (
+        {attendees.length > 0 && selectedAccount && !allDay && (
           <Button
             variant="secondary"
             title={t('event.findTime')}
@@ -535,12 +601,12 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
           />
         )}
 
-        {account && (
+        {selectedAccount && (
           <FindTimeSuggestSheet
             visible={findTimeVisible}
             onClose={() => setFindTimeVisible(false)}
-            account={account}
-            organizer={{ email: organizerEmail, displayName: organizerName }}
+            account={selectedAccount}
+            organizer={{ email: submitOrganizer.organizerEmail, displayName: submitOrganizer.organizerName }}
             attendees={attendees}
             start={dtstart}
             end={dtend}
@@ -558,7 +624,7 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
           )}
           pending={pendingAttachments}
           remote={remoteAttachments}
-          account={account}
+          account={selectedAccount}
           onAdd={(f) => setPendingAttachments((prev) => [...prev, f])}
           onAddRemote={(att) =>
             // Skip if the same file is already attached to the event.
@@ -585,6 +651,7 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
           onChange={setWithTalkRoom}
           roomType={talkRoomType}
           onRoomTypeChange={setTalkRoomType}
+          accountId={selectedAccount?.id}
         />
       </Stack>
     </ScrollView>

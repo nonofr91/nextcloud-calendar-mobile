@@ -4,12 +4,14 @@ import {useSettingsStore} from '@/stores/settingsStore';
 import i18n from '@/utils/i18n';
 import {resolveUse24h} from '@/utils/timeFormat';
 
-import {useAccountStore} from '@/stores/accountStore';
+import {useAccountStore, anyCalendarConfigured} from '@/stores/accountStore';
 import {useCalendarStore} from '@/stores/calendarStore';
+import {hasCalendarFlag} from '@/utils/calendars';
+import {SHARED_KEYS, setSharedString} from '@/services/shared/appGroupStorage';
 
 import {buildAgendaTimeline} from '../core/agendaSnapshot';
 import {AGENDA_DAYS} from '../core/buildTimeline';
-import {readUpcomingEvents} from '../core/readEvents';
+import {readUpcomingEvents, visibleAccountIdsToRead} from '../core/readEvents';
 import {selectOngoingEvent, shouldClearLiveEvent} from '../core/liveEvent';
 import {readLiveEvent} from '../storage/widgetStore';
 import {homeWidget} from '../surfaces/homeWidget';
@@ -20,9 +22,16 @@ let pending = false;
 
 async function runSync(now: Date): Promise<void> {
     try {
-        if (!useAccountStore.getState().activeAccountId) return;
+        if (visibleAccountIdsToRead().length === 0) {
+            // Every account hidden — nothing may linger on the surfaces or in
+            // the shared snapshot Siri reads without running JS.
+            await homeWidget.clear();
+            await liveActivity.clear();
+            setSharedString(SHARED_KEYS.agendaSnapshot, JSON.stringify(null));
+            return;
+        }
 
-        if (useAccountStore.getState().capabilities.calendarApp === 'unconfigured') {
+        if (!anyCalendarConfigured(useAccountStore.getState(), visibleAccountIdsToRead())) {
             await homeWidget.clear();
             await liveActivity.clear();
             return;
@@ -30,7 +39,7 @@ async function runSync(now: Date): Promise<void> {
 
         const {widgetDisabledCalendarIds, notifDisabledCalendarIds} = useCalendarStore.getState();
         const events = (await readUpcomingEvents(AGENDA_DAYS, now))
-            .filter((event) => !widgetDisabledCalendarIds.includes(event.calendarId));
+            .filter((event) => !hasCalendarFlag(widgetDisabledCalendarIds, event.accountId, event.calendarId));
         const {language: locale, timeFormat} = useSettingsStore.getState();
         // Outside React, the global i18n may still sit at the init/default language.
         i18n.changeLanguage(locale);
@@ -51,7 +60,7 @@ async function runSync(now: Date): Promise<void> {
 
         if (liveActivity.isSupported()) {
             const enabled = useSettingsStore.getState().liveActivityEnabled;
-            const liveEvents = events.filter((event) => !notifDisabledCalendarIds.includes(event.calendarId));
+            const liveEvents = events.filter((event) => !hasCalendarFlag(notifDisabledCalendarIds, event.accountId, event.calendarId));
             const ongoing = enabled ? selectOngoingEvent(liveEvents, now, locale) : null;
             if (ongoing) await liveActivity.update(ongoing);
             else if (shouldClearLiveEvent(readLiveEvent(), liveEvents.length, now)) await liveActivity.clear();

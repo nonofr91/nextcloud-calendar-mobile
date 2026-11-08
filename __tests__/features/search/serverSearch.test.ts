@@ -37,7 +37,7 @@ function entryFor(path: string, overrides: Partial<CalendarSearchEntry> = {}): C
 const context = (overrides: Partial<Parameters<typeof toServerHits>[1]> = {}) => ({
   baseUrl: 'https://cloud.test',
   calendars,
-  hiddenCalendarIds: ['hidden'],
+  hiddenCalendarIds: ['account-1|hidden'],
   knownHrefs: new Set<string>(),
   query: parseQuery('lunch'),
   ...overrides,
