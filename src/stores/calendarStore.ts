@@ -3,6 +3,12 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { legacyBackedStorage } from '@/stores/legacyStorage';
 import type { ViewMode } from '@/types';
 
+export type MonthWidgetFontSize = 'small' | 'normal' | 'large' | 'xlarge' | 'huge';
+export type MonthWidgetFontWeight = 'light' | 'normal' | 'medium' | 'bold' | 'black';
+export type MonthWidgetTheme = 'system' | 'light' | 'dark';
+export type MonthWidgetCardStyle = 'card' | 'borderless' | 'transparent';
+export type MonthWidgetDayTap = 'calendar' | 'newEvent';
+
 interface CalendarState {
   viewMode: ViewMode;
   selectedDate: Date | null;
@@ -11,6 +17,11 @@ interface CalendarState {
   widgetDisabledCalendarIds: string[];
   /** User overrides for "counts for availability" — absent id defaults to !isReadOnly. */
   availabilityCalendarOverrides: Record<string, boolean>;
+  monthWidgetFontSize: MonthWidgetFontSize;
+  monthWidgetFontWeight: MonthWidgetFontWeight;
+  monthWidgetTheme: MonthWidgetTheme;
+  monthWidgetCardStyle: MonthWidgetCardStyle;
+  monthWidgetDayTap: MonthWidgetDayTap;
   hourRowHeight: number;
   showCompletedTasks: boolean;
   setViewMode: (mode: ViewMode) => void;
@@ -19,6 +30,11 @@ interface CalendarState {
   toggleCalendarNotifications: (calendarId: string) => void;
   toggleCalendarWidget: (calendarId: string) => void;
   setCalendarAvailability: (calendarId: string, value: boolean) => void;
+  setMonthWidgetFontSize: (value: MonthWidgetFontSize) => void;
+  setMonthWidgetFontWeight: (value: MonthWidgetFontWeight) => void;
+  setMonthWidgetTheme: (value: MonthWidgetTheme) => void;
+  setMonthWidgetCardStyle: (value: MonthWidgetCardStyle) => void;
+  setMonthWidgetDayTap: (value: MonthWidgetDayTap) => void;
   setHourRowHeight: (h: number) => void;
   toggleShowCompletedTasks: () => void;
 }
@@ -36,6 +52,11 @@ export const useCalendarStore = create<CalendarState>()(
       notifDisabledCalendarIds: [],
       widgetDisabledCalendarIds: [],
       availabilityCalendarOverrides: {},
+      monthWidgetFontSize: 'large',
+      monthWidgetFontWeight: 'bold',
+      monthWidgetTheme: 'system',
+      monthWidgetCardStyle: 'card',
+      monthWidgetDayTap: 'calendar',
       hourRowHeight: 60,
       showCompletedTasks: false,
       setViewMode: (mode) => set({ viewMode: mode }),
@@ -48,6 +69,11 @@ export const useCalendarStore = create<CalendarState>()(
         set({ widgetDisabledCalendarIds: toggleIn(get().widgetDisabledCalendarIds, calendarId) }),
       setCalendarAvailability: (calendarId, value) =>
         set({ availabilityCalendarOverrides: { ...get().availabilityCalendarOverrides, [calendarId]: value } }),
+      setMonthWidgetFontSize: (monthWidgetFontSize) => set({ monthWidgetFontSize }),
+      setMonthWidgetFontWeight: (monthWidgetFontWeight) => set({ monthWidgetFontWeight }),
+      setMonthWidgetTheme: (monthWidgetTheme) => set({ monthWidgetTheme }),
+      setMonthWidgetCardStyle: (monthWidgetCardStyle) => set({ monthWidgetCardStyle }),
+      setMonthWidgetDayTap: (monthWidgetDayTap) => set({ monthWidgetDayTap }),
       setHourRowHeight: (h) => set({ hourRowHeight: h }),
       toggleShowCompletedTasks: () =>
         set({ showCompletedTasks: !get().showCompletedTasks }),
@@ -55,7 +81,10 @@ export const useCalendarStore = create<CalendarState>()(
     {
       name: 'calendar-store',
       storage: createJSONStorage(() =>
-        legacyBackedStorage(['viewMode', 'hiddenCalendarIds', 'notifDisabledCalendarIds', 'widgetDisabledCalendarIds', 'availabilityCalendarOverrides', 'hourRowHeight', 'showCompletedTasks'])
+        legacyBackedStorage([
+          'viewMode', 'hiddenCalendarIds', 'notifDisabledCalendarIds', 'widgetDisabledCalendarIds', 'availabilityCalendarOverrides', 'hourRowHeight', 'showCompletedTasks',
+          'monthWidgetFontSize', 'monthWidgetFontWeight', 'monthWidgetTheme', 'monthWidgetCardStyle', 'monthWidgetDayTap',
+        ])
       ),
       partialize: (state) => ({
         viewMode: state.viewMode,
@@ -63,6 +92,11 @@ export const useCalendarStore = create<CalendarState>()(
         notifDisabledCalendarIds: state.notifDisabledCalendarIds,
         widgetDisabledCalendarIds: state.widgetDisabledCalendarIds,
         availabilityCalendarOverrides: state.availabilityCalendarOverrides,
+        monthWidgetFontSize: state.monthWidgetFontSize,
+        monthWidgetFontWeight: state.monthWidgetFontWeight,
+        monthWidgetTheme: state.monthWidgetTheme,
+        monthWidgetCardStyle: state.monthWidgetCardStyle,
+        monthWidgetDayTap: state.monthWidgetDayTap,
         hourRowHeight: state.hourRowHeight,
         showCompletedTasks: state.showCompletedTasks,
       }),

@@ -45,6 +45,7 @@ dayjs.extend(isoWeek);
 
 export default function CalendarScreen() {
   const router = useRouter();
+  const { date: dateParam } = useLocalSearchParams<{ date?: string }>();
   const { t } = useTranslation();
 
   const calendarApp = useAccountStore((s) => s.capabilities.calendarApp);
@@ -61,6 +62,23 @@ export default function CalendarScreen() {
   const { viewMode, date, fetchDate, agendaVisibleDate } = nav;
   const displayedDay = viewMode === 'schedule' ? agendaVisibleDate : date;
   const { openDay } = useMonthReturn(viewMode, nav.switchMode);
+  const setViewMode = useCalendarStore((s) => s.setViewMode);
+
+  const applySelectedDate = useCallback((dateStr: string) => {
+    const raw = dateStr.split('T')[0];
+    const parts = raw.split('-').map(Number);
+    if (parts.length === 3 && !parts.some(Number.isNaN)) {
+      const targetDate = new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+      nav.setDate(targetDate);
+      setViewMode('month');
+    }
+  }, [nav.setDate, setViewMode]);
+
+  useEffect(() => {
+    if (dateParam && !Array.isArray(dateParam)) {
+      applySelectedDate(dateParam);
+    }
+  }, [dateParam, applySelectedDate]);
 
   const deferredViewMode = useDeferredValue(viewMode);
   const deferredDate = useDeferredValue(date);
@@ -186,6 +204,24 @@ export default function CalendarScreen() {
     return monthYear;
   }, [displayedDay, viewMode, language, t]);
 
+  const handleMonthPageChange = useCallback(
+    (firstOfMonth: Date) => {
+      if (useCalendarStore.getState().viewMode === 'month') {
+        nav.onPageChange(firstOfMonth);
+      }
+    },
+    [nav.onPageChange]
+  );
+
+  const handleGridPageChange = useCallback(
+    (focusDate: Date) => {
+      if (isCalMode(useCalendarStore.getState().viewMode)) {
+        nav.onPageChange(focusDate);
+      }
+    },
+    [nav.onPageChange]
+  );
+
   if (calendarApp === 'unconfigured') {
     return <CalendarUnavailable />;
   }
@@ -216,7 +252,7 @@ export default function CalendarScreen() {
             weekStartsOn={deferredWeekStartsOn}
             jump={nav.jump}
             onSelectDate={nav.setDate}
-            onMonthChange={nav.onPageChange}
+            onMonthChange={handleMonthPageChange}
             onPressEvent={handlePressEventFromMonth}
             onPressCell={handlePressCell}
             variant={monthViewStyle}
@@ -251,7 +287,7 @@ export default function CalendarScreen() {
             jump={nav.jump}
             commitZoom={commitZoom}
             initialScrollHour={nowHour}
-            onPageChange={nav.onPageChange}
+            onPageChange={handleGridPageChange}
             onPressSlot={handlePressCell}
             onPressEvent={handlePressGridEvent}
             onPressAllDayEvent={handlePressEventFromMonth}

@@ -118,7 +118,7 @@ Optionally attach a Nextcloud Talk room to any event at creation time, the Talk 
 ### Home Screen Widgets & Live Activities
 Keep your agenda glanceable without opening the app:
 - **iOS home widgets**, small, medium, and large sizes showing your upcoming agenda, plus lock-screen accessory widgets
-- **Android home widget**, upcoming events on your home screen
+- **Android home widgets**, upcoming events plus a full month-view grid with previous/next month navigation, configurable appearance, and per-day deep links
 - **iOS Live Activity**, the next or ongoing event with a live countdown, shown on the Lock Screen and in the Dynamic Island
 
 Widgets are kept up to date through the app's background sync, and tapping an event deep-links straight into its detail view.
@@ -129,6 +129,8 @@ Widgets are kept up to date through the app's background sync, and tapping an ev
 - On-device speech recognition option (device/locale permitting), otherwise a clearly indicated network fallback
 - iOS App Shortcuts — "Hey Siri, agenda du jour dans Nextcloud Calendar", next event, ask the assistant, pre-fill a new event — all hands-free, including in CarPlay
 - See [.github/VOICE_ASSISTANT.md](.github/VOICE_ASSISTANT.md) for the full guide, including the zero-code CarPlay path via the native iOS CalDAV account
+
+The Android month widget opens the app on the tapped day (or jumps straight to event creation, configurable in Settings → Widgets), and its calendars, colors, and font size follow your in-app widget settings.
 
 ### Theming & Personalization
 - Light, dark, and system-auto theme modes
