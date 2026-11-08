@@ -76,9 +76,9 @@ Use in production at your own discretion, and pin to a specific commit or tag if
 | :---: | :---: | :---: |
 | <img src="/.github/assets/drawer.gif" alt="Calendars drawer" width="230" /> | <img src="/.github/assets/resize.gif" alt="Resize the calendar grid" width="230" /> | <img src="/.github/assets/settings.gif" alt="Settings" width="230" /> |
 
-| Pick widget calendar |
-| :---: |
-| <img src="/.github/assets/select-calendar-widget.gif" alt="Select the calendar shown in the widget" width="230" /> | | |
+| Find a time | Pick widget calendar |
+| :---: | :---: |
+| <img src="/.github/assets/find-time-flow.gif" alt="Find a time with attendee availability" width="230" /> | <img src="/.github/assets/select-calendar-widget.gif" alt="Select the calendar shown in the widget" width="230" /> |
 
 </div>
 
@@ -116,6 +116,8 @@ Tasks (VTODO) from your calendars — including Nextcloud Tasks lists and Deck c
 - Attachments — files stored on your Nextcloud are downloaded with your account and opened through the share sheet, embedded files are decoded on demand; you can attach files from your device (uploaded to `Calendar/` via WebDAV) or remove them (with an option to also delete the file). Attachments added by the Nextcloud Calendar web app (`/f/<id>` links) are resolved to their real WebDAV file, and public share links (`/s/<token>`) are downloaded anonymously
 - Attachment editing — own-files attachments whose type is covered by a server editor (Nextcloud Text, Collabora, OnlyOffice…) open in an in-app editor through the Direct Editing API; new documents can be created from the "Add attachment" sheet and are attached while you edit them
 - Attachment sharing — on events with attendees, attachments can be exposed through a public share link so external guests can open them; removing such an attachment offers to revoke the link
+
+- **Find a time / Free-Busy** — check attendee availability via CalDAV, pick from suggested slots or explore a per-attendee timeline
 
 ### Nextcloud Talk Integration
 Optionally attach a Nextcloud Talk room to any event at creation time, the Talk link is stored in the event and surfaced in the event detail view.

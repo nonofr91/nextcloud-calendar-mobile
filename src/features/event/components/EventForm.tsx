@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform, KeyboardAvoidingView, Keyboard, useWindowDimensions, LayoutChangeEvent } from 'react-native';
+
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
@@ -9,7 +10,10 @@ import { Sparkles } from 'lucide-react-native';
 import { TalkToggle } from './TalkToggle';
 import { AttendeesField } from './AttendeesField';
 import { FindTimeSheet } from './FindTimeSheet';
+import { FindTimeSuggestSheet } from './FindTimeSuggestSheet';
+import { useFindTimeStore } from '@/features/event/stores/findTimeStore';
 import { AttachmentsField } from './AttachmentsField';
+
 import { requestAlertPermission } from '@/features/notifications/scheduleAlerts';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { isWritableCalendar } from '@/utils/calendars';
@@ -26,8 +30,9 @@ import { useTextTask } from '@/features/ai/useTextTask';
 import { draftDescriptionPrompt } from '@/features/ai/prompts';
 import type {
   CalendarMeta, Attendee, CreateEventInput, EventAttachment, PendingAttachment,
-  RecurrenceRule, TalkRoomType, Account, EventTransp, EventStatus,
+  RecurrenceRule, TalkRoomType, Account, EventTransp, EventStatus, SuggestedSlot,
 } from '@/types';
+
 
 dayjs.extend(localizedFormat);
 
@@ -58,7 +63,8 @@ interface Props {
   onSubmit: (input: CreateEventInput) => void;
   initialValues?: InitialValues;
   disableCalendarChange?: boolean;
-  account?: (Pick<Account, 'id' | 'baseUrl' | 'username' | 'appPassword' | 'timezone' | 'davUserId'> & Partial<Account>) | null;
+  account?: (Pick<Account, 'id' | 'displayName' | 'baseUrl' | 'username' | 'appPassword' | 'timezone' | 'davUserId'> & Partial<Account>) | null;
+
 }
 
 export interface EventFormHandle {
@@ -146,13 +152,36 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
 
   const [androidStep, setAndroidStep] = useState<AndroidPickerStep>(null);
   const [findTimeOpen, setFindTimeOpen] = useState(false);
+  const [findTimeVisible, setFindTimeVisible] = useState(false);
+
+  // Slot picked on the full-screen find-time route comes back through the store.
+  const findTimeResult = useFindTimeStore((s) => s.result);
+  useEffect(() => {
+    if (!findTimeResult) return;
+    setDtstart(findTimeResult.start);
+    setDtend(findTimeResult.end);
+    setEndError(null);
+    useFindTimeStore.getState().clearResult();
+  }, [findTimeResult]);
+
 
   const scrollRef = useRef<ScrollView>(null);
   const inputOffsets = useRef<Record<string, number>>({});
+  const viewportHeight = useRef(0);
 
   function scrollToField(key: string) {
     const y = inputOffsets.current[key];
     if (y != null) scrollRef.current?.scrollTo({ y: Math.max(0, y - 80), animated: true });
+  }
+
+  // The attendee suggestion list opens upward as an overlay: anchor the
+  // input near the bottom of the viewport (just above the keyboard) so the
+  // panel above it stays fully visible.
+  function scrollAttendeeToViewportBottom() {
+    const y = inputOffsets.current.attendee;
+    const vh = viewportHeight.current;
+    if (y == null || vh === 0) return;
+    scrollRef.current?.scrollTo({ y: Math.max(0, y + 100 - vh), animated: true });
   }
 
   function onFieldLayout(key: string, event: LayoutChangeEvent) {
@@ -377,6 +406,7 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="none"
       contentInsetAdjustmentBehavior="automatic"
+      onLayout={(e) => { viewportHeight.current = e.nativeEvent.layout.height; }}
     >
       <Stack gap={16}>
         <View onLayout={(e) => onFieldLayout('title', e)}>
@@ -436,8 +466,8 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
 
         {account && !allDay && (
           <Button
-            testID="event-form-find-time"
-            title={t('event.findTime')}
+            testID="event-form-find-time-v1"
+            title={`${t('event.findTime')} (V1)`}
             onPress={() => setFindTimeOpen(true)}
           />
         )}
@@ -551,9 +581,34 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
           onChange={setAttendees}
           account={account}
           onInputLayout={(e) => onFieldLayout('attendee', e)}
-          onInputFocus={() => scrollToField('attendee')}
+          onInputFocus={scrollAttendeeToViewportBottom}
         />
 
+        {attendees.length > 0 && account && !allDay && (
+          <Button
+            variant="secondary"
+            title={t('event.findTime')}
+            onPress={() => setFindTimeVisible(true)}
+          />
+        )}
+
+        {account && (
+          <FindTimeSuggestSheet
+            visible={findTimeVisible}
+            onClose={() => setFindTimeVisible(false)}
+            account={account}
+            organizer={{ email: organizerEmail, displayName: organizerName }}
+            attendees={attendees}
+            start={dtstart}
+            end={dtend}
+            eventTitle={summary}
+            onApplySlot={(slot: SuggestedSlot) => {
+              setDtstart(slot.start);
+              setDtend(slot.end);
+              setEndError(null);
+            }}
+          />
+        )}
         <AttachmentsField
           existing={(initialValues?.attachments ?? []).filter(
             (a) => !removedAttachments.includes(a),
