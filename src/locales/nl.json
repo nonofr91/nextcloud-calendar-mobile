@@ -276,7 +276,16 @@
     "duplicateEvent": "Afspraak dupliceren",
     "errorDuplicateFailed": "Dupliceren van afspraak mislukt",
     "invitationBadge": "Uitnodiging",
-    "invitationFrom": "Uitnodiging van {{name}}"
+    "invitationFrom": "Uitnodiging van {{name}}",
+    "attachmentTypeDocument": "Word-document",
+    "attachmentTypeSpreadsheet": "Spreadsheet",
+    "attachmentTypePresentation": "Presentatie",
+    "attachmentTypePdf": "PDF",
+    "attachmentTypeImage": "Afbeelding",
+    "attachmentTypeAudio": "Audio",
+    "attachmentTypeVideo": "Video",
+    "attachmentTypeArchive": "Archief",
+    "attachmentTypeText": "Tekst"
   },
   "settings": {
     "title": "Instellingen",

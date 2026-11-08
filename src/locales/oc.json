@@ -266,7 +266,16 @@
     "duplicateEvent": "Duplicar l'eveniment",
     "errorDuplicateFailed": "La duplicacion de l'eveniment a pas capitat",
     "invitationBadge": "Convit",
-    "invitationFrom": "Convit de {{name}}"
+    "invitationFrom": "Convit de {{name}}",
+    "attachmentTypeDocument": "Document Word",
+    "attachmentTypeSpreadsheet": "Fèlha de calcul",
+    "attachmentTypePresentation": "Presentacion",
+    "attachmentTypePdf": "PDF",
+    "attachmentTypeImage": "Imatge",
+    "attachmentTypeAudio": "Àudio",
+    "attachmentTypeVideo": "Vidèo",
+    "attachmentTypeArchive": "Archiu",
+    "attachmentTypeText": "Tèxte"
   },
   "settings": {
     "title": "Paramètres",

@@ -276,7 +276,16 @@
     "duplicateEvent": "Дублировать событие",
     "errorDuplicateFailed": "Не удалось дублировать событие",
     "invitationBadge": "Приглашение",
-    "invitationFrom": "Приглашение от {{name}}"
+    "invitationFrom": "Приглашение от {{name}}",
+    "attachmentTypeDocument": "Документ Word",
+    "attachmentTypeSpreadsheet": "Электронная таблица",
+    "attachmentTypePresentation": "Презентация",
+    "attachmentTypePdf": "PDF",
+    "attachmentTypeImage": "Изображение",
+    "attachmentTypeAudio": "Аудио",
+    "attachmentTypeVideo": "Видео",
+    "attachmentTypeArchive": "Архив",
+    "attachmentTypeText": "Текст"
   },
   "settings": {
     "title": "Настройки",

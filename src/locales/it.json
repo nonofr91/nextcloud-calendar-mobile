@@ -276,7 +276,16 @@
     "duplicateEvent": "Duplica evento",
     "errorDuplicateFailed": "Duplicazione dell'evento non riuscita",
     "invitationBadge": "Invito",
-    "invitationFrom": "Invito da {{name}}"
+    "invitationFrom": "Invito da {{name}}",
+    "attachmentTypeDocument": "Documento Word",
+    "attachmentTypeSpreadsheet": "Foglio di calcolo",
+    "attachmentTypePresentation": "Presentazione",
+    "attachmentTypePdf": "PDF",
+    "attachmentTypeImage": "Immagine",
+    "attachmentTypeAudio": "Audio",
+    "attachmentTypeVideo": "Video",
+    "attachmentTypeArchive": "Archivio",
+    "attachmentTypeText": "Testo"
   },
   "settings": {
     "title": "Impostazioni",

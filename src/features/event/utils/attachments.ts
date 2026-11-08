@@ -91,6 +91,32 @@ export function attachmentDisplayName(att: EventAttachment): string {
   return att.filename?.trim() || i18n.t('event.attachmentUntitled');
 }
 
+export function attachmentTypeLabel(att: EventAttachment): string | undefined {
+  const mime = (att.fmttype ?? '').toLowerCase();
+  const ext = extOf(att.filename);
+  if (mime.includes('wordprocessingml') || mime === 'application/msword' || mime.includes('opendocument.text')) {
+    return i18n.t('event.attachmentTypeDocument');
+  }
+  if (
+    mime.includes('spreadsheetml') || mime.includes('ms-excel') || mime === 'text/csv' ||
+    mime.includes('opendocument.spreadsheet') || EXT.spreadsheet.includes(ext)
+  ) return i18n.t('event.attachmentTypeSpreadsheet');
+  if (
+    mime.includes('presentationml') || mime.includes('ms-powerpoint') ||
+    mime.includes('opendocument.presentation')
+  ) return i18n.t('event.attachmentTypePresentation');
+  if (mime === 'application/pdf' || ext === 'pdf') return i18n.t('event.attachmentTypePdf');
+  if (mime.startsWith('image/') || EXT.image.includes(ext)) return i18n.t('event.attachmentTypeImage');
+  if (mime.startsWith('audio/') || EXT.audio.includes(ext)) return i18n.t('event.attachmentTypeAudio');
+  if (mime.startsWith('video/') || EXT.video.includes(ext)) return i18n.t('event.attachmentTypeVideo');
+  if (
+    mime.includes('zip') || mime.includes('compressed') || mime.includes('archive') ||
+    EXT.archive.includes(ext)
+  ) return i18n.t('event.attachmentTypeArchive');
+  if (mime.startsWith('text/') || EXT.text.includes(ext)) return i18n.t('event.attachmentTypeText');
+  return ext ? ext.toUpperCase() : undefined;
+}
+
 export function isOpenableAttachment(att: EventAttachment): boolean {
   return (
     !!att.base64 ||

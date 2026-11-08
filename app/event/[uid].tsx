@@ -37,6 +37,7 @@ import { openTalkRoom, promptTalkRoomOpen } from '@/features/event/utils/openTal
 import {
   attachmentDisplayName,
   attachmentIcon,
+  attachmentTypeLabel,
   canEditAttachment,
   prepareAttachmentEdit,
   formatBytes,
@@ -750,7 +751,7 @@ export default function EventDetailScreen() {
                   <List>
                     {event.attachments.map((att, i) => {
                       const AttachIcon = attachmentIcon(att);
-                      const subtitle = [att.fmttype, formatBytes(att.size)]
+                      const subtitle = [attachmentTypeLabel(att), formatBytes(att.size)]
                         .filter(Boolean)
                         .join(' · ');
                       return (
