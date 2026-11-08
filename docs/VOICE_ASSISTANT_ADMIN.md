@@ -2,7 +2,7 @@
 
 Guide complet de déploiement : prérequis serveur, apps à installer, réglages IA
 (fournisseurs, modèles, prompts), contraintes par utilisateur et vérifications.
-Écrit et validé contre `https://cloud.sipc-cgt.fr` (NC 35.0.2, context_agent
+Écrit et validé contre `https://xxxxxxxxxxxxx` (NC 35.0.2, context_agent
 2.11.0, fournisseur Mistral).
 
 ## 0. Architecture — qui fait quoi
