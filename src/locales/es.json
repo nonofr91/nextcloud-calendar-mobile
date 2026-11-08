@@ -288,6 +288,9 @@
     "errorUpdateFailed": "No se pudo actualizar el evento",
     "errorDeleteFailed": "No se pudo eliminar el evento",
     "alerts": "Avisos",
+    "editorLoadSlow": "El editor tarda más de lo esperado…",
+    "attachNewDocumentHint": "Crear y editar en Nextcloud",
+    "editorActionError": "No se pudo completar la acción",
     "findTime": "Buscar horario",
     "findTimeTitle": "Buscar horario",
     "findTimeLoading": "Comprobando disponibilidad…",
@@ -340,9 +343,6 @@
     "duplicateMessage": "An event with this identifier already exists in the selected calendar. Importing will overwrite it.",
     "overwrite": "Overwrite",
     "alerts": "Avisos",
-    "editorLoadSlow": "El editor tarda más de lo esperado…",
-    "attachNewDocumentHint": "Crear y editar en Nextcloud",
-    "editorActionError": "No se pudo completar la acción",
     "alert": "Alerta"
   },
   "settings": {

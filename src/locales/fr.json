@@ -288,6 +288,9 @@
     "errorUpdateFailed": "Échec de la mise à jour de l'événement",
     "errorDeleteFailed": "Échec de la suppression de l'événement",
     "alerts": "Alertes",
+    "editorLoadSlow": "L'éditeur met plus de temps que prévu…",
+    "attachNewDocumentHint": "Créer et modifier sur Nextcloud",
+    "editorActionError": "L'action n'a pas pu être effectuée",
     "findTime": "Trouver un créneau",
     "findTimeTitle": "Trouver un créneau",
     "findTimeLoading": "Vérification de la disponibilité…",
@@ -340,9 +343,6 @@
     "duplicateMessage": "Un événement avec cet identifiant existe déjà dans le calendrier sélectionné. L'import l'écrasera.",
     "overwrite": "Écraser",
     "alerts": "Alertes",
-    "editorLoadSlow": "L'éditeur met plus de temps que prévu…",
-    "attachNewDocumentHint": "Créer et modifier sur Nextcloud",
-    "editorActionError": "L'action n'a pas pu être effectuée",
     "alert": "Alerte"
   },
   "settings": {

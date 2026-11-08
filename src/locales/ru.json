@@ -288,6 +288,9 @@
     "errorUpdateFailed": "Не удалось обновить событие",
     "errorDeleteFailed": "Не удалось удалить событие",
     "alerts": "Напоминания",
+    "editorLoadSlow": "Редактор загружается дольше обычного…",
+    "attachNewDocumentHint": "Создать и изменить в Nextcloud",
+    "editorActionError": "Не удалось выполнить действие",
     "findTime": "Найти время",
     "findTimeTitle": "Найти время",
     "findTimeLoading": "Проверка доступности…",
@@ -340,9 +343,6 @@
     "duplicateMessage": "An event with this identifier already exists in the selected calendar. Importing will overwrite it.",
     "overwrite": "Overwrite",
     "alerts": "Напоминания",
-    "editorLoadSlow": "Редактор загружается дольше обычного…",
-    "attachNewDocumentHint": "Создать и изменить в Nextcloud",
-    "editorActionError": "Не удалось выполнить действие",
     "alert": "Напоминание"
   },
   "settings": {

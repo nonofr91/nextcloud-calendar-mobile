@@ -288,6 +288,9 @@
     "errorUpdateFailed": "Ereignis konnte nicht aktualisiert werden",
     "errorDeleteFailed": "Ereignis konnte nicht gelöscht werden",
     "alerts": "Erinnerungen",
+    "editorLoadSlow": "Der Editor braucht länger als erwartet…",
+    "attachNewDocumentHint": "Auf Nextcloud erstellen und bearbeiten",
+    "editorActionError": "Die Aktion konnte nicht ausgeführt werden",
     "findTime": "Zeit finden",
     "findTimeTitle": "Zeit finden",
     "findTimeLoading": "Verfügbarkeit wird geprüft…",
@@ -340,9 +343,6 @@
     "duplicateMessage": "An event with this identifier already exists in the selected calendar. Importing will overwrite it.",
     "overwrite": "Overwrite",
     "alerts": "Erinnerungen",
-    "editorLoadSlow": "Der Editor braucht länger als erwartet…",
-    "attachNewDocumentHint": "Auf Nextcloud erstellen und bearbeiten",
-    "editorActionError": "Die Aktion konnte nicht ausgeführt werden",
     "alert": "Erinnerung"
   },
   "settings": {

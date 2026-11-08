@@ -288,6 +288,9 @@
     "errorUpdateFailed": "Failed to update event",
     "errorDeleteFailed": "Failed to delete event",
     "alerts": "Alerts",
+    "editorLoadSlow": "The editor is taking longer than expected…",
+    "attachNewDocumentHint": "Create and edit on Nextcloud",
+    "editorActionError": "The action could not be completed",
     "findTime": "Find a time",
     "findTimeTitle": "Find a time",
     "findTimeLoading": "Checking availability…",
@@ -340,9 +343,6 @@
     "duplicateMessage": "An event with this identifier already exists in the selected calendar. Importing will overwrite it.",
     "overwrite": "Overwrite",
     "alerts": "Alerts",
-    "editorLoadSlow": "The editor is taking longer than expected…",
-    "attachNewDocumentHint": "Create and edit on Nextcloud",
-    "editorActionError": "The action could not be completed",
     "alert": "Alert"
   },
   "settings": {
