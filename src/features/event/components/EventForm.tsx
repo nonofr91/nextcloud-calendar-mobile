@@ -10,6 +10,7 @@ import { useTheme } from 'expo-router';
 import { TalkToggle } from './TalkToggle';
 import { AttendeesField } from './AttendeesField';
 import { FindTimeSheet } from './FindTimeSheet';
+import { AttachmentsField } from './AttachmentsField';
 import { requestAlertPermission } from '@/features/notifications/scheduleAlerts';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { isWritableCalendar } from '@/utils/calendars';
@@ -19,7 +20,10 @@ import { AlertPicker } from './AlertPicker';
 import { RecurrencePicker } from './RecurrencePicker';
 import { Stack, Typography, TextField, DateField, Button, Chip, Toggle, IconButton, Spinner } from '@/ui/components';
 import { reverseGeocode } from '@/features/map/utils/geocode';
-import type { CalendarMeta, Attendee, CreateEventInput, RecurrenceRule, TalkRoomType, Account, SuggestedSlot } from '@/types';
+import type {
+  CalendarMeta, Attendee, CreateEventInput, EventAttachment, PendingAttachment,
+  RecurrenceRule, TalkRoomType, Account, SuggestedSlot,
+} from '@/types';
 
 dayjs.extend(localizedFormat);
 
@@ -37,6 +41,7 @@ export interface InitialValues {
   alarms?: number[];
   uid?: string;
   extraLines?: string[];
+  attachments?: EventAttachment[];
 }
 
 interface Props {
@@ -98,6 +103,9 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
   const [attendees, setAttendees] = useState<Attendee[]>(initialValues?.attendees ?? []);
   const [rrule, setRrule] = useState<RecurrenceRule | undefined>(initialValues?.rrule);
   const [alarms, setAlarms] = useState<number[] | undefined>(initialValues?.alarms);
+  const [removedAttachments, setRemovedAttachments] = useState<EventAttachment[]>([]);
+  const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
+  const [remoteAttachments, setRemoteAttachments] = useState<EventAttachment[]>([]);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [calendarError, setCalendarError] = useState<string | null>(null);
   const [endError, setEndError] = useState<string | null>(null);
@@ -242,6 +250,9 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
       organizerEmail, organizerName, rrule, alarms,
       uid: initialValues?.uid,
       extraLines: initialValues?.extraLines,
+      pendingAttachments: pendingAttachments.length ? pendingAttachments : undefined,
+      remoteAttachments: remoteAttachments.length ? remoteAttachments : undefined,
+      removedAttachments: removedAttachments.length ? removedAttachments : undefined,
     });
   }
 
@@ -470,6 +481,33 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
             }}
           />
         )}
+        <AttachmentsField
+          existing={(initialValues?.attachments ?? []).filter(
+            (a) => !removedAttachments.includes(a),
+          )}
+          pending={pendingAttachments}
+          remote={remoteAttachments}
+          account={account}
+          onAdd={(f) => setPendingAttachments((prev) => [...prev, f])}
+          onAddRemote={(att) =>
+            // Skip if the same file is already attached to the event.
+            setRemoteAttachments((prev) =>
+              prev.some((r) => r.uri === att.uri) ||
+              (initialValues?.attachments ?? []).some(
+                (e) => e.uri === att.uri && !removedAttachments.includes(e),
+              )
+                ? prev
+                : [...prev, att],
+            )
+          }
+          onRemoveExisting={(a) => setRemovedAttachments((prev) => [...prev, a])}
+          onRemovePending={(i) =>
+            setPendingAttachments((prev) => prev.filter((_, idx) => idx !== i))
+          }
+          onRemoveRemote={(i) =>
+            setRemoteAttachments((prev) => prev.filter((_, idx) => idx !== i))
+          }
+        />
 
         <TalkToggle
           value={withTalkRoom}
