@@ -1,4 +1,4 @@
-import { dedupeAttendees, isAttendeeOfAccount, findAttendeeForAccount, getAttendeePartstat, isCurrentUserAttendee } from '@/utils/attendees';
+import { dedupeAttendees, isAttendeeOfAccount, findAttendeeForAccount, getAttendeePartstat, isCurrentUserAttendee, attendeeColor } from '@/utils/attendees';
 import type { Account, CalendarEvent } from '@/types';
 
 describe('dedupeAttendees', () => {
@@ -184,5 +184,26 @@ describe('isCurrentUserAttendee', () => {
     };
     expect(isCurrentUserAttendee(event, account)).toBe(true);
     expect(isCurrentUserAttendee(event, null)).toBe(false);
+describe('attendeeColor', () => {
+  it('returns a hex color for an email', () => {
+    expect(attendeeColor('a@example.org')).toMatch(/^#[0-9A-F]{6}$/i);
+  });
+
+  it('is deterministic for the same email', () => {
+    expect(attendeeColor('a@example.org')).toBe(attendeeColor('a@example.org'));
+  });
+
+  it('is case-insensitive', () => {
+    expect(attendeeColor('A@Example.org')).toBe(attendeeColor('a@example.org'));
+  });
+
+  it('produces different colors for different emails', () => {
+    const colors = new Set([
+      attendeeColor('a@example.org'),
+      attendeeColor('b@example.org'),
+      attendeeColor('c@example.org'),
+      attendeeColor('d@example.org'),
+    ]);
+    expect(colors.size).toBeGreaterThanOrEqual(2);
   });
 });

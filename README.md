@@ -76,9 +76,9 @@ Use in production at your own discretion, and pin to a specific commit or tag if
 | :---: | :---: | :---: |
 | <img src="/.github/assets/drawer.gif" alt="Calendars drawer" width="230" /> | <img src="/.github/assets/resize.gif" alt="Resize the calendar grid" width="230" /> | <img src="/.github/assets/settings.gif" alt="Settings" width="230" /> |
 
-| Pick widget calendar |
-| :---: |
-| <img src="/.github/assets/select-calendar-widget.gif" alt="Select the calendar shown in the widget" width="230" /> | | |
+| Find a time | Pick widget calendar |
+| :---: | :---: |
+| <img src="/.github/assets/find-time-flow.gif" alt="Find a time with attendee availability" width="230" /> | <img src="/.github/assets/select-calendar-widget.gif" alt="Select the calendar shown in the widget" width="230" /> |
 
 </div>
 
@@ -108,6 +108,7 @@ Create, view, and edit calendar events with support for:
 - Recurring event detection
 - Multiple reminders per event, configurable defaults, and custom offsets
 - Accept, tentatively accept, or decline CalDAV invitations, with the ability to change your response later
+- **Find a time / Free-Busy** — check attendee availability via CalDAV and drag the event to a free slot
 
 ### Nextcloud Talk Integration
 Optionally attach a Nextcloud Talk room to any event at creation time, the Talk link is stored in the event and surfaced in the event detail view.
@@ -155,3 +156,4 @@ This project is free and open source. If you're interested in contributing, have
 | <img src="/.github/assets/settings-notifications.png" alt="Notification settings" width="230" /> | <img src="/.github/assets/settings-widgets.png" alt="Widget settings" width="230" /> | <img src="/.github/assets/settings-accessbility.png" alt="Accessibility settings" width="230" /> |
 
 </div>
+
