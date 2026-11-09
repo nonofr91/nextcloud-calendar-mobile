@@ -67,6 +67,7 @@ jest.mock('../../src/hooks/useCalendars', () => ({
 
 jest.mock('../../src/features/event/hooks/useMutateEvent', () => ({
   useDeleteEvent: () => ({ mutateAsync: jest.fn() }),
+  useDuplicateEvent: () => ({ mutateAsync: jest.fn(), getDuplicatedUid: () => undefined }),
 }));
 
 jest.mock('../../src/features/event/hooks/useMutateTask', () => ({
