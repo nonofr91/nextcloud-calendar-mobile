@@ -92,6 +92,13 @@
     "markCompleted": "Markeren als voltooid",
     "markNotCompleted": "Markeren als niet voltooid"
   },
+  "search": {
+    "title": "Zoeken",
+    "placeholder": "Afspraken zoeken",
+    "hint": "Zoek op titel, beschrijving, locatie of deelnemer.",
+    "noResults": "Geen overeenkomende afspraken",
+    "clear": "Zoekopdracht wissen"
+  },
   "event": {
     "titleLabel": "Titel *",
     "titlePlaceholder": "Titel van afspraak",

@@ -92,6 +92,13 @@
     "markCompleted": "Segna come completata",
     "markNotCompleted": "Segna come non completata"
   },
+  "search": {
+    "title": "Cerca",
+    "placeholder": "Cerca eventi",
+    "hint": "Cerca per titolo, descrizione, luogo o partecipante.",
+    "noResults": "Nessun evento corrispondente",
+    "clear": "Cancella ricerca"
+  },
   "event": {
     "titleLabel": "Titolo *",
     "titlePlaceholder": "Titolo dell'evento",

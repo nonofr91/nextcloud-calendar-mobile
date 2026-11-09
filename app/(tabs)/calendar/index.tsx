@@ -158,6 +158,7 @@ export default function CalendarScreen() {
         viewMode={viewMode}
         pendingInvitationsCount={pendingInvitationsCount}
         onOpenDrawer={drawer.openDrawer}
+        onOpenSearch={() => navGuard(() => router.push('/search'))}
         onToday={nav.goToday}
         onSwitchMode={nav.switchMode}
       />

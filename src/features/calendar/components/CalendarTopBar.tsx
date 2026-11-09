@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Menu } from 'lucide-react-native';
+import { Menu, Search } from 'lucide-react-native';
 import { useTheme } from 'expo-router';
 import { Stack, Typography, Chip, Icon, AnimatedPressable } from '@/ui/components';
 import type { ViewMode } from '@/types';
@@ -14,6 +14,7 @@ interface Props {
   viewMode: ViewMode;
   pendingInvitationsCount?: number;
   onOpenDrawer: () => void;
+  onOpenSearch: () => void;
   onToday: () => void;
   onSwitchMode: (mode: ViewMode) => void;
 }
@@ -27,7 +28,7 @@ const VIEW_MODE_KEYS: Record<ViewMode, string> = {
   schedule: 'calendar.schedule',
 };
 
-function CalendarTopBarImpl({ headerTitle, isToday, viewMode, pendingInvitationsCount = 0, onOpenDrawer, onToday, onSwitchMode }: Props) {
+function CalendarTopBarImpl({ headerTitle, isToday, viewMode, pendingInvitationsCount = 0, onOpenDrawer, onOpenSearch, onToday, onSwitchMode }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const todayDisabled = isToday;
@@ -59,6 +60,18 @@ function CalendarTopBarImpl({ headerTitle, isToday, viewMode, pendingInvitations
         >
           {headerTitle}
         </Typography>
+
+        <AnimatedPressable
+          onPress={onOpenSearch}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('search.title')}
+          style={styles.searchBtn}
+        >
+          <Icon size={22}>
+            <Search color={colors.primary} />
+          </Icon>
+        </AnimatedPressable>
 
         <AnimatedPressable
           testID="calendar-today"
@@ -98,6 +111,7 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     borderWidth: 2,
   },
+  searchBtn: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
   title: { flex: 1, marginHorizontal: 4 },
   todayBtn: { minWidth: 44, height: 44, paddingLeft: 6, alignItems: 'flex-end', justifyContent: 'center' },
   pills: { paddingHorizontal: 12, paddingBottom: 8, gap: 8 },

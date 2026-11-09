@@ -92,6 +92,13 @@
     "markCompleted": "Als erledigt markieren",
     "markNotCompleted": "Als nicht erledigt markieren"
   },
+  "search": {
+    "title": "Suche",
+    "placeholder": "Termine suchen",
+    "hint": "Nach Titel, Beschreibung, Ort oder Teilnehmer suchen.",
+    "noResults": "Keine passenden Termine",
+    "clear": "Suche löschen"
+  },
   "event": {
     "titleLabel": "Titel *",
     "titlePlaceholder": "Ereignistitel",

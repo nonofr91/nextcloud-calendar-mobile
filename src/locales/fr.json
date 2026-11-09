@@ -94,6 +94,13 @@
     "markCompleted": "Marquer comme terminée",
     "markNotCompleted": "Marquer comme non terminée"
   },
+  "search": {
+    "title": "Recherche",
+    "placeholder": "Rechercher des événements",
+    "hint": "Rechercher par titre, description, lieu ou participant.",
+    "noResults": "Aucun événement correspondant",
+    "clear": "Effacer la recherche"
+  },
   "event": {
     "titleLabel": "Titre *",
     "titlePlaceholder": "Titre de l'événement",
