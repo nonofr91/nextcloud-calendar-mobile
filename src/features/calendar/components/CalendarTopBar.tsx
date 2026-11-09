@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Menu, Search } from 'lucide-react-native';
+import { Menu, Headphones, Mic, Search } from 'lucide-react-native';
 import { useTheme } from 'expo-router';
 import { Stack, Typography, Chip, Icon, AnimatedPressable } from '@/ui/components';
 import { useNotificationStore } from '@/stores/notificationStore';
@@ -18,6 +18,8 @@ interface Props {
   onOpenSearch: () => void;
   onToday: () => void;
   onSwitchMode: (mode: ViewMode) => void;
+  onListen?: () => void;
+  onOpenVoice?: () => void;
 }
 
 const VIEW_MODE_KEYS: Record<ViewMode, string> = {
@@ -29,7 +31,7 @@ const VIEW_MODE_KEYS: Record<ViewMode, string> = {
   schedule: 'calendar.schedule',
 };
 
-function CalendarTopBarImpl({ headerTitle, isToday, viewMode, pendingInvitationsCount = 0, onOpenDrawer, onOpenSearch, onToday, onSwitchMode }: Props) {
+function CalendarTopBarImpl({ headerTitle, isToday, viewMode, pendingInvitationsCount = 0, onOpenDrawer, onOpenSearch, onToday, onSwitchMode, onListen, onOpenVoice }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const todayDisabled = isToday;
@@ -86,6 +88,34 @@ function CalendarTopBarImpl({ headerTitle, isToday, viewMode, pendingInvitations
         >
           {headerTitle}
         </Typography>
+
+        {onOpenVoice ? (
+          <AnimatedPressable
+            testID="calendar-voice"
+            accessibilityLabel={t('voice.open')}
+            onPress={onOpenVoice}
+            hitSlop={8}
+            style={styles.listenBtn}
+          >
+            <Icon size={22}>
+              <Mic color={colors.primary} />
+            </Icon>
+          </AnimatedPressable>
+        ) : null}
+
+        {onListen ? (
+          <AnimatedPressable
+            testID="calendar-listen"
+            accessibilityLabel={t('briefing.listen')}
+            onPress={onListen}
+            hitSlop={8}
+            style={styles.listenBtn}
+          >
+            <Icon size={22}>
+              <Headphones color={colors.primary} />
+            </Icon>
+          </AnimatedPressable>
+        ) : null}
 
         <AnimatedPressable
           onPress={onOpenSearch}
@@ -147,6 +177,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   searchBtn: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
+  listenBtn: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
   title: { flex: 1, marginHorizontal: 4 },
   todayBtn: { minWidth: 44, height: 44, paddingLeft: 6, alignItems: 'flex-end', justifyContent: 'center' },
   pills: { paddingHorizontal: 12, paddingBottom: 8, gap: 8 },

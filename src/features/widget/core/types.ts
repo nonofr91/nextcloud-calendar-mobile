@@ -87,6 +87,10 @@ export function eventDeepLink(uid: string, accountId?: string): string {
   return accountId ? `${base}?accountId=${encodeURIComponent(accountId)}` : base;
 }
 
+export function listenDeepLink(): string {
+  return `${APP_SCHEME}://listen`;
+}
+
 export function openAppLink(): string {
   return `${APP_SCHEME}:///`;
 }

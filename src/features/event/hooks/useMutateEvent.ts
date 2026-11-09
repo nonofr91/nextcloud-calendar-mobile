@@ -8,6 +8,7 @@ import { deleteRemoteFile, ownDavPath, uploadAttachmentFile, type UploadedFile }
 import { createPublicLinkShare } from '@/services/nextcloud/shares';
 import { createTalkRoom } from '@/services/nextcloud/talk';
 import { describeMutationError } from '@/services/shared/errors';
+import { enqueue, isNetworkFailure } from '@/services/pendingMutations';
 import { buildAttachLine, injectAttachLine, removeAttachLine } from '@/features/event/utils/attachmentWrite';
 import { buildIcs, buildAllDayIcs, buildExceptionIcs, cloneEventIcs, injectExdate, truncateRruleUntil, shiftIcsDates, upsertOverride } from '@/utils/ics';
 import { parseIcsObjects, extractDtstartTzid, extractSequence, extractDtstartDtend, extractExtraVeventLines, dropLocationBoundLines, extractVtimezoneLines } from '@/utils/caldav-parse';
@@ -370,6 +371,7 @@ export function useCreateEvent(accounts: readonly Account[], calendars: Calendar
       let resolved: { location: string; description: string };
       let failures = 0;
       let uploadedPaths: string[] = [];
+      let builtIcs = '';
       try {
         marked = await insertEvents(optimistic);
 
@@ -389,19 +391,26 @@ export function useCreateEvent(accounts: readonly Account[], calendars: Calendar
         }
 
         resolved = await resolveLocationAndDescription(account, input);
-        const ics = buildIcsForInput(uid, input, resolved.location, resolved.description, timezone, 0, input.extraLines);
-        await putEvent(account, calendar, uid, ics);
+        builtIcs = buildIcsForInput(uid, input, resolved.location, resolved.description, timezone, 0, input.extraLines);
+        await putEvent(account, calendar, uid, builtIcs);
 
         const real = input.rrule
           ? expandOccurrences(uid, input, calendar, account, timezone, resolved)
           : [eventFromInput(uid, input, calendar, account, resolved, timezone)];
         await insertEvents(real, { trackPending: false });
-        const built = buildIcsForInput(uid, input, resolved.location, resolved.description, timezone);
-        const delta = await applyAttachmentDelta(account, built, input);
+        builtIcs = buildIcsForInput(uid, input, resolved.location, resolved.description, timezone);
+        const delta = await applyAttachmentDelta(account, builtIcs, input);
         failures = delta.failures;
         uploadedPaths = delta.uploadedPaths;
+        builtIcs = delta.ics;
         await putEvent(account, calendar, uid, delta.ics);
       } catch (error) {
+        if (isNetworkFailure(error) && builtIcs) {
+          // Offline: keep the optimistic event and replay the PUT later.
+          enqueue({ kind: 'create', accountId: account.id, calendar, uid, ics: builtIcs });
+          Alert.alert(i18n.t('event.createQueued'), describeMutationError(error));
+          return 'queued';
+        }
         await removeWhere(account.id, (e) => seriesBaseUid(e.uid) === uid, { trackPending: false });
         // The event was never created — uploaded files would be orphaned.
         await cleanupUploaded(account, uploadedPaths);
@@ -721,6 +730,12 @@ export function useDeleteEvent(accounts: readonly Account[]) {
         }
         return 'ok';
       } catch (error) {
+        if (isNetworkFailure(error) && (!event.isRecurring || scope === 'all')) {
+          // Offline: rows stay removed locally; the DELETE is replayed later.
+          enqueue({ kind: 'delete', accountId: account.id, href: event.href });
+          Alert.alert(i18n.t('event.deleteQueued'), describeMutationError(error));
+          return 'queued';
+        }
         await insertEvents(removed, { trackPending: false });
         Alert.alert(i18n.t('event.errorDeleteFailed'), describeMutationError(error));
         return 'failed';

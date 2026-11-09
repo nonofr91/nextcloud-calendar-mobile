@@ -653,6 +653,7 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
           onRoomTypeChange={setTalkRoomType}
           accountId={selectedAccount?.id}
         />
+
       </Stack>
     </ScrollView>
     </KeyboardAvoidingView>

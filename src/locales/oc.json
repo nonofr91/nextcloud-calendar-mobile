@@ -89,7 +89,8 @@
     "calendarVisibility": "Afichar {{name}}",
     "syncError": "Fracàs de la sincronizacion — tocatz per tornar ensajar",
     "sevenDays": "7J",
-    "showCompletedTasks": "Mostrar los prètzfets acabats"
+    "showCompletedTasks": "Mostrar los prètzfets acabats",
+    "pendingSync": "{{count}} modificacion(s) en espèra — tocar per tornar ensajar"
   },
   "event": {
     "titleLabel": "Títol *",
@@ -275,7 +276,14 @@
     "attachmentTypeAudio": "Àudio",
     "attachmentTypeVideo": "Vidèo",
     "attachmentTypeArchive": "Archiu",
-    "attachmentTypeText": "Tèxte"
+    "attachmentTypeText": "Tèxte",
+    "organizer": "Organizator",
+    "findTimeNone": "Cap de crenech liure aquel jorn.",
+    "createQueued": "Enregistrat en local — serà mandat al servidor quora la retorna la connexion.",
+    "deleteQueued": "Suprimit en local — serà levat del servidor quora la retorna la connexion.",
+    "queueCreateDropped": "Impossible de mandar la creacion al servidor — l'eveniment local foguèt suprimit.",
+    "queueDeleteDropped": "Impossible de mandar la supression al servidor — l'eveniment tornarà aparéisser a la sincronizacion venenta.",
+    "queueUpdateDropped": "Impossible de mandar la modificacion al servidor — l'eveniment serà sincronizat de nòu."
   },
   "settings": {
     "title": "Paramètres",
@@ -479,6 +487,12 @@
       "saveError": "Impossible de salvar aqueste lòc.",
       "deleteTitle": "Suprimir lo lòc",
       "deleteBody": "Suprimir « {{name}} » ?"
+    },
+    "voice": {
+      "title": "Assistent vocal",
+      "tierNote": "Las comandas localas demòran sus l'aparelh ; las questions liuras utilizan l'assistent Nextcloud quand lo servidor o prepausa.",
+      "availabilityTitle": "Agendas comptant per la disponibilitat",
+      "availabilityHint": "La recèrca de traucs ignora los agendas desactivats."
     }
   },
   "widget": {
@@ -596,5 +610,65 @@
     "calendar": "Agenda",
     "from": "De {{name}}",
     "responseFailed": "Impossible de respondre al convit."
+  },
+  "briefing": {
+    "listen": "Escotar ma jornada",
+    "listenAction": "Escotar",
+    "navigateAction": "Itinerari",
+    "pause": "Pausa",
+    "resume": "Repréner",
+    "next": "Eveniment seguent",
+    "stop": "Arrestar lo briefing",
+    "emptyDay": "Cap d’eveniment uèi",
+    "emptyDayDated": "Cap d’eveniment per {{date}}"
+  },
+  "voice": {
+    "open": "Assistent vocal",
+    "listening": "Vos escoti…",
+    "hint": "Ensajatz : « rendètz-vos dentista deman a 14 oras »",
+    "inputPlaceholder": "Picatz una comanda…",
+    "send": "Enviar",
+    "confirm": "Confirmar",
+    "cancel": "Anullar",
+    "retry": "Tornar ensajar",
+    "thinking": "Lo servidor reflechís…",
+    "notUnderstood": "Ai pas comprés, reformulatz.",
+    "sttUnavailable": "Reconéissença vocala indisponibla — utilizatz lo clavièr.",
+    "permissionDenied": "Accès al microfòn refusat.",
+    "created": "Eveniment creat.",
+    "moved": "Eveniment desplaçat.",
+    "deleted": "Eveniment suprimit.",
+    "nothingFound": "Cap d’eveniment trobat.",
+    "chooseOne": "Loquin ?",
+    "whichCalendar": "Dins quin agenda ?",
+    "whichEvent": "Loqual ?",
+    "calendarReadOnly": "lectura sola",
+    "noWritableCalendar": "Cap d'agenda modificable.",
+    "whichSlot": "Quin trauc lo {{date}} ?",
+    "noFreeSlot": "Cap de trauc liure lo {{date}}.",
+    "meetingWith": "Reünion amb {{names}}",
+    "meetingTitle": "Reünion",
+    "enabled": "Assistent vocal",
+    "enabledHint": "Aficha lo boton micrò per pilotar l'agenda a la votz o al clavièr — per compte.",
+    "onDevice": "Reconéissença sul periferic",
+    "onDeviceHint": "L’àudio vocal demora sus aqueste periferic quand es possible.",
+    "onDeviceUnsupported": "Pas pres en carga sus aqueste periferic — l’àudio es enviat per la ret.",
+    "agentAvailable": "Assistent servidor disponible.",
+    "agentUnavailable": "Assistent servidor indisponible — comandas localas unicament.",
+    "serverError": "Lo servidor a pas respondut.",
+    "stillThinking": "Lo servidor reflechís encara, tornatz ensajar mai tard.",
+    "tapToSpeak": "Tocatz per parlar",
+    "confirmCreate": "Crear « {{title}} » lo {{when}} dins {{calendar}} ?",
+    "confirmLocation": "Luòc : {{value}}",
+    "confirmDescription": "Descripcion : {{value}}",
+    "confirmMove": "Desplaçar « {{title}} » al {{when}} ?",
+    "confirmDelete": "Suprimir « {{title}} » ?",
+    "confirmAgent": "Mandar aquesta demanda a l'agent Nextcloud ? Pòt modificar vòstre agenda.",
+    "untitled": "Sens títol",
+    "nothingOnDay": "Res lo {{date}}.",
+    "attendeesDropped": "convidats pas reconeguts : {{names}}",
+    "attendeesBusy": "atencion, indisponible a aquesta ora : {{names}}",
+    "pickAltSlot": "causissètz un orari liure :",
+    "withAttendees": "amb {{names}}"
   }
 }

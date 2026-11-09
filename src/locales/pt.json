@@ -89,7 +89,8 @@
     "calendarVisibility": "Mostrar {{name}}",
     "syncError": "Falha de sincronização — toque para tentar novamente",
     "sevenDays": "7D",
-    "showCompletedTasks": "Mostrar tarefas concluídas"
+    "showCompletedTasks": "Mostrar tarefas concluídas",
+    "pendingSync": "{{count}} alteração(ões) pendente(s) — tocar para tentar de novo"
   },
   "event": {
     "titleLabel": "Título *",
@@ -285,7 +286,14 @@
     "attachmentTypeAudio": "Áudio",
     "attachmentTypeVideo": "Vídeo",
     "attachmentTypeArchive": "Arquivo",
-    "attachmentTypeText": "Texto"
+    "attachmentTypeText": "Texto",
+    "organizer": "Organizador",
+    "findTimeNone": "Sem horário livre nesse dia.",
+    "createQueued": "Guardado localmente — será enviado quando a ligação voltar.",
+    "deleteQueued": "Eliminado localmente — será removido do servidor quando a ligação voltar.",
+    "queueCreateDropped": "Não foi possível enviar a criação ao servidor — o evento local foi removido.",
+    "queueDeleteDropped": "Não foi possível enviar a eliminação ao servidor — o evento reaparecerá na próxima sincronização.",
+    "queueUpdateDropped": "Não foi possível enviar a alteração ao servidor — o evento será ressincronizado."
   },
   "settings": {
     "title": "Definições",
@@ -497,6 +505,12 @@
       "saveError": "Não foi possível guardar este lugar.",
       "deleteTitle": "Eliminar lugar",
       "deleteBody": "Eliminar \"{{name}}\"?"
+    },
+    "voice": {
+      "title": "Assistente de voz",
+      "tierNote": "Os comandos locais correm no dispositivo; as perguntas livres usam o assistente Nextcloud quando o servidor o disponibiliza.",
+      "availabilityTitle": "Calendários que contam para a disponibilidade",
+      "availabilityHint": "A pesquisa de horários ignora os calendários desativados."
     }
   },
   "widget": {
@@ -622,5 +636,65 @@
     "completedWithDate": "Concluída em {{date}}",
     "markCompleted": "Marcar como concluída",
     "markNotCompleted": "Marcar como não concluída"
+  },
+  "briefing": {
+    "listen": "Ouvir o meu dia",
+    "listenAction": "Ouvir",
+    "navigateAction": "Rotas",
+    "pause": "Pausar",
+    "resume": "Retomar",
+    "next": "Próximo evento",
+    "stop": "Parar o briefing",
+    "emptyDay": "Sem eventos hoje",
+    "emptyDayDated": "Sem eventos em {{date}}"
+  },
+  "voice": {
+    "open": "Assistente de voz",
+    "listening": "Estou a ouvir…",
+    "hint": "Experimente: «consulta no dentista amanhã às 14 h»",
+    "inputPlaceholder": "Escreva um comando…",
+    "send": "Enviar",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar",
+    "retry": "Tentar novamente",
+    "thinking": "O servidor está a pensar…",
+    "notUnderstood": "Não percebi, reformule.",
+    "sttUnavailable": "Reconhecimento de voz indisponível — use a escrita.",
+    "permissionDenied": "Permissão de microfone negada.",
+    "created": "Evento criado.",
+    "moved": "Evento movido.",
+    "deleted": "Evento eliminado.",
+    "nothingFound": "Nenhum evento encontrado.",
+    "chooseOne": "Qual?",
+    "whichCalendar": "Em qual calendário?",
+    "whichEvent": "Qual?",
+    "calendarReadOnly": "só leitura",
+    "noWritableCalendar": "Nenhum calendário editável encontrado.",
+    "whichSlot": "Qual horário em {{date}}?",
+    "noFreeSlot": "Sem horário livre em {{date}}.",
+    "meetingWith": "Reunião com {{names}}",
+    "meetingTitle": "Reunião",
+    "enabled": "Assistente de voz",
+    "enabledHint": "Mostra o botão de microfone para controlar o calendário por voz ou texto — por conta.",
+    "onDevice": "Reconhecimento no dispositivo",
+    "onDeviceHint": "O áudio de voz fica neste dispositivo quando possível.",
+    "onDeviceUnsupported": "Não suportado neste dispositivo — o áudio é enviado pela rede.",
+    "agentAvailable": "Assistente do servidor disponível.",
+    "agentUnavailable": "Assistente do servidor indisponível — apenas comandos locais.",
+    "serverError": "O servidor não respondeu.",
+    "stillThinking": "O servidor ainda está a pensar, tente mais tarde.",
+    "tapToSpeak": "Toque para falar",
+    "confirmCreate": "Criar «{{title}}» em {{when}} no calendário {{calendar}}?",
+    "confirmLocation": "Local: {{value}}",
+    "confirmDescription": "Descrição: {{value}}",
+    "confirmMove": "Mover «{{title}}» para {{when}}?",
+    "confirmDelete": "Eliminar «{{title}}»?",
+    "confirmAgent": "Enviar este pedido ao agente Nextcloud? Ele pode modificar o seu calendário.",
+    "untitled": "Sem título",
+    "nothingOnDay": "Nada em {{date}}.",
+    "attendeesDropped": "convidados não reconhecidos: {{names}}",
+    "attendeesBusy": "atenção, indisponível a essa hora: {{names}}",
+    "pickAltSlot": "escolha um horário livre:",
+    "withAttendees": "com {{names}}"
   }
 }

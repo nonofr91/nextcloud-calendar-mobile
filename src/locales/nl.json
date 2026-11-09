@@ -89,7 +89,8 @@
     "calendarVisibility": "{{name}} tonen",
     "syncError": "Synchronisatie mislukt — tik om opnieuw te proberen",
     "sevenDays": "7D",
-    "showCompletedTasks": "Voltooide taken weergeven"
+    "showCompletedTasks": "Voltooide taken weergeven",
+    "pendingSync": "{{count}} wijziging(en) in de wacht — tik om opnieuw te proberen"
   },
   "event": {
     "titleLabel": "Titel *",
@@ -285,7 +286,14 @@
     "attachmentTypeAudio": "Audio",
     "attachmentTypeVideo": "Video",
     "attachmentTypeArchive": "Archief",
-    "attachmentTypeText": "Tekst"
+    "attachmentTypeText": "Tekst",
+    "organizer": "Organisator",
+    "findTimeNone": "Geen vrije tijd die dag.",
+    "createQueued": "Lokaal opgeslagen — wordt verzonden zodra de verbinding terug is.",
+    "deleteQueued": "Lokaal verwijderd — wordt verwijderd van de server zodra de verbinding terug is.",
+    "queueCreateDropped": "De aanmaak kon niet naar de server worden verzonden — de lokale gebeurtenis is verwijderd.",
+    "queueDeleteDropped": "Het verwijderen kon niet naar de server worden verzonden — de gebeurtenis verschijnt opnieuw bij de volgende synchronisatie.",
+    "queueUpdateDropped": "De wijziging kon niet naar de server worden verzonden — de gebeurtenis wordt opnieuw gesynchroniseerd."
   },
   "settings": {
     "title": "Instellingen",
@@ -497,6 +505,12 @@
       "saveError": "Kan deze plaats niet opslaan.",
       "deleteTitle": "Plaats verwijderen",
       "deleteBody": "\"{{name}}\" verwijderen?"
+    },
+    "voice": {
+      "title": "Spraakassistent",
+      "tierNote": "Lokale opdrachten blijven op het apparaat; vrije vragen gebruiken de Nextcloud-assistent wanneer de server die aanbiedt.",
+      "availabilityTitle": "Agenda's die meetellen voor beschikbaarheid",
+      "availabilityHint": "Slotzoekopdracht negeert uitgeschakelde agenda's."
     }
   },
   "widget": {
@@ -622,5 +636,65 @@
     "completedWithDate": "Voltooid op {{date}}",
     "markCompleted": "Markeren als voltooid",
     "markNotCompleted": "Markeren als niet voltooid"
+  },
+  "briefing": {
+    "listen": "Mijn dag beluisteren",
+    "listenAction": "Luisteren",
+    "navigateAction": "Route",
+    "pause": "Pauzeren",
+    "resume": "Hervatten",
+    "next": "Volgende afspraak",
+    "stop": "Briefing stoppen",
+    "emptyDay": "Geen afspraken vandaag",
+    "emptyDayDated": "Geen afspraken op {{date}}"
+  },
+  "voice": {
+    "open": "Spraakassistent",
+    "listening": "Ik luister…",
+    "hint": "Probeer: „tandartsafspraak morgen om 14 uur”",
+    "inputPlaceholder": "Typ een opdracht…",
+    "send": "Verzenden",
+    "confirm": "Bevestigen",
+    "cancel": "Annuleren",
+    "retry": "Opnieuw proberen",
+    "thinking": "De server denkt na…",
+    "notUnderstood": "Ik heb het niet begrepen, herformuleer.",
+    "sttUnavailable": "Spraakherkenning niet beschikbaar — gebruik typen.",
+    "permissionDenied": "Microfoontoegang geweigerd.",
+    "created": "Afspraak aangemaakt.",
+    "moved": "Afspraak verplaatst.",
+    "deleted": "Afspraak verwijderd.",
+    "nothingFound": "Geen afspraak gevonden.",
+    "chooseOne": "Welke?",
+    "whichCalendar": "In welke agenda?",
+    "whichEvent": "Welke?",
+    "calendarReadOnly": "alleen-lezen",
+    "noWritableCalendar": "Geen beschrijfbare agenda gevonden.",
+    "whichSlot": "Welk tijdslot op {{date}}?",
+    "noFreeSlot": "Geen vrij tijdslot op {{date}}.",
+    "meetingWith": "Vergadering met {{names}}",
+    "meetingTitle": "Vergadering",
+    "enabled": "Spraakassistent",
+    "enabledHint": "Toont de microfoonknop om de agenda met spraak of tekst te bedienen — per account.",
+    "onDevice": "Herkenning op het apparaat",
+    "onDeviceHint": "Spraakaudio blijft waar mogelijk op dit apparaat.",
+    "onDeviceUnsupported": "Niet ondersteund op dit apparaat — audio wordt via het netwerk verzonden.",
+    "agentAvailable": "Serverassistent beschikbaar.",
+    "agentUnavailable": "Serverassistent niet beschikbaar — alleen lokale opdrachten.",
+    "serverError": "De server heeft niet geantwoord.",
+    "stillThinking": "De server denkt nog na, probeer het later opnieuw.",
+    "tapToSpeak": "Tik om te spreken",
+    "confirmCreate": "„{{title}}” op {{when}} in {{calendar}} aanmaken?",
+    "confirmLocation": "Locatie: {{value}}",
+    "confirmDescription": "Beschrijving: {{value}}",
+    "confirmMove": "„{{title}}” verplaatsen naar {{when}}?",
+    "confirmDelete": "„{{title}}” verwijderen?",
+    "confirmAgent": "Dit verzoek naar de Nextcloud-agent sturen? Deze kan je agenda wijzigen.",
+    "untitled": "Zonder titel",
+    "nothingOnDay": "Niets op {{date}}.",
+    "attendeesDropped": "genodigden niet herkend: {{names}}",
+    "attendeesBusy": "let op, bezet op dat tijdstip: {{names}}",
+    "pickAltSlot": "kies een vrij tijdstip:",
+    "withAttendees": "met {{names}}"
   }
 }

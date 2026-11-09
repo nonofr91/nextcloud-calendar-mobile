@@ -13,6 +13,8 @@ import { ViewContainer, Spinner } from '@/ui/components';
 import { CalendarDrawer } from '@/features/calendar/components/CalendarDrawer';
 import { OfflineBanner } from '@/features/calendar/components/OfflineBanner';
 import { SyncErrorBanner } from '@/features/calendar/components/SyncErrorBanner';
+import { useIsOnline } from '@/services/shared/network';
+import { drainPending } from '@/services/pendingMutations';
 import { MonthDayView } from '@/features/calendar/components/MonthDayView';
 import { AgendaView } from '@/features/calendar/components/AgendaView';
 import { createNavigationGuard } from '@/utils/navigationGuard';
@@ -35,6 +37,10 @@ import { CalendarUnavailable } from '@/features/calendar/components/CalendarUnav
 import { useInvitations } from '@/features/invitations/hooks/useInvitations';
 import { useUpdateEvent } from '@/features/event/hooks/useMutateEvent';
 import { askRecurrenceScope } from '@/features/event/recurrenceScope';
+import { useBriefing } from '@/features/briefing/useBriefing';
+import { BriefingBar } from '@/features/briefing/BriefingBar';
+import { useVoiceAssistant } from '@/features/voice/useVoiceAssistant';
+import { VoiceAssistantSheet } from '@/features/voice/VoiceAssistantSheet';
 
 dayjs.extend(isoWeek);
 
@@ -54,8 +60,11 @@ export default function CalendarScreen() {
   const toggleCalendarVisibility = useCalendarStore((s) => s.toggleCalendarVisibility);
   const notifDisabledCalendarIds = useCalendarStore((s) => s.notifDisabledCalendarIds);
   const toggleCalendarNotifications = useCalendarStore((s) => s.toggleCalendarNotifications);
+  const voiceAssistantByAccount = useSettingsStore((s) => s.voiceAssistantByAccount);
+
   const nav = useCalendarNavigation();
   const { viewMode, date, fetchDate, agendaVisibleDate } = nav;
+  const displayedDay = viewMode === 'schedule' ? agendaVisibleDate : date;
   const { openDay } = useMonthReturn(viewMode, nav.switchMode);
   const setViewMode = useCalendarStore((s) => s.setViewMode);
 
@@ -91,8 +100,32 @@ export default function CalendarScreen() {
   } = useCalendarData(fetchDate, viewMode === 'schedule');
   const { data: invitations } = useInvitations(visibleAccounts);
   const pendingInvitationsCount = invitations.length;
+  const voiceAssistantEnabled = activeAccount
+    ? (voiceAssistantByAccount[activeAccount.id] ?? false)
+    : false;
   const insets = useSafeAreaInsets();
   const drawer = useCalendarDrawer();
+  const voice = useVoiceAssistant(activeAccount, calendars);
+  const briefing = useBriefing(displayedDay);
+  const { start: startBriefing } = briefing;
+  const handleListen = useCallback(() => {
+    void startBriefing();
+  }, [startBriefing]);
+
+  // nextcloud-calendar://listen (home-widget button) redirects here with
+  // ?autolisten=1 — start the briefing once, then clear the param so the next
+  // widget tap re-triggers.
+  const { autolisten } = useLocalSearchParams<{ autolisten?: string }>();
+  useEffect(() => {
+    if (autolisten !== '1') return;
+    void startBriefing();
+    router.setParams({ autolisten: undefined });
+  }, [autolisten, startBriefing, router]);
+
+  const online = useIsOnline();
+  useEffect(() => {
+    if (online && activeAccount) void drainPending(activeAccount);
+  }, [online, activeAccount]);
 
 
   const calendarEvents = useMemo(() => toGridEvents(allEvents, accounts), [allEvents, accounts]);
@@ -160,9 +193,7 @@ export default function CalendarScreen() {
     [accounts, mutateAsync, t, recurrenceScopeStrings]
   );
 
-  const isToday = viewMode === 'schedule'
-    ? dayjs(agendaVisibleDate).isSame(dayjs(), 'day')
-    : dayjs(date).isSame(dayjs(), 'day');
+  const isToday = dayjs(displayedDay).isSame(dayjs(), 'day');
 
   const headerTitle = useMemo(() => {
     const d = dayjs(viewMode === 'schedule' ? agendaVisibleDate : date).locale(language);
@@ -174,7 +205,7 @@ export default function CalendarScreen() {
       return `${monthYear}  ·  ${t('calendar.weekAbbr')}${d.isoWeek()}`;
     }
     return monthYear;
-  }, [date, agendaVisibleDate, viewMode, language, t]);
+  }, [displayedDay, viewMode, language, t]);
 
   const handleMonthPageChange = useCallback(
     (firstOfMonth: Date) => {
@@ -209,9 +240,11 @@ export default function CalendarScreen() {
         onOpenSearch={() => navGuard(() => router.push('/search'))}
         onToday={nav.goToday}
         onSwitchMode={nav.switchMode}
+        onListen={voiceAssistantEnabled ? undefined : handleListen}
+        onOpenVoice={voiceAssistantEnabled ? voice.open : undefined}
       />
 
-      <OfflineBanner />
+      <OfflineBanner account={activeAccount ?? null} />
       {syncFailed && <SyncErrorBanner onRetry={retrySync} />}
 
       <View style={styles.viewArea}>
@@ -269,9 +302,35 @@ export default function CalendarScreen() {
       {showFullOverlay && <CalendarLoadingOverlay label={t('calendar.loadingCalendar')} />}
       {showSmallLoader && <Spinner size="small" color="secondary" style={styles.smallLoader} />}
 
+      <BriefingBar
+        status={briefing.state === 'done' ? 'idle' : briefing.state}
+        currentText={briefing.segments[briefing.index]?.text ?? ''}
+        onPause={briefing.pause}
+        onResume={briefing.resume}
+        onNext={briefing.next}
+        onStop={briefing.stop}
+        style={StyleSheet.flatten([styles.briefingBar, { bottom: insets.bottom + 76 }])}
+      />
+
+      <VoiceAssistantSheet
+        visible={voice.visible}
+        state={voice.state === 'idle' ? 'listening' : voice.state}
+        transcript={voice.transcript}
+        intentDescription={voice.intentDescription}
+        candidates={voice.candidates}
+        reply={voice.reply}
+        errorText={voice.errorText}
+        onSubmitText={voice.submitText}
+        onConfirm={voice.confirm}
+        onCancel={voice.close}
+        onPickCandidate={voice.pickCandidate}
+        onRelisten={voice.relisten}
+        onClose={voice.close}
+      />
+
       <CalendarFab
         onPress={() => navGuard(() => {
-          const shown = viewMode === 'schedule' ? agendaVisibleDate : date;
+          const shown = displayedDay;
           const now = new Date();
           const start = new Date(
             shown.getFullYear(), shown.getMonth(), shown.getDate(), now.getHours(), now.getMinutes()
@@ -311,4 +370,5 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   viewArea: { flex: 1 },
   smallLoader: { position: 'absolute', bottom: 24, left: 16, zIndex: 5 },
+  briefingBar: { position: 'absolute', left: 16, right: 16, zIndex: 8 },
 });

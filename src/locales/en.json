@@ -89,7 +89,8 @@
     "calendarVisibility": "Show {{name}}",
     "syncError": "Sync failed — tap to retry",
     "sevenDays": "7D",
-    "showCompletedTasks": "Show completed tasks"
+    "showCompletedTasks": "Show completed tasks",
+    "pendingSync": "{{count}} change(s) pending sync — tap to retry"
   },
   "event": {
     "titleLabel": "Title *",
@@ -285,7 +286,14 @@
     "attachmentTypeAudio": "Audio",
     "attachmentTypeVideo": "Video",
     "attachmentTypeArchive": "Archive",
-    "attachmentTypeText": "Text"
+    "attachmentTypeText": "Text",
+    "organizer": "Organizer",
+    "findTimeNone": "No free slot that day.",
+    "createQueued": "Saved locally — will be sent to the server when the connection returns.",
+    "deleteQueued": "Deleted locally — will be removed from the server when the connection returns.",
+    "queueCreateDropped": "The creation could not be sent to the server — the local event was removed.",
+    "queueDeleteDropped": "The deletion could not be sent to the server — the event will reappear at the next sync.",
+    "queueUpdateDropped": "The change could not be sent to the server — the event will resync."
   },
   "settings": {
     "title": "Settings",
@@ -497,6 +505,12 @@
       "saveError": "Unable to save this place.",
       "deleteTitle": "Delete place",
       "deleteBody": "Delete \"{{name}}\"?"
+    },
+    "voice": {
+      "title": "Voice assistant",
+      "tierNote": "Local commands run on-device; free-form questions use the Nextcloud assistant when the server provides it.",
+      "availabilityTitle": "Calendars counting for availability",
+      "availabilityHint": "Slot search ignores calendars that are off."
     }
   },
   "widget": {
@@ -637,5 +651,65 @@
     "completedWithDate": "Completed {{date}}",
     "markCompleted": "Mark as completed",
     "markNotCompleted": "Mark as not completed"
+  },
+  "briefing": {
+    "listen": "Listen to my day",
+    "listenAction": "Listen",
+    "navigateAction": "Directions",
+    "pause": "Pause",
+    "resume": "Resume",
+    "next": "Next event",
+    "stop": "Stop briefing",
+    "emptyDay": "No events today",
+    "emptyDayDated": "No events on {{date}}"
+  },
+  "voice": {
+    "open": "Voice assistant",
+    "listening": "Listening…",
+    "hint": "Try: \"dentist appointment tomorrow at 2 pm\"",
+    "inputPlaceholder": "Type a command…",
+    "send": "Send",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "thinking": "The server is thinking…",
+    "notUnderstood": "I didn't understand, please rephrase.",
+    "sttUnavailable": "Voice recognition unavailable — use typing instead.",
+    "permissionDenied": "Microphone permission denied.",
+    "created": "Event created.",
+    "moved": "Event moved.",
+    "deleted": "Event deleted.",
+    "nothingFound": "No event found.",
+    "chooseOne": "Which one?",
+    "whichCalendar": "Which calendar?",
+    "whichEvent": "Which one?",
+    "calendarReadOnly": "read-only",
+    "noWritableCalendar": "No writable calendar found.",
+    "whichSlot": "Which slot on {{date}}?",
+    "noFreeSlot": "No free slot on {{date}}.",
+    "meetingWith": "Meeting with {{names}}",
+    "meetingTitle": "Meeting",
+    "enabled": "Voice assistant",
+    "enabledHint": "Show the microphone button to control the calendar by voice or text — set per account.",
+    "onDevice": "On-device recognition",
+    "onDeviceHint": "Speech audio stays on this device when supported.",
+    "onDeviceUnsupported": "Not supported on this device — audio is sent over the network.",
+    "agentAvailable": "Server assistant available.",
+    "agentUnavailable": "Server assistant unavailable — local commands only.",
+    "serverError": "The server didn't respond.",
+    "stillThinking": "The server is still thinking, try again later.",
+    "tapToSpeak": "Tap to speak",
+    "confirmCreate": "Create \"{{title}}\" on {{when}} in {{calendar}}?",
+    "confirmLocation": "Location: {{value}}",
+    "confirmDescription": "Description: {{value}}",
+    "confirmMove": "Move \"{{title}}\" to {{when}}?",
+    "confirmDelete": "Delete \"{{title}}\"?",
+    "confirmAgent": "Send this request to the Nextcloud agent? It can modify your calendar.",
+    "untitled": "Untitled",
+    "nothingOnDay": "Nothing on {{date}}.",
+    "attendeesDropped": "attendees not recognized: {{names}}",
+    "attendeesBusy": "warning, busy at that time: {{names}}",
+    "pickAltSlot": "pick a free slot:",
+    "withAttendees": "with {{names}}"
   }
 }
