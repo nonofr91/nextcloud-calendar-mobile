@@ -5,8 +5,9 @@ import {
   getAttendeePartstat,
   isCurrentUserAttendee,
   attendeeColor,
-} from "@/utils/attendees";
-import type { Account, CalendarEvent } from "@/types";
+} from '@/utils/attendees';
+import { isEventPending } from '@/utils/eventPending';
+import type { Account, Attendee, CalendarEvent } from '@/types';
 
 describe("dedupeAttendees", () => {
   it("leaves a list without duplicates alone", () => {
@@ -242,5 +243,89 @@ describe("attendeeColor", () => {
       attendeeColor("d@example.org"),
     ]);
     expect(colors.size).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('address aliasing (B5)', () => {
+  const aliased: Account = {
+    ...account,
+    email: undefined,
+    calendarUserAddresses: [
+      'mailto:test@example.com',
+      '/remote.php/dav/principals/users/test/',
+      'urn:uuid:11111111-2222-3333-4444-555555555555',
+    ],
+  };
+
+  it('matches an attendee via a mailto: address-set alias', () => {
+    expect(isAttendeeOfAccount({ email: 'test@example.com' }, aliased)).toBe(true);
+  });
+
+  it('matches an attendee given as a principal path via the davUserId slug', () => {
+    expect(isAttendeeOfAccount({ email: '/remote.php/dav/principals/users/test/' }, aliased)).toBe(true);
+    expect(isAttendeeOfAccount({ email: 'principals/users/bob' }, account)).toBe(true);
+  });
+
+  it('matches a bare uuid attendee via a urn:uuid: alias', () => {
+    expect(isAttendeeOfAccount(
+      { email: 'urn:uuid:11111111-2222-3333-4444-555555555555' }, aliased,
+    )).toBe(true);
+  });
+
+  it('still rejects strangers', () => {
+    expect(isAttendeeOfAccount({ email: 'someone-else@example.com' }, aliased)).toBe(false);
+  });
+
+  it('findAttendeeForAccount resolves through aliases for replies', () => {
+    const att = findAttendeeForAccount(
+      [{ email: 'principals/users/bob' }, { email: 'other@example.com' }],
+      account,
+    );
+    expect(att?.email).toBe('principals/users/bob');
+  });
+});
+
+describe('isEventPending (B5 rendering gate)', () => {
+  const ev = (attendees: Attendee[], organizerEmail?: string): CalendarEvent => ({
+    uid: 'evt-1',
+    href: 'https://cloud.example.com/cal/personal/evt-1.ics',
+    calendarId: 'cal-1',
+    accountId: 'acc-1',
+    summary: 'Meeting',
+    dtstart: new Date(),
+    dtend: new Date(),
+    allDay: false,
+    color: '#000',
+    attendees,
+    organizerEmail,
+    isRecurring: false,
+  });
+
+  it('is pending when my attendee is NEEDS-ACTION or has no partstat', () => {
+    expect(isEventPending(ev([{ email: 'bob@example.com', partstat: 'needs-action' }]), account)).toBe(true);
+    expect(isEventPending(ev([{ email: 'bob@example.com' }]), account)).toBe(true);
+  });
+
+  it('is pending when my attendee is TENTATIVE', () => {
+    expect(isEventPending(ev([{ email: 'bob@example.com', partstat: 'tentative' }]), account)).toBe(true);
+  });
+
+  it('is not pending once I accepted or declined', () => {
+    expect(isEventPending(ev([{ email: 'bob@example.com', partstat: 'accepted' }]), account)).toBe(false);
+    expect(isEventPending(ev([{ email: 'bob@example.com', partstat: 'declined' }]), account)).toBe(false);
+  });
+
+  it('is never pending when I am the organizer, even as attendee', () => {
+    const event = ev(
+      [{ email: 'bob@example.com', partstat: 'needs-action' }],
+      'bob@example.com',
+    );
+    expect(isEventPending(event, account)).toBe(false);
+  });
+
+  it('does not flag strangers-only or empty attendee lists', () => {
+    expect(isEventPending(ev([{ email: 'alice@example.com' }]), account)).toBe(false);
+    expect(isEventPending(ev([]), account)).toBe(false);
+    expect(isEventPending(ev([{ email: 'bob@example.com' }]), null)).toBe(false);
   });
 });

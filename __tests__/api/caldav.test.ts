@@ -1,4 +1,4 @@
-import { deleteEvent, moveEvent, putEvent, syncCollection, fetchEvents, fetchEventsByHrefs, fetchCalendars, validateCredentials, MULTIGET_BATCH, buildEventHref } from '../../src/services/nextcloud/caldav';
+import { deleteEvent, moveEvent, putEvent, fetchCalendarUserAddressSet, syncCollection, fetchEvents, fetchEventsByHrefs, fetchCalendars, validateCredentials, MULTIGET_BATCH, buildEventHref } from '../../src/services/nextcloud/caldav';
 import type { Account, CalendarMeta } from '../../src/types';
 
 const account: Account = {
@@ -791,5 +791,40 @@ describe('putEvent', () => {
   it('throws on error status', async () => {
     mockFetch.mockResolvedValue({ ok: false, status: 412, text: () => Promise.resolve('') });
     await expect(putEvent(account, targetCalendar, 'u', 'ics')).rejects.toThrow('putEvent HTTP 412');
+  });
+});
+
+describe('fetchCalendarUserAddressSet', () => {
+  const addressSetXml = `<?xml version="1.0"?>
+<d:multistatus xmlns:d="DAV:" xmlns:cal="urn:ietf:params:xml:ns:caldav">
+  <d:response>
+    <d:href>/remote.php/dav/principals/users/john/</d:href>
+    <d:propstat><d:prop>
+      <cal:calendar-user-address-set>
+        <d:href>mailto:john@example.com</d:href>
+        <d:href>/remote.php/dav/principals/users/john/</d:href>
+        <d:href>urn:uuid:11111111-2222-3333-4444-555555555555</d:href>
+      </cal:calendar-user-address-set>
+    </d:prop></d:propstat>
+  </d:response>
+</d:multistatus>`;
+
+  it('PROPFINDs the principal depth-0 and returns every href', async () => {
+    mockFetch.mockResolvedValue({ ok: true, status: 207, text: () => Promise.resolve(addressSetXml) });
+    const hrefs = await fetchCalendarUserAddressSet(account);
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://cloud.example.com/remote.php/dav/principals/users/john/',
+      expect.objectContaining({ method: 'PROPFIND' }),
+    );
+    expect(hrefs).toEqual([
+      'mailto:john@example.com',
+      '/remote.php/dav/principals/users/john/',
+      'urn:uuid:11111111-2222-3333-4444-555555555555',
+    ]);
+  });
+
+  it('tolerates 403/empty responses as an empty set', async () => {
+    mockFetch.mockResolvedValue({ ok: false, status: 403, text: () => Promise.resolve('') });
+    await expect(fetchCalendarUserAddressSet(account)).resolves.toEqual([]);
   });
 });

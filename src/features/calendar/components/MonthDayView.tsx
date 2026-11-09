@@ -11,6 +11,8 @@ import { Square, SquareCheck } from 'lucide-react-native';
 import { eventCoversDay, eventDayKeys, buildMonthGrid } from '../utils/monthLayout';
 import InfinitePager, { type InfinitePagerImperativeApi } from 'react-native-infinite-pager';
 import { useSettingsStore, type MonthViewStyle } from '@/stores/settingsStore';
+import { useAccountStore } from '@/stores/accountStore';
+import { useActiveAccount } from '@/hooks/useAccounts';
 import { useTimeFormat } from '@/hooks/useTimeFormat';
 import type { CalendarEvent } from '@/types';
 import { MonthGridPage } from './MonthGridPage';
@@ -108,6 +110,8 @@ function MonthDayViewImpl({
 }: Props) {
   const isGrid = variant === 'grid';
   const theme = useTheme();
+  const activeAccountId = useAccountStore((s) => s.activeAccountId);
+  const activeAccount = useActiveAccount(activeAccountId);
   const { t } = useTranslation();
   const language = useSettingsStore((s) => s.language);
   const { formatTime } = useTimeFormat();
@@ -211,6 +215,7 @@ function MonthDayViewImpl({
           events={events}
           height={pagerHeight}
           todayKey={todayKey}
+          account={activeAccount}
           onOpenDay={onOpenDay}
           onLongPressDay={onPressCell}
         />

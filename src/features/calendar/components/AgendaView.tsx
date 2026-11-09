@@ -14,6 +14,10 @@ import { useTimeFormat } from '@/hooks/useTimeFormat';
 import {
   AGENDA_FUTURE_DAYS, AGENDA_PAST_DAYS, agendaRowKey, buildAgendaSections,
 } from '../utils/agendaSections';
+import { useAccountStore } from '@/stores/accountStore';
+import { useActiveAccount } from '@/hooks/useAccounts';
+import { isEventPending } from '@/utils/eventPending';
+import { Chip } from '@/ui/components';
 
 dayjs.extend(localizedFormat);
 
@@ -76,6 +80,9 @@ interface EventRowProps {
 const EventRow = memo(({ event, theme, onPress }: EventRowProps) => {
   const { t } = useTranslation();
   const { formatTime } = useTimeFormat();
+  const activeAccountId = useAccountStore((s) => s.activeAccountId);
+  const activeAccount = useActiveAccount(activeAccountId);
+  const pending = isEventPending(event, activeAccount);
   const duration = event.allDay
     ? null
     : (() => {
@@ -132,6 +139,11 @@ const EventRow = memo(({ event, theme, onPress }: EventRowProps) => {
               · {event.location}
             </Text>
           ) : null}
+          {pending && (
+            <Chip small rounded testID={`agenda-invitation-${event.uid}`} disabled>
+              {t('event.invitationBadge')}
+            </Chip>
+          )}
         </View>
       </View>
     </TouchableOpacity>
