@@ -85,8 +85,6 @@ export default function EventDetailScreen() {
     !isOrganizerOfAccount(event, activeAccount);
   const myPartstat = event && activeAccount ? getAttendeePartstat(event, activeAccount) : undefined;
   const toggleTaskMutation = useToggleTask(activeAccount!);
-
-  const canEdit = !calendar?.isReadOnly && !calendar?.isSubscribed && !event?.isTask;
   const canToggleTask = !!event?.isTask && !calendar?.isReadOnly && !calendar?.isSubscribed;
   const eventsLoading = event === undefined;
 

@@ -708,6 +708,8 @@ END:VCALENDAR`;
     const events = parseIcsObjects([{ ics: deckCardTimed, href: '/deck/42.ics' }], calMeta);
     expect(events[0].isRecurring).toBe(false);
     expect(events[0].rrule).toBeUndefined();
+  });
+
   it('marks a VTODO completed when STATUS:COMPLETED', () => {
     const ics = `BEGIN:VCALENDAR
 BEGIN:VTODO

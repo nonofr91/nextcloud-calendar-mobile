@@ -1,208 +1,245 @@
-import { dedupeAttendees, isAttendeeOfAccount, findAttendeeForAccount, getAttendeePartstat, isCurrentUserAttendee, attendeeColor } from '@/utils/attendees';
-import type { Account, CalendarEvent } from '@/types';
+import {
+  dedupeAttendees,
+  isAttendeeOfAccount,
+  findAttendeeForAccount,
+  getAttendeePartstat,
+  isCurrentUserAttendee,
+  attendeeColor,
+} from "@/utils/attendees";
+import type { Account, CalendarEvent } from "@/types";
 
-describe('dedupeAttendees', () => {
-  it('leaves a list without duplicates alone', () => {
+describe("dedupeAttendees", () => {
+  it("leaves a list without duplicates alone", () => {
     const list = [
-      { email: 'a@example.org', displayName: 'A' },
-      { email: 'b@example.org', displayName: 'B' },
+      { email: "a@example.org", displayName: "A" },
+      { email: "b@example.org", displayName: "B" },
     ];
     expect(dedupeAttendees(list)).toEqual(list);
   });
 
-  it('collapses a repeated address, keeping the first position', () => {
+  it("collapses a repeated address, keeping the first position", () => {
     const result = dedupeAttendees([
-      { email: 'camille.roy@example.org', displayName: 'Camille' },
-      { email: 'other@example.org', displayName: 'Other' },
-      { email: 'camille.roy@example.org', displayName: 'Camille' },
+      { email: "camille.roy@example.org", displayName: "Camille" },
+      { email: "other@example.org", displayName: "Other" },
+      { email: "camille.roy@example.org", displayName: "Camille" },
     ]);
     expect(result).toHaveLength(2);
-    expect(result.map((a) => a.email)).toEqual(['camille.roy@example.org', 'other@example.org']);
+    expect(result.map((a) => a.email)).toEqual([
+      "camille.roy@example.org",
+      "other@example.org",
+    ]);
   });
 
-  it('treats addresses as case-insensitive', () => {
+  it("treats addresses as case-insensitive", () => {
     const result = dedupeAttendees([
-      { email: 'Camille.Roy@Example.org' },
-      { email: 'camille.roy@example.org' },
+      { email: "Camille.Roy@Example.org" },
+      { email: "camille.roy@example.org" },
     ]);
     expect(result).toHaveLength(1);
   });
 
-  it('ignores surrounding whitespace', () => {
+  it("ignores surrounding whitespace", () => {
     const result = dedupeAttendees([
-      { email: ' a@example.org ' },
-      { email: 'a@example.org' },
+      { email: " a@example.org " },
+      { email: "a@example.org" },
     ]);
     expect(result).toHaveLength(1);
   });
 
-  it('adopts a display name from a later duplicate when the first had none', () => {
+  it("adopts a display name from a later duplicate when the first had none", () => {
     const result = dedupeAttendees([
-      { email: 'a@example.org' },
-      { email: 'a@example.org', displayName: 'Alice' },
+      { email: "a@example.org" },
+      { email: "a@example.org", displayName: "Alice" },
     ]);
-    expect(result).toEqual([{ email: 'a@example.org', displayName: 'Alice' }]);
+    expect(result).toEqual([{ email: "a@example.org", displayName: "Alice" }]);
   });
 
-  it('keeps the first display name when both carry one', () => {
+  it("keeps the first display name when both carry one", () => {
     const result = dedupeAttendees([
-      { email: 'a@example.org', displayName: 'Alice' },
-      { email: 'a@example.org', displayName: 'A. Smith' },
+      { email: "a@example.org", displayName: "Alice" },
+      { email: "a@example.org", displayName: "A. Smith" },
     ]);
-    expect(result).toEqual([{ email: 'a@example.org', displayName: 'Alice' }]);
+    expect(result).toEqual([{ email: "a@example.org", displayName: "Alice" }]);
   });
 
-  it('keeps the parameters of the first occurrence, filling gaps from later duplicates', () => {
+  it("keeps the parameters of the first occurrence, filling gaps from later duplicates", () => {
     const result = dedupeAttendees([
-      { email: 'a@example.org', partstat: 'accepted' },
-      { email: 'a@example.org', partstat: 'declined', role: 'OPT-PARTICIPANT', rsvp: false },
+      { email: "a@example.org", partstat: "accepted" },
+      {
+        email: "a@example.org",
+        partstat: "declined",
+        role: "OPT-PARTICIPANT",
+        rsvp: false,
+      },
     ]);
     expect(result).toEqual([
-      { email: 'a@example.org', partstat: 'accepted', role: 'OPT-PARTICIPANT', rsvp: false },
+      {
+        email: "a@example.org",
+        partstat: "accepted",
+        role: "OPT-PARTICIPANT",
+        rsvp: false,
+      },
     ]);
   });
 
-  it('merges extraParams keys per-parameter, first occurrence wins', () => {
+  it("merges extraParams keys per-parameter, first occurrence wins", () => {
     const result = dedupeAttendees([
-      { email: 'a@example.org', extraParams: { 'x-one': 'first' } },
-      { email: 'a@example.org', extraParams: { 'x-one': 'second', 'x-two': 'new' } },
+      { email: "a@example.org", extraParams: { "x-one": "first" } },
+      {
+        email: "a@example.org",
+        extraParams: { "x-one": "second", "x-two": "new" },
+      },
     ]);
     expect(result).toEqual([
-      { email: 'a@example.org', extraParams: { 'x-one': 'first', 'x-two': 'new' } },
+      {
+        email: "a@example.org",
+        extraParams: { "x-one": "first", "x-two": "new" },
+      },
     ]);
   });
 
-  it('does not mutate the input', () => {
+  it("does not mutate the input", () => {
     const input = [
-      { email: 'a@example.org' },
-      { email: 'a@example.org', displayName: 'Alice' },
+      { email: "a@example.org" },
+      { email: "a@example.org", displayName: "Alice" },
     ];
     dedupeAttendees(input);
     expect(input[0].displayName).toBeUndefined();
   });
 
-  it('keeps every entry that has no address, since they cannot be compared', () => {
+  it("keeps every entry that has no address, since they cannot be compared", () => {
     const result = dedupeAttendees([
-      { email: '', displayName: 'Anonymous' },
-      { email: '', displayName: 'Someone else' },
+      { email: "", displayName: "Anonymous" },
+      { email: "", displayName: "Someone else" },
     ]);
     expect(result).toHaveLength(2);
   });
 
-  it('produces a list whose emails are unique, which is what list keys rely on', () => {
+  it("produces a list whose emails are unique, which is what list keys rely on", () => {
     const result = dedupeAttendees([
-      { email: 'a@example.org' },
-      { email: 'A@example.org' },
-      { email: 'b@example.org' },
-      { email: 'a@example.org' },
+      { email: "a@example.org" },
+      { email: "A@example.org" },
+      { email: "b@example.org" },
+      { email: "a@example.org" },
     ]);
     const keys = result.map((a) => a.email);
     expect(new Set(keys).size).toBe(keys.length);
   });
 
-  it('returns an empty list unchanged', () => {
+  it("returns an empty list unchanged", () => {
     expect(dedupeAttendees([])).toEqual([]);
   });
 });
 
 const account: Account = {
-  id: 'acc-1',
-  displayName: 'Bob',
-  baseUrl: 'https://cloud.example.com',
-  username: 'bob',
-  appPassword: 'xxxx',
-  davUserId: 'bob',
-  email: 'bob@example.com',
+  id: "acc-1",
+  displayName: "Bob",
+  baseUrl: "https://cloud.example.com",
+  username: "bob",
+  appPassword: "xxxx",
+  davUserId: "bob",
+  email: "bob@example.com",
 };
 
-describe('isAttendeeOfAccount', () => {
-  it('matches by email', () => {
-    expect(isAttendeeOfAccount({ email: 'bob@example.com' }, account)).toBe(true);
+describe("isAttendeeOfAccount", () => {
+  it("matches by email", () => {
+    expect(isAttendeeOfAccount({ email: "bob@example.com" }, account)).toBe(
+      true,
+    );
   });
 
-  it('matches by username fallback', () => {
+  it("matches by username fallback", () => {
     const usernameOnly = { ...account, email: undefined };
-    expect(isAttendeeOfAccount({ email: 'bob@example.com' }, usernameOnly)).toBe(true);
-    expect(isAttendeeOfAccount({ email: 'bob' }, usernameOnly)).toBe(true);
+    expect(
+      isAttendeeOfAccount({ email: "bob@example.com" }, usernameOnly),
+    ).toBe(true);
+    expect(isAttendeeOfAccount({ email: "bob" }, usernameOnly)).toBe(true);
   });
 
-  it('is case-insensitive', () => {
-    expect(isAttendeeOfAccount({ email: 'BOB@EXAMPLE.COM' }, account)).toBe(true);
+  it("is case-insensitive", () => {
+    expect(isAttendeeOfAccount({ email: "BOB@EXAMPLE.COM" }, account)).toBe(
+      true,
+    );
   });
 
-  it('returns false for a different attendee', () => {
-    expect(isAttendeeOfAccount({ email: 'alice@example.com' }, account)).toBe(false);
+  it("returns false for a different attendee", () => {
+    expect(isAttendeeOfAccount({ email: "alice@example.com" }, account)).toBe(
+      false,
+    );
   });
 });
 
-describe('findAttendeeForAccount', () => {
-  it('finds the matching attendee', () => {
+describe("findAttendeeForAccount", () => {
+  it("finds the matching attendee", () => {
     const attendees = [
-      { email: 'alice@example.com', partstat: 'accepted' },
-      { email: 'bob@example.com', partstat: 'tentative' },
+      { email: "alice@example.com", partstat: "accepted" },
+      { email: "bob@example.com", partstat: "tentative" },
     ];
     expect(findAttendeeForAccount(attendees, account)).toEqual({
-      email: 'bob@example.com',
-      partstat: 'tentative',
+      email: "bob@example.com",
+      partstat: "tentative",
     });
   });
 });
 
-describe('getAttendeePartstat', () => {
-  it('returns the partstat of the current user', () => {
+describe("getAttendeePartstat", () => {
+  it("returns the partstat of the current user", () => {
     const event: CalendarEvent = {
-      uid: 'evt-1',
-      href: 'https://cloud.example.com/cal/personal/evt-1.ics',
-      calendarId: 'cal-1',
-      accountId: 'acc-1',
-      summary: 'Meeting',
+      uid: "evt-1",
+      href: "https://cloud.example.com/cal/personal/evt-1.ics",
+      calendarId: "cal-1",
+      accountId: "acc-1",
+      summary: "Meeting",
       dtstart: new Date(),
       dtend: new Date(),
       allDay: false,
-      color: '#000',
-      attendees: [{ email: 'bob@example.com', partstat: 'accepted' }],
+      color: "#000",
+      attendees: [{ email: "bob@example.com", partstat: "accepted" }],
       isRecurring: false,
     };
-    expect(getAttendeePartstat(event, account)).toBe('accepted');
+    expect(getAttendeePartstat(event, account)).toBe("accepted");
   });
 });
 
-describe('isCurrentUserAttendee', () => {
-  it('returns true when the user is in the attendee list', () => {
+describe("isCurrentUserAttendee", () => {
+  it("returns true when the user is in the attendee list", () => {
     const event: CalendarEvent = {
-      uid: 'evt-1',
-      href: 'https://cloud.example.com/cal/personal/evt-1.ics',
-      calendarId: 'cal-1',
-      accountId: 'acc-1',
-      summary: 'Meeting',
+      uid: "evt-1",
+      href: "https://cloud.example.com/cal/personal/evt-1.ics",
+      calendarId: "cal-1",
+      accountId: "acc-1",
+      summary: "Meeting",
       dtstart: new Date(),
       dtend: new Date(),
       allDay: false,
-      color: '#000',
-      attendees: [{ email: 'bob@example.com' }],
+      color: "#000",
+      attendees: [{ email: "bob@example.com" }],
       isRecurring: false,
     };
     expect(isCurrentUserAttendee(event, account)).toBe(true);
     expect(isCurrentUserAttendee(event, null)).toBe(false);
-describe('attendeeColor', () => {
-  it('returns a hex color for an email', () => {
-    expect(attendeeColor('a@example.org')).toMatch(/^#[0-9A-F]{6}$/i);
+  });
+});
+
+describe("attendeeColor", () => {
+  it("returns a hex color for an email", () => {
+    expect(attendeeColor("a@example.org")).toMatch(/^#[0-9A-F]{6}$/i);
   });
 
-  it('is deterministic for the same email', () => {
-    expect(attendeeColor('a@example.org')).toBe(attendeeColor('a@example.org'));
+  it("is deterministic for the same email", () => {
+    expect(attendeeColor("a@example.org")).toBe(attendeeColor("a@example.org"));
   });
 
-  it('is case-insensitive', () => {
-    expect(attendeeColor('A@Example.org')).toBe(attendeeColor('a@example.org'));
+  it("is case-insensitive", () => {
+    expect(attendeeColor("A@Example.org")).toBe(attendeeColor("a@example.org"));
   });
 
-  it('produces different colors for different emails', () => {
+  it("produces different colors for different emails", () => {
     const colors = new Set([
-      attendeeColor('a@example.org'),
-      attendeeColor('b@example.org'),
-      attendeeColor('c@example.org'),
-      attendeeColor('d@example.org'),
+      attendeeColor("a@example.org"),
+      attendeeColor("b@example.org"),
+      attendeeColor("c@example.org"),
+      attendeeColor("d@example.org"),
     ]);
     expect(colors.size).toBeGreaterThanOrEqual(2);
   });
