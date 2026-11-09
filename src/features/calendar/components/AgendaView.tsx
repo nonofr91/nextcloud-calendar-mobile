@@ -202,7 +202,13 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
   const anchorRef = useRef({ key: todayKey, delta: 0 });
   const layoutRef = useRef({ rows, offsets });
   const userScrollingRef = useRef(false);
-  const onUserScrollStart = useCallback(() => { userScrollingRef.current = true; }, []);
+  const onUserScrollStart = useCallback(() => {
+    pendingJumpRef.current = null;
+    userScrollingRef.current = true;
+  }, []);
+  const onMomentumScrollBegin = useCallback(() => {
+    if (!pendingJumpRef.current) userScrollingRef.current = true;
+  }, []);
   const onUserScrollEnd = useCallback(() => { userScrollingRef.current = false; }, []);
 
   const pendingJumpRef = useRef<{ key: string; expiresAt: number } | null>(null);
@@ -331,8 +337,10 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
       onScroll={onScroll}
       onScrollBeginDrag={onUserScrollStart}
       onScrollEndDrag={onUserScrollEnd}
-      onMomentumScrollBegin={onUserScrollStart}
+      onMomentumScrollBegin={onMomentumScrollBegin}
       onMomentumScrollEnd={onUserScrollEnd}
+      onContentSizeChange={issuePendingJump}
+      onLayout={issuePendingJump}
       scrollEventThrottle={32}
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig.current}
