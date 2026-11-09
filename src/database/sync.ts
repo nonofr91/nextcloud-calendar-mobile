@@ -55,6 +55,8 @@ export function serializeAlarms(alarms?: number[]): string | undefined {
 export function serializeGeo(geo?: { lat: number; lon: number }): string | undefined {
     if (!geo) return undefined;
     return `${geo.lat},${geo.lon}`;
+}
+
 export function serializeAttachments(attachments?: CalendarEvent['attachments']): string | undefined {
   if (!attachments?.length) return undefined;
   const sorted = [...attachments].sort((a, b) =>
@@ -125,7 +127,6 @@ function eventUnchanged(row: Event, ev: CalendarEvent): boolean {
         (row.taskStatus ?? undefined) === (ev.taskStatus ?? undefined) &&
         (row.taskCompletedAt ?? undefined) === (ev.taskCompletedAt?.getTime() ?? undefined) &&
         (row.taskPercent ?? undefined) === (ev.taskPercent ?? undefined) &&
-        (row.attendees ?? '[]') === JSON.stringify(ev.attendees ?? [])
         (row.attendees ?? '[]') === JSON.stringify(ev.attendees ?? []) &&
         (row.attachments ?? undefined) === serializeAttachments(ev.attachments)
     );

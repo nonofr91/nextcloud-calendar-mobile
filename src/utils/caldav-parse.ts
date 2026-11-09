@@ -1,7 +1,6 @@
 import ICAL from 'ical.js';
-import type { CalendarEvent, Attendee } from '@/types';
-import { taskIsCompleted } from '@/utils/vtodo';
 import type { CalendarEvent, Attendee, EventAttachment } from '@/types';
+import { taskIsCompleted } from '@/utils/vtodo';
 import { yieldToUI } from '@/utils/scheduling';
 import { isValidTimeZone, zonedWallTimeToUtc } from '@/utils/timezone';
 import { NO_ALARM_PROP, triggerToMinutes } from '@/features/notifications/alerts';

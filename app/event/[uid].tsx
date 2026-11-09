@@ -450,6 +450,9 @@ export default function EventDetailScreen() {
                     />
                   </Stack>
                 </Stack>
+              </Stack>
+            )}
+
             {!!event.attachments?.length && (
               <Stack gap={8}>
                 <SectionHeader title={t('event.attachments')} />

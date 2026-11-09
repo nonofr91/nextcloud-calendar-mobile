@@ -1,6 +1,4 @@
-import { parseIcsObjects, parseIcsObjectsAsync, extractDtstartDtend, dropLocationBoundLines } from '@/utils/caldav-parse';
-import { buildAllDayIcs } from '@/utils/ics';
-import { parseIcsObjects, parseIcsObjectsAsync, extractDtstartDtend, extractExtraVeventLines, base64Fingerprint } from '@/utils/caldav-parse';
+import { parseIcsObjects, parseIcsObjectsAsync, extractDtstartDtend, dropLocationBoundLines, extractExtraVeventLines, base64Fingerprint } from '@/utils/caldav-parse';
 import { buildAllDayIcs, buildIcs } from '@/utils/ics';
 
 const sampleIcs = `BEGIN:VCALENDAR
@@ -1085,6 +1083,9 @@ describe('dropLocationBoundLines', () => {
       'X-APPLE-STRUCTURED-LOCATION:geo:1,1',
     ]);
     expect(kept).toEqual([]);
+  });
+});
+
 describe('ATTACH parsing — event attachments', () => {
   const calMeta = { calendarId: 'cal-1', accountId: 'acc-1', color: '#0082c9' };
 
