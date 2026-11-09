@@ -24,6 +24,8 @@ import type {
   CalendarMeta, Attendee, CreateEventInput, EventAttachment, PendingAttachment,
   RecurrenceRule, TalkRoomType, Account, SuggestedSlot,
 } from '@/types';
+import { TimezonePicker } from './TimezonePicker';
+import { isValidTimeZone, resolveAccountTimezone, wallDateToUtc, zonedUtcToWallDate } from '@/utils/timezone';
 
 dayjs.extend(localizedFormat);
 
@@ -42,6 +44,7 @@ export interface InitialValues {
   uid?: string;
   extraLines?: string[];
   attachments?: EventAttachment[];
+  timezone?: string;
 }
 
 interface Props {
@@ -52,7 +55,7 @@ interface Props {
   onSubmit: (input: CreateEventInput) => void;
   initialValues?: InitialValues;
   disableCalendarChange?: boolean;
-  account?: Pick<Account, 'id' | 'displayName' | 'baseUrl' | 'username' | 'appPassword' | 'davUserId'> | null;
+  account?: Pick<Account, 'id' | 'displayName' | 'baseUrl' | 'username' | 'appPassword' | 'davUserId' | 'timezone'> | null;
 }
 
 export interface EventFormHandle {
@@ -90,9 +93,26 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
     writableCalendars[0]?.id ?? '';
   const [calendarId, setCalendarId] = useState(defaultCalendarId);
   const [allDay, setAllDay] = useState(initialValues?.allDay ?? false);
-  const [dtstart, setDtstart] = useState(initialValues?.dtstart ?? defaultDate ?? new Date());
+
+  // Timed events are edited as wall-clock times in the event's own zone:
+  // dtstart/dtend below hold the zone's wall time as a device-local Date, and
+  // are converted back to real instants on submit. The zone defaults to the
+  // event's TZID, else the effective account/device zone — never a raw
+  // `account.timezone`, which may be '' and would desync fields from zone.
+  const initialTimezone = (() => {
+    const fromEvent = initialValues?.timezone;
+    return fromEvent && isValidTimeZone(fromEvent) ? fromEvent : resolveAccountTimezone(account);
+  })();
+  const [timezone, setTimezone] = useState(initialTimezone);
+  const asWallDate = (d: Date) =>
+    initialValues?.allDay ? d : zonedUtcToWallDate(d, initialTimezone);
+  const [dtstart, setDtstart] = useState(
+    initialValues?.dtstart ? asWallDate(initialValues.dtstart) : (defaultDate ?? new Date())
+  );
   const [dtend, setDtend] = useState(
-    initialValues?.dtend ?? (defaultDate ? dayjs(defaultDate).add(1, 'hour').toDate() : dayjs().add(1, 'hour').toDate())
+    initialValues?.dtend
+      ? asWallDate(initialValues.dtend)
+      : (defaultDate ? dayjs(defaultDate).add(1, 'hour').toDate() : dayjs().add(1, 'hour').toDate())
   );
   const [description, setDescription] = useState(initialValues?.description ?? '');
   const [location, setLocation] = useState(initialValues?.location ?? '');
@@ -245,7 +265,7 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
     if (willAlert) void requestAlertPermission();
 
     onSubmit({
-      summary: summary.trim(), calendarId, dtstart, dtend, allDay,
+      summary: summary.trim(), calendarId,
       description, location, geo, attendees, withTalkRoom, talkRoomType,
       organizerEmail, organizerName, rrule, alarms,
       uid: initialValues?.uid,
@@ -253,6 +273,10 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
       pendingAttachments: pendingAttachments.length ? pendingAttachments : undefined,
       remoteAttachments: remoteAttachments.length ? remoteAttachments : undefined,
       removedAttachments: removedAttachments.length ? removedAttachments : undefined,
+      dtstart: allDay ? dtstart : wallDateToUtc(dtstart, timezone),
+      dtend: allDay ? dtend : wallDateToUtc(dtend, timezone),
+      allDay,
+      timezone: allDay ? undefined : timezone,
     });
   }
 
@@ -381,6 +405,10 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
           {startBlock}
           {endBlock}
         </Stack>
+
+        {!allDay && (
+          <TimezonePicker value={timezone} onChange={setTimezone} />
+        )}
 
         {Platform.OS === 'android' && androidStep !== null && (
           <DateTimePicker

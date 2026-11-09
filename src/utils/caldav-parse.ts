@@ -443,6 +443,7 @@ function parseVtodo(
     attachments: readAttachments(vtodo.getAllProperties('attach')).map((a) =>
       stripInlineContent(a),
     ),
+    timezone: anchor.time.isDate ? undefined : anchor.tzid,
   };
 }
 
@@ -515,6 +516,7 @@ export function parseIcsItem(
         rrule: rruleStr,
         alarms,
         attachments,
+        timezone: tzid,
       };
 
       if (isRecurring && (rangeStart || rangeEnd)) {
@@ -554,6 +556,7 @@ export function parseIcsItem(
             dtstart: occStart,
             dtend: occEnd,
             allDay: startDate.isDate,
+            timezone: startDate.isDate ? undefined : occTzid,
           });
           return true;
         };
@@ -629,6 +632,33 @@ export function extractSequence(ics: string): number {
   const m = ics.match(/^SEQUENCE:(\d+)/m);
   const n = m ? Number(m[1]) : 0;
   return Number.isFinite(n) ? n : 0;
+}
+
+/**
+ * Raw lines of every VTIMEZONE block in `ics`, except the one for
+ * `excludeTzid` (callers regenerate that zone when rewriting the event).
+ * Used to keep foreign-zone VTIMEZONEs — e.g. referenced by a preserved
+ * EXDATE — across a full ICS rewrite.
+ */
+export function extractVtimezoneLines(ics: string, excludeTzid?: string): string[] {
+  const out: string[] = [];
+  let block: string[] | null = null;
+  let tzid = '';
+  for (const line of repairIcsFolding(ics).split('\r\n')) {
+    if (line === 'BEGIN:VTIMEZONE') {
+      block = [line];
+      tzid = '';
+      continue;
+    }
+    if (!block) continue;
+    block.push(line);
+    if (line.startsWith('TZID:')) tzid = line.slice('TZID:'.length).trim();
+    if (line === 'END:VTIMEZONE') {
+      if (tzid !== excludeTzid) out.push(...block);
+      block = null;
+    }
+  }
+  return out;
 }
 
 const WRITER_MANAGED_PROPS = new Set([

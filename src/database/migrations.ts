@@ -13,6 +13,7 @@ export const migrations = schemaMigrations({
             { name: 'task_completed_at', type: 'number', isOptional: true },
             { name: 'task_percent', type: 'number', isOptional: true },
             { name: 'attachments', type: 'string', isOptional: true },
+            { name: 'timezone', type: 'string', isOptional: true },
           ],
         }),
       ],

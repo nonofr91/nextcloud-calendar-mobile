@@ -73,5 +73,6 @@ export function mapEventToShared(event: Event): CalendarEvent {
     taskPercent: event.taskPercent ?? undefined,
     taskCompleted: taskIsCompleted(event.taskStatus, event.taskCompletedAt, event.taskPercent),
     attachments: parseAttachments(event.attachments ?? undefined),
+    timezone: event.timezone ?? undefined,
   };
 }
