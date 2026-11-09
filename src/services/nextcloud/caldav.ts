@@ -95,7 +95,7 @@ export async function validateCredentials(params: {
 
   if (!principalPath) {
     const principalUrl = `${params.baseUrl}/remote.php/dav/principals/users/${encodeURIComponent(params.username)}/`;
-    const fallback = await davFetch(principalUrl, params, { method: 'PROPFIND', headers: { Depth: '0', 'Content-Type': 'application/xml' }, maxRetries: 0 });
+    const fallback = await davFetch(principalUrl, params, { method: 'PROPFIND', headers: { Depth: '0', 'Content-Type': 'application/xml' } });
     if (fallback.status !== 207 && !fallback.ok) throw httpErrorFrom(fallback, 'validateCredentials');
     return { davUserId: params.username };
   }

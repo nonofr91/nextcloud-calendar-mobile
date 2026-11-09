@@ -21,6 +21,7 @@ interface SettingsState {
   reduceMotion: boolean;
   talkOpenMode: TalkOpenMode;
   defaultCalendarByAccount: Record<string, string>;
+  pushNotifications: boolean;
   setThemePreference: (pref: ThemePreference) => void;
   setLanguage: (lang: AppLanguage) => void;
   setWeekStartsOn: (v: 0 | 1) => void;
@@ -33,6 +34,7 @@ interface SettingsState {
   setReduceMotion: (v: boolean) => void;
   setTalkOpenMode: (v: TalkOpenMode) => void;
   setDefaultCalendar: (accountId: string, calendarId: string | undefined) => void;
+  setPushNotifications: (v: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -50,6 +52,7 @@ export const useSettingsStore = create<SettingsState>()(
       reduceMotion: false,
       talkOpenMode: 'app',
       defaultCalendarByAccount: {},
+      pushNotifications: false,
       setTimedAlerts: (v) => set({ timedAlerts: v }),
       setAllDayAlerts: (v) => set({ allDayAlerts: v }),
       setThemePreference: (pref) => set({ themePreference: pref }),
@@ -68,6 +71,7 @@ export const useSettingsStore = create<SettingsState>()(
           else next[accountId] = calendarId;
           return { defaultCalendarByAccount: next };
         }),
+      setPushNotifications: (v) => set({ pushNotifications: v }),
     }),
     {
       name: 'settings-store',
@@ -104,6 +108,7 @@ export const useSettingsStore = create<SettingsState>()(
         reduceMotion: state.reduceMotion,
         talkOpenMode: state.talkOpenMode,
         defaultCalendarByAccount: state.defaultCalendarByAccount,
+        pushNotifications: state.pushNotifications,
       }),
     }
   )

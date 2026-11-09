@@ -20,7 +20,8 @@
   "tabs": {
     "calendar": "Calendar",
     "settings": "Settings",
-    "search": "Search"
+    "search": "Search",
+    "notifications": "Notifications"
   },
   "setup": {
     "brand": "Calendar",
@@ -337,7 +338,10 @@
       "liveActivityHint": "Shows an ongoing notification while an event is running.",
       "permissionDenied": "Notifications are turned off for this app.",
       "openSettings": "Open system settings",
-      "channelName": "Event alerts"
+      "channelName": "Event alerts",
+      "badgeChannelName": "App badge",
+      "push": "Push notifications",
+      "pushHint": "Receive real-time updates from the server."
     },
     "widgets": {
       "title": "Widgets",
@@ -503,6 +507,18 @@
       "days": "in {{value}} days",
       "today": "Today",
       "tomorrow": "Tomorrow"
+    },
+    "title": "Notifications",
+    "empty": "No notifications",
+    "badgeTitle": "{{count}} unread notification",
+    "badgeTitle_other": "{{count}} unread notifications",
+    "type": {
+      "created": "Created",
+      "updated": "Updated",
+      "deleted": "Deleted",
+      "invited": "Invited",
+      "response": "Response",
+      "unknown": "Update"
     }
   },
   "certTrust": {

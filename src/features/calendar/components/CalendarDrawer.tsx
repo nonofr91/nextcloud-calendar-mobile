@@ -125,9 +125,9 @@ export function CalendarDrawer({
             ) : undefined}
           />
 
+          <SectionHeader title={t('calendar.drawerCalendars')} />
           {calendars.length === 0 ? (
             <>
-              <SectionHeader title={t('calendar.drawerCalendars')} />
               <Stack padding={[8, 4]}>
                 <Typography variant="caption" color="secondary">
                   {t('calendar.drawerNoCalendars')}

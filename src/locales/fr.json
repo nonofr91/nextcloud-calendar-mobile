@@ -20,7 +20,8 @@
   "tabs": {
     "calendar": "Calendrier",
     "settings": "Paramètres",
-    "search": "Recherche"
+    "search": "Recherche",
+    "notifications": "Notifications"
   },
   "setup": {
     "brand": "Calendrier",
@@ -337,7 +338,10 @@
       "liveActivityHint": "Affiche une notification persistante pendant un événement en cours.",
       "permissionDenied": "Les notifications sont désactivées pour cette app.",
       "openSettings": "Ouvrir les réglages système",
-      "channelName": "Alertes d'événement"
+      "channelName": "Alertes d'événement",
+      "badgeChannelName": "Badge app",
+      "push": "Notifications push",
+      "pushHint": "Recevoir les mises à jour en temps réel depuis le serveur."
     },
     "widgets": {
       "title": "Widgets",
@@ -503,6 +507,18 @@
       "days": "dans {{value}} jours",
       "today": "Aujourd'hui",
       "tomorrow": "Demain"
+    },
+    "title": "Notifications",
+    "empty": "Aucune notification",
+    "badgeTitle": "{{count}} notification non lue",
+    "badgeTitle_other": "{{count}} notifications non lues",
+    "type": {
+      "created": "Créé",
+      "updated": "Modifié",
+      "deleted": "Supprimé",
+      "invited": "Invité",
+      "response": "Réponse",
+      "unknown": "Mise à jour"
     }
   },
   "certTrust": {

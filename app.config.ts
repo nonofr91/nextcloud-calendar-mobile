@@ -78,6 +78,9 @@ const config: ExpoConfig = {
             'SCHEDULE_EXACT_ALARM',
             'ACCESS_COARSE_LOCATION',
             'ACCESS_FINE_LOCATION',
+            'android.permission.POST_NOTIFICATIONS',
+            'android.permission.RECEIVE_BOOT_COMPLETED',
+            'android.permission.VIBRATE',
         ],
         adaptiveIcon: {
             foregroundImage: './assets/adaptive-icon.png',
