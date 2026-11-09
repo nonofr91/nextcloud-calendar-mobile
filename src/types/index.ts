@@ -216,3 +216,12 @@ export type SuggestedSlot = {
   start: Date;
   end: Date;
 };
+
+export type SavedPlace = {
+    id: string;
+    label: string;
+    address?: string;
+    lat: number;
+    lon: number;
+    createdAt: number;
+};
