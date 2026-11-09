@@ -73,7 +73,12 @@ const config: ExpoConfig = {
     android: {
         package: 'com.soluce.nextcloudcalendar',
         versionCode,
-        permissions: ['USE_EXACT_ALARM', 'SCHEDULE_EXACT_ALARM'],
+        permissions: [
+            'USE_EXACT_ALARM',
+            'SCHEDULE_EXACT_ALARM',
+            'ACCESS_COARSE_LOCATION',
+            'ACCESS_FINE_LOCATION',
+        ],
         adaptiveIcon: {
             foregroundImage: './assets/adaptive-icon.png',
             backgroundColor: '#109be6',
@@ -135,6 +140,13 @@ const config: ExpoConfig = {
             {
                 cameraPermission:
                     'Allow Calendar to access the camera to scan a Nextcloud login QR code.',
+            },
+        ],
+        [
+            'expo-location',
+            {
+                locationWhenInUsePermission:
+                    'Allow Calendar to use your position to fill in an event location.',
             },
         ],
         [
