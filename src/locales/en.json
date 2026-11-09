@@ -16,8 +16,7 @@
   },
   "tabs": {
     "calendar": "Calendar",
-    "settings": "Settings",
-    "search": "Search"
+    "settings": "Settings"
   },
   "setup": {
     "brand": "Calendar",
@@ -60,7 +59,6 @@
     "today": "Today",
     "day": "Day",
     "week": "Week",
-    "sevenDays": "7D",
     "threeDays": "3D",
     "month": "Month",
     "schedule": "Agenda",
@@ -69,23 +67,13 @@
     "drawerAccount": "ACCOUNT",
     "manageAccounts": "Manage accounts →",
     "drawerCalendars": "CALENDARS",
-    "drawerShared": "SHARED CALENDARS",
-    "drawerDeck": "DECK",
-    "drawerTasks": "TASKS",
     "offlineBanner": "Offline — showing saved events",
-    "syncError": "Sync failed — tap to retry",
     "noEvents": "No events",
     "allDay": "All day",
     "noTitle": "(No title)",
-    "monthCell": {
-      "a11y": "{{date}}, events: {{count}}",
-      "a11yEmpty": "{{date}}, no events",
-      "hint": "Opens day view"
-    },
     "drawerNoCalendars": "No calendar",
     "calendarNotifications": "Notifications for {{name}}",
-    "calendarVisibility": "Show {{name}}",
-    "showCompletedTasks": "Show completed tasks"
+    "calendarVisibility": "Show {{name}}"
   },
   "task": {
     "pending": "Task",
@@ -96,10 +84,52 @@
   },
   "search": {
     "title": "Search",
-    "placeholder": "Search events",
-    "hint": "Search by title, description, location or attendee.",
-    "noResults": "No matching events",
-    "clear": "Clear search"
+    "placeholder": "Search events…",
+    "filters": "FILTERS",
+    "filter": {
+      "calendar": "In a calendar",
+      "attendee": "With an attendee",
+      "date": "Date",
+      "title": "In title",
+      "location": "In location",
+      "description": "In description"
+    },
+    "hint": {
+      "name": "name",
+      "person": "person",
+      "text": "text"
+    },
+    "more": "More filters",
+    "moreHint": "title, location, description",
+    "recent": "RECENT",
+    "removeRecent": "Remove from recent",
+    "removeFilter": "Remove filter {{filter}}",
+    "use": "Use “{{value}}”",
+    "filterHint": "Filter:",
+    "short": {
+      "calendar": "Calendar",
+      "attendee": "Attendee",
+      "date": "Date"
+    },
+    "date": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "week": "Within 7 days",
+      "month": "Within a month",
+      "upcoming": "Upcoming",
+      "past": "Past",
+      "before": "Before a date…",
+      "after": "After a date…"
+    },
+    "upcoming": "UPCOMING",
+    "past": "PAST",
+    "truncated": "Showing the first {{count}}, add a filter to narrow down",
+    "fromServer": "MORE FROM THE SERVER",
+    "noResults": "No results",
+    "noResultsHint": "Try fewer filters or a simpler word.",
+    "offlineNote": "Offline — showing local results only",
+    "serverFailed": "The server could not be reached — showing local results only",
+    "openFailed": "Could not open this event"
   },
   "event": {
     "titleLabel": "Title *",
@@ -112,19 +142,15 @@
     "end": "End",
     "location": "Location",
     "locationPlaceholder": "Room or address",
-    "useMyLocation": "Use my current location",
-    "locationPermissionDenied": "Location permission is required to use your current position",
-    "locationUnavailable": "Unable to get your current location",
     "openInMaps": "Open in Maps",
     "description": "Description",
     "descriptionPlaceholder": "Details...",
     "attendees": "Attendees",
     "attendeePlaceholder": "email@example.com",
-    "myParticipation": "My participation",
-    "participationAccepted": "You are going",
-    "participationTentative": "You might go",
-    "participationDeclined": "You declined",
-    "participationNeedsAction": "No response yet",
+    "attachments": "Attachments",
+    "attachmentUntitled": "Attachment",
+    "attachmentOpenError": "Could not open this attachment",
+    "attachmentTooLarge": "This attachment is too large to open",
     "add": "Add",
     "saving": "Saving…",
     "saveEvent": "Save Event",
@@ -138,17 +164,6 @@
     "freqWeekly": "Weekly",
     "freqMonthly": "Monthly",
     "freqYearly": "Yearly",
-    "everyMasc": "Every",
-    "everyFem": "Every",
-    "intervalLabel": "Repeat interval",
-    "unitDays_one": "day",
-    "unitDays_other": "days",
-    "unitWeeks_one": "week",
-    "unitWeeks_other": "weeks",
-    "unitMonths_one": "month",
-    "unitMonths_other": "months",
-    "unitYears_one": "year",
-    "unitYears_other": "years",
     "daySu": "Su",
     "dayMo": "Mo",
     "dayTu": "Tu",
@@ -213,29 +228,7 @@
     "errorCreateFailed": "Failed to create event",
     "errorUpdateFailed": "Failed to update event",
     "errorDeleteFailed": "Failed to delete event",
-    "alerts": "Alerts",
-    "alert": "Alert",
-    "findTime": "Find a time",
-    "findTimeTitle": "Find a time",
-    "findTimeSuggested": "Suggested slots",
-    "findTimeNoSlots": "No free slots found in the 15-day window.",
-    "findTimeAttendees": "Attendee availability",
-    "findTimeAvailable": "Available",
-    "findTimeUnknown": "Unknown",
-    "findTimeApply": "Apply selected slot",
-    "findTimeLoading": "Checking availability…",
-    "findTimeError": "Could not fetch availability. The server may have free/busy disabled.",
-    "findTimeTimeline": "Availability timeline",
-    "findTimeTimelineTip": "Drag the handle or long-press a green zone to reschedule",
-    "findTimeModeStrict": "All free",
-    "findTimeModePermissive": "Some may be busy",
-    "findTimeRequired": "Required",
-    "findTimeTimelineBusy": "Busy",
-    "findTimeTimelineUnavailable": "Unavailable",
-    "findTimeTimelineDragHint": "Drag the handle to reschedule",
-    "findTimeTimelineEvent": "Event",
-    "findTimePrevDay": "Previous day",
-    "findTimeNextDay": "Next day"
+    "alerts": "Alerts"
   },
   "import": {
     "title": "Import Event",
@@ -275,11 +268,6 @@
     "weekStart": "Week Starts On",
     "sunday": "Sunday",
     "monday": "Monday",
-    "monthView": {
-      "title": "Month view",
-      "grid": "Grid",
-      "compact": "Compact"
-    },
     "calendarZoom": "Calendar Zoom",
     "reset": "Reset",
     "zoom": {
@@ -407,8 +395,7 @@
       "openInApp": "Nextcloud Talk app",
       "openInBrowser": "Browser",
       "askEachTime": "Ask each time"
-    },
-    "tasks": "Tasks"
+    }
   },
   "widget": {
     "liveRemaining": "{{duration}} left",
@@ -464,54 +451,5 @@
     "remedy": "Safer options: reach the server through a VPN such as Tailscale or WireGuard, or set up a free certificate with DuckDNS and Let's Encrypt.",
     "connect": "Connect anyway",
     "cancel": "Cancel"
-  },
-  "search": {
-    "title": "Search",
-    "placeholder": "Search events…",
-    "filters": "FILTERS",
-    "filter": {
-      "calendar": "In a calendar",
-      "attendee": "With an attendee",
-      "date": "Date",
-      "title": "In title",
-      "location": "In location",
-      "description": "In description"
-    },
-    "hint": {
-      "name": "name",
-      "person": "person",
-      "text": "text"
-    },
-    "more": "More filters",
-    "moreHint": "title, location, description",
-    "recent": "RECENT",
-    "removeRecent": "Remove from recent",
-    "removeFilter": "Remove filter {{filter}}",
-    "use": "Use “{{value}}”",
-    "filterHint": "Filter:",
-    "short": {
-      "calendar": "Calendar",
-      "attendee": "Attendee",
-      "date": "Date"
-    },
-    "date": {
-      "today": "Today",
-      "tomorrow": "Tomorrow",
-      "week": "Within 7 days",
-      "month": "Within a month",
-      "upcoming": "Upcoming",
-      "past": "Past",
-      "before": "Before a date…",
-      "after": "After a date…"
-    },
-    "upcoming": "UPCOMING",
-    "past": "PAST",
-    "truncated": "Showing the first {{count}}, add a filter to narrow down",
-    "fromServer": "MORE FROM THE SERVER",
-    "noResults": "No results",
-    "noResultsHint": "Try fewer filters or a simpler word.",
-    "offlineNote": "Offline — showing local results only",
-    "serverFailed": "The server could not be reached — showing local results only",
-    "openFailed": "Could not open this event"
   }
 }

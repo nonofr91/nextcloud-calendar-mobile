@@ -16,8 +16,7 @@
   },
   "tabs": {
     "calendar": "Calendrier",
-    "settings": "Paramètres",
-    "search": "Recherche"
+    "settings": "Paramètres"
   },
   "setup": {
     "brand": "Calendrier",
@@ -60,7 +59,6 @@
     "today": "Aujourd'hui",
     "day": "Jour",
     "week": "Semaine",
-    "sevenDays": "7J",
     "threeDays": "3J",
     "month": "Mois",
     "schedule": "Agenda",
@@ -69,23 +67,13 @@
     "drawerAccount": "COMPTE",
     "manageAccounts": "Gérer les comptes →",
     "drawerCalendars": "CALENDRIERS",
-    "drawerShared": "CALENDRIERS PARTAGÉS",
-    "drawerDeck": "DECK",
-    "drawerTasks": "TÂCHES",
     "offlineBanner": "Hors ligne — affichage des événements sauvegardés",
-    "syncError": "Échec de la synchronisation — appuyer pour réessayer",
     "noEvents": "Aucun événement",
     "allDay": "Toute la journée",
     "noTitle": "(Sans titre)",
-    "monthCell": {
-      "a11y": "{{date}}, événements : {{count}}",
-      "a11yEmpty": "{{date}}, aucun événement",
-      "hint": "Ouvre la vue jour"
-    },
     "drawerNoCalendars": "Aucun calendrier",
     "calendarNotifications": "Notifications de {{name}}",
-    "calendarVisibility": "Afficher {{name}}",
-    "showCompletedTasks": "Afficher les tâches terminées"
+    "calendarVisibility": "Afficher {{name}}"
   },
   "task": {
     "pending": "Tâche",
@@ -95,11 +83,53 @@
     "markNotCompleted": "Marquer comme non terminée"
   },
   "search": {
-    "title": "Recherche",
-    "placeholder": "Rechercher des événements",
-    "hint": "Rechercher par titre, description, lieu ou participant.",
-    "noResults": "Aucun événement correspondant",
-    "clear": "Effacer la recherche"
+    "title": "Rechercher",
+    "placeholder": "Rechercher des événements…",
+    "filters": "FILTRES",
+    "filter": {
+      "calendar": "Dans un calendrier",
+      "attendee": "Avec un participant",
+      "date": "Date",
+      "title": "Dans le titre",
+      "location": "Dans le lieu",
+      "description": "Dans la description"
+    },
+    "hint": {
+      "name": "nom",
+      "person": "personne",
+      "text": "texte"
+    },
+    "more": "Plus de filtres",
+    "moreHint": "titre, lieu, description",
+    "recent": "RÉCENTES",
+    "removeRecent": "Retirer des recherches récentes",
+    "removeFilter": "Retirer le filtre {{filter}}",
+    "use": "Utiliser « {{value}} »",
+    "filterHint": "Filtrer :",
+    "short": {
+      "calendar": "Calendrier",
+      "attendee": "Participant",
+      "date": "Date"
+    },
+    "date": {
+      "today": "Aujourd'hui",
+      "tomorrow": "Demain",
+      "week": "Dans les 7 jours",
+      "month": "Dans le mois",
+      "upcoming": "À venir",
+      "past": "Passés",
+      "before": "Avant une date…",
+      "after": "Après une date…"
+    },
+    "upcoming": "À VENIR",
+    "past": "PASSÉS",
+    "truncated": "Les {{count}} premiers sont affichés, ajoutez un filtre pour affiner",
+    "fromServer": "AUTRES RÉSULTATS DU SERVEUR",
+    "noResults": "Aucun résultat",
+    "noResultsHint": "Essayez moins de filtres ou un mot plus simple.",
+    "offlineNote": "Hors ligne — résultats locaux uniquement",
+    "serverFailed": "Serveur injoignable — résultats locaux uniquement",
+    "openFailed": "Impossible d'ouvrir cet événement"
   },
   "event": {
     "titleLabel": "Titre *",
@@ -112,19 +142,15 @@
     "end": "Fin",
     "location": "Lieu",
     "locationPlaceholder": "Salle ou adresse",
-    "useMyLocation": "Utiliser ma position",
-    "locationPermissionDenied": "L'autorisation de localisation est nécessaire pour utiliser votre position",
-    "locationUnavailable": "Impossible d'obtenir votre position actuelle",
     "openInMaps": "Ouvrir dans l'app cartes",
     "description": "Description",
     "descriptionPlaceholder": "Détails...",
     "attendees": "Participants",
     "attendeePlaceholder": "email@example.com",
-    "myParticipation": "Ma participation",
-    "participationAccepted": "Vous participez",
-    "participationTentative": "Vous participerez peut-être",
-    "participationDeclined": "Vous avez refusé",
-    "participationNeedsAction": "Réponse en attente",
+    "attachments": "Pièces jointes",
+    "attachmentUntitled": "Pièce jointe",
+    "attachmentOpenError": "Impossible d’ouvrir cette pièce jointe",
+    "attachmentTooLarge": "Cette pièce jointe est trop volumineuse",
     "add": "Ajouter",
     "saving": "Enregistrement…",
     "saveEvent": "Enregistrer l'événement",
@@ -138,17 +164,6 @@
     "freqWeekly": "Chaque semaine",
     "freqMonthly": "Chaque mois",
     "freqYearly": "Chaque année",
-    "everyMasc": "Tous les",
-    "everyFem": "Toutes les",
-    "intervalLabel": "Intervalle de répétition",
-    "unitDays_one": "jour",
-    "unitDays_other": "jours",
-    "unitWeeks_one": "semaine",
-    "unitWeeks_other": "semaines",
-    "unitMonths_one": "mois",
-    "unitMonths_other": "mois",
-    "unitYears_one": "année",
-    "unitYears_other": "années",
     "daySu": "Di",
     "dayMo": "Lu",
     "dayTu": "Ma",
@@ -213,29 +228,7 @@
     "errorCreateFailed": "Échec de la création de l'événement",
     "errorUpdateFailed": "Échec de la mise à jour de l'événement",
     "errorDeleteFailed": "Échec de la suppression de l'événement",
-    "alerts": "Alertes",
-    "alert": "Alerte",
-    "findTime": "Trouver un créneau",
-    "findTimeTitle": "Trouver un créneau",
-    "findTimeSuggested": "Créneaux suggérés",
-    "findTimeNoSlots": "Aucun créneau libre dans la fenêtre de 15 jours.",
-    "findTimeAttendees": "Disponibilité des participants",
-    "findTimeAvailable": "Disponible",
-    "findTimeUnknown": "Inconnu",
-    "findTimeApply": "Appliquer le créneau",
-    "findTimeLoading": "Vérification de la disponibilité…",
-    "findTimeError": "Impossible de récupérer la disponibilité. Le serveur a peut-être désactivé le free/busy.",
-    "findTimeTimeline": "Calendrier des disponibilités",
-    "findTimeModeStrict": "Tous libres",
-    "findTimeModePermissive": "Certains peuvent être occupés",
-    "findTimeRequired": "Obligatoire",
-    "findTimeTimelineBusy": "Occupé",
-    "findTimeTimelineUnavailable": "Indisponible",
-    "findTimeTimelineDragHint": "Faites glisser la poignée pour replanifier l’événement",
-    "findTimeTimelineTip": "Faites glisser la poignée ou appuyez longuement sur une zone verte pour reprogrammer",
-    "findTimeTimelineEvent": "Événement",
-    "findTimePrevDay": "Jour précédent",
-    "findTimeNextDay": "Jour suivant"
+    "alerts": "Alertes"
   },
   "import": {
     "title": "Importer un événement",
@@ -275,11 +268,6 @@
     "weekStart": "Début de semaine",
     "sunday": "Dimanche",
     "monday": "Lundi",
-    "monthView": {
-      "title": "Vue mensuelle",
-      "grid": "Grille",
-      "compact": "Compacte"
-    },
     "calendarZoom": "Zoom du calendrier",
     "reset": "Réinitialiser",
     "zoom": {
@@ -407,8 +395,7 @@
       "openInApp": "Application Nextcloud Talk",
       "openInBrowser": "Navigateur",
       "askEachTime": "Demander à chaque fois"
-    },
-    "tasks": "Tâches"
+    }
   },
   "widget": {
     "liveRemaining": "il reste {{duration}}",
@@ -464,54 +451,5 @@
     "remedy": "Options plus sûres : joindre le serveur via un VPN comme Tailscale ou WireGuard, ou installer un certificat gratuit avec DuckDNS et Let's Encrypt.",
     "connect": "Se connecter quand même",
     "cancel": "Annuler"
-  },
-  "search": {
-    "title": "Rechercher",
-    "placeholder": "Rechercher des événements…",
-    "filters": "FILTRES",
-    "filter": {
-      "calendar": "Dans un calendrier",
-      "attendee": "Avec un participant",
-      "date": "Date",
-      "title": "Dans le titre",
-      "location": "Dans le lieu",
-      "description": "Dans la description"
-    },
-    "hint": {
-      "name": "nom",
-      "person": "personne",
-      "text": "texte"
-    },
-    "more": "Plus de filtres",
-    "moreHint": "titre, lieu, description",
-    "recent": "RÉCENTES",
-    "removeRecent": "Retirer des recherches récentes",
-    "removeFilter": "Retirer le filtre {{filter}}",
-    "use": "Utiliser « {{value}} »",
-    "filterHint": "Filtrer :",
-    "short": {
-      "calendar": "Calendrier",
-      "attendee": "Participant",
-      "date": "Date"
-    },
-    "date": {
-      "today": "Aujourd'hui",
-      "tomorrow": "Demain",
-      "week": "Dans les 7 jours",
-      "month": "Dans le mois",
-      "upcoming": "À venir",
-      "past": "Passés",
-      "before": "Avant une date…",
-      "after": "Après une date…"
-    },
-    "upcoming": "À VENIR",
-    "past": "PASSÉS",
-    "truncated": "Les {{count}} premiers sont affichés, ajoutez un filtre pour affiner",
-    "fromServer": "AUTRES RÉSULTATS DU SERVEUR",
-    "noResults": "Aucun résultat",
-    "noResultsHint": "Essayez moins de filtres ou un mot plus simple.",
-    "offlineNote": "Hors ligne — résultats locaux uniquement",
-    "serverFailed": "Serveur injoignable — résultats locaux uniquement",
-    "openFailed": "Impossible d'ouvrir cet événement"
   }
 }

@@ -20,6 +20,7 @@ export const EVENT_OBSERVED_COLUMNS = [
   'task_status',
   'task_completed_at',
   'task_percent',
+  'attachments',
 ];
 
 export const CALENDAR_OBSERVED_COLUMNS = [

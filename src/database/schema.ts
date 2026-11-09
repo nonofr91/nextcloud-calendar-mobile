@@ -21,6 +21,7 @@ export const mySchema = appSchema({
         { name: 'organizer_email', type: 'string', isOptional: true },
         { name: 'talk_url', type: 'string', isOptional: true },
         { name: 'geo', type: 'string', isOptional: true },
+        { name: 'attachments', type: 'string', isOptional: true },
         { name: 'is_recurring', type: 'boolean', isOptional: true },
         { name: 'rrule', type: 'string', isOptional: true },
         { name: 'recurrence_id', type: 'number', isOptional: true },
