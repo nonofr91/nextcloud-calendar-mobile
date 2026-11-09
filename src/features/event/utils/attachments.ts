@@ -27,6 +27,11 @@ import {
   resolveInternalFile,
   shareDownloadUrl,
 } from '@/services/nextcloud/fileLinks';
+import { ownDavPath } from '@/services/nextcloud/files';
+import {
+  editorForMime,
+  fetchDirectEditors,
+} from '@/services/nextcloud/directEditing';
 import { utf8ToBase64 } from '@/services/shared/base64';
 import { base64Fingerprint, extractEventAttachments } from '@/utils/caldav-parse';
 import i18n from '@/utils/i18n';
@@ -189,7 +194,12 @@ function authHeader(account: Account): string {
   return `Basic ${utf8ToBase64(`${account.username}:${account.appPassword}`)}`;
 }
 
-async function downloadAndShare(
+/**
+ * Downloads `url` (optionally with a Basic auth header) to the attachment
+ * cache and opens the OS share sheet. Also used by the editor screen for
+ * the Direct Editing `downloadAs` message (export endpoints).
+ */
+export async function downloadAndShare(
   url: string,
   att: EventAttachment,
   auth?: string,
@@ -348,6 +358,84 @@ export async function openAttachment(
   } catch (error) {
     console.warn('[attachments] open failed', error);
     Alert.alert(i18n.t('event.attachmentOpenError'));
+  }
+}
+
+/** Extension → MIME for the common cases, used when the ATTACH omits FMTTYPE. */
+const EXT_TO_MIME: Record<string, string> = {
+  md: 'text/markdown',
+  txt: 'text/plain',
+  csv: 'text/csv',
+  html: 'text/html',
+  xml: 'application/xml',
+  json: 'application/json',
+  yaml: 'application/yaml',
+  yml: 'application/yaml',
+};
+
+export function mimeFromName(filename?: string): string | undefined {
+  const ext = filename?.split('.').pop()?.toLowerCase();
+  return ext ? EXT_TO_MIME[ext] : undefined;
+}
+
+/**
+ * Whether the attachment lives in the account's own Files space and could be
+ * opened in a server-side editor — direct DAV URL or `/f/<id>` reference.
+ * `/s/` links (possibly other users' files) and inline blobs are excluded.
+ */
+export function canEditAttachment(
+  att: EventAttachment,
+  account: Account | null,
+): boolean {
+  if (!account || !att.uri || att.base64 || att.inline) return false;
+  return (
+    ownDavPath(account, att.uri) !== null ||
+    internalFileId(account, att.uri) !== null
+  );
+}
+
+/** Everything needed to start a Direct Editing session for an attachment. */
+export type AttachmentEditSession = {
+  /** User-relative Files path (`/Calendar/doc.md`) for `directEditing/open`. */
+  path: string;
+  editorId: string;
+  name: string;
+};
+
+/**
+ * Prepares a Direct Editing session for an own-Files attachment: resolves the
+ * DAV path (including `/f/<id>` links), then picks an editor matching the MIME
+ * type. Returns null (after a localized alert) when not editable.
+ * The caller turns the session into a one-time URL via `openDirectEditingUrl`.
+ */
+export async function prepareAttachmentEdit(
+  att: EventAttachment,
+  account: Account | null,
+): Promise<AttachmentEditSession | null> {
+  if (!account) return null;
+  try {
+    let path = ownDavPath(account, att.uri ?? '');
+    let mime = att.fmttype;
+    if (!path) {
+      const fileId = internalFileId(account, att.uri ?? '');
+      if (fileId != null) {
+        const resolved = await resolveInternalFile(account, fileId);
+        path = resolved?.path ?? null;
+        mime ??= resolved?.mime;
+      }
+    }
+    if (!path) throw new Error('attachment-not-editable');
+    const editors = await fetchDirectEditors(account);
+    const name =
+      att.filename ??
+      decodeURIComponent(path.split('/').filter(Boolean).pop() ?? '');
+    const editor = editorForMime(editors, mime ?? mimeFromName(name));
+    if (!editor) throw new Error('no-editor-for-mime');
+    return { path, editorId: editor.id, name };
+  } catch (error) {
+    console.warn('[attachments] edit prepare failed', error);
+    Alert.alert(i18n.t('event.attachmentEditError'));
+    return null;
   }
 }
 

@@ -12,12 +12,12 @@
     "errorServer": "El servidor no está disponible temporalmente. Inténtalo más tarde.",
     "errorRateLimited": "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
     "errorRateLimitedRetry": "Demasiadas solicitudes. Inténtalo de nuevo en {{seconds}} s.",
-    "back": "Atrás"
+    "back": "Atrás",
+    "retry": "Reintentar"
   },
   "tabs": {
     "calendar": "Calendario",
-    "settings": "Ajustes",
-    "search": "Buscar"
+    "settings": "Ajustes"
   },
   "setup": {
     "brand": "Calendario",
@@ -68,22 +68,13 @@
     "drawerAccount": "CUENTA",
     "manageAccounts": "Gestionar cuentas →",
     "drawerCalendars": "CALENDARIOS",
-    "drawerShared": "CALENDARIOS COMPARTIDOS",
-    "drawerDeck": "DECK",
-    "drawerTasks": "TAREAS",
     "offlineBanner": "Sin conexión — mostrando eventos guardados",
     "noEvents": "Sin eventos",
     "allDay": "Todo el día",
     "noTitle": "(Sin título)",
-    "monthCell": {
-      "a11y": "{{date}}, eventos: {{count}}",
-      "a11yEmpty": "{{date}}, sin eventos",
-      "hint": "Abre la vista del día"
-    },
     "drawerNoCalendars": "Ningún calendario",
     "calendarNotifications": "Notificaciones de {{name}}",
-    "calendarVisibility": "Mostrar {{name}}",
-    "showCompletedTasks": "Mostrar tareas completadas"
+    "calendarVisibility": "Mostrar {{name}}"
   },
   "task": {
     "pending": "Tarea",
@@ -94,10 +85,52 @@
   },
   "search": {
     "title": "Buscar",
-    "placeholder": "Buscar eventos",
-    "hint": "Buscar por título, descripción, ubicación o asistente.",
-    "noResults": "Sin eventos coincidentes",
-    "clear": "Borrar búsqueda"
+    "placeholder": "Buscar eventos…",
+    "filters": "FILTROS",
+    "filter": {
+      "calendar": "En un calendario",
+      "attendee": "Con un asistente",
+      "date": "Fecha",
+      "title": "En el título",
+      "location": "En la ubicación",
+      "description": "En la descripción"
+    },
+    "hint": {
+      "name": "nombre",
+      "person": "persona",
+      "text": "texto"
+    },
+    "more": "Más filtros",
+    "moreHint": "título, ubicación, descripción",
+    "recent": "RECIENTES",
+    "removeRecent": "Quitar de recientes",
+    "removeFilter": "Quitar el filtro {{filter}}",
+    "use": "Usar «{{value}}»",
+    "filterHint": "Filtrar:",
+    "short": {
+      "calendar": "Calendario",
+      "attendee": "Asistente",
+      "date": "Fecha"
+    },
+    "date": {
+      "today": "Hoy",
+      "tomorrow": "Mañana",
+      "week": "En los próximos 7 días",
+      "month": "En el próximo mes",
+      "upcoming": "Próximos",
+      "past": "Pasados",
+      "before": "Antes de una fecha…",
+      "after": "Después de una fecha…"
+    },
+    "upcoming": "PRÓXIMOS",
+    "past": "PASADOS",
+    "truncated": "Se muestran los primeros {{count}}; añade un filtro para acotar",
+    "fromServer": "MÁS RESULTADOS DEL SERVIDOR",
+    "noResults": "Sin resultados",
+    "noResultsHint": "Prueba con menos filtros o una palabra más simple.",
+    "offlineNote": "Sin conexión — mostrando solo resultados locales",
+    "serverFailed": "No se pudo contactar con el servidor — mostrando solo resultados locales",
+    "openFailed": "No se pudo abrir este evento"
   },
   "event": {
     "titleLabel": "Título *",
@@ -108,8 +141,6 @@
     "allDay": "Todo el día",
     "start": "Inicio",
     "end": "Fin",
-    "timezone": "Zona horaria",
-    "timezoneSearch": "Buscar zona horaria",
     "location": "Ubicación",
     "locationPlaceholder": "Sala o dirección",
     "openInMaps": "Open in Maps",
@@ -120,6 +151,8 @@
     "attachments": "Archivos adjuntos",
     "attachmentUntitled": "Archivo adjunto",
     "attachmentOpenError": "No se pudo abrir el archivo adjunto",
+    "attachmentEdit": "Editar adjunto",
+    "attachmentEditError": "No se pudo abrir el editor",
     "attachmentTooLarge": "Este archivo adjunto es demasiado grande",
     "addAttachment": "Añadir archivo adjunto",
     "attachmentAddError": "No se pudo añadir el archivo adjunto",
@@ -222,28 +255,9 @@
     "errorUpdateFailed": "No se pudo actualizar el evento",
     "errorDeleteFailed": "No se pudo eliminar el evento",
     "alerts": "Avisos",
-    "alert": "Alerta",
-    "findTime": "Buscar horario",
-    "findTimeTitle": "Buscar horario",
-    "findTimeSuggested": "Horarios sugeridos",
-    "findTimeNoSlots": "No se encontraron horarios libres en la ventana de 15 días.",
-    "findTimeAttendees": "Disponibilidad de asistentes",
-    "findTimeAvailable": "Disponible",
-    "findTimeUnknown": "Desconocido",
-    "findTimeApply": "Aplicar horario seleccionado",
-    "findTimeLoading": "Comprobando disponibilidad…",
-    "findTimeError": "No se pudo obtener la disponibilidad. El servidor puede tener free/busy desactivado.",
-    "findTimeTimeline": "Cronología de disponibilidad",
-    "findTimeModeStrict": "All free",
-    "findTimeModePermissive": "Some may be busy",
-    "findTimeRequired": "Required",
-    "findTimeTimelineBusy": "Ocupado",
-    "findTimeTimelineUnavailable": "No disponible",
-    "findTimeTimelineDragHint": "Arrastra el control para reprogramar el evento",
-    "findTimeTimelineTip": "Arrastra el control o mantén presionada una zona verde para reprogramar",
-    "findTimeTimelineEvent": "Evento",
-    "findTimePrevDay": "Día anterior",
-    "findTimeNextDay": "Día siguiente"
+    "editorLoadSlow": "El editor tarda más de lo esperado…",
+    "attachNewDocumentHint": "Crear y editar en Nextcloud",
+    "editorActionError": "No se pudo completar la acción"
   },
   "import": {
     "title": "Import Event",
@@ -283,11 +297,6 @@
     "weekStart": "La semana empieza el",
     "sunday": "Domingo",
     "monday": "Lunes",
-    "monthView": {
-      "title": "Vista mensual",
-      "grid": "Cuadrícula",
-      "compact": "Compacta"
-    },
     "calendarZoom": "Zoom del calendario",
     "reset": "Restablecer",
     "zoom": {
@@ -415,8 +424,7 @@
       "openInApp": "Nextcloud Talk app",
       "openInBrowser": "Browser",
       "askEachTime": "Ask each time"
-    },
-    "tasks": "Tareas"
+    }
   },
   "widget": {
     "liveRemaining": "quedan {{duration}}",
@@ -472,54 +480,5 @@
     "calendar": "Calendar",
     "from": "From {{name}}",
     "responseFailed": "Could not respond to the invitation."
-  },
-  "search": {
-    "title": "Buscar",
-    "placeholder": "Buscar eventos…",
-    "filters": "FILTROS",
-    "filter": {
-      "calendar": "En un calendario",
-      "attendee": "Con un asistente",
-      "date": "Fecha",
-      "title": "En el título",
-      "location": "En la ubicación",
-      "description": "En la descripción"
-    },
-    "hint": {
-      "name": "nombre",
-      "person": "persona",
-      "text": "texto"
-    },
-    "more": "Más filtros",
-    "moreHint": "título, ubicación, descripción",
-    "recent": "RECIENTES",
-    "removeRecent": "Quitar de recientes",
-    "removeFilter": "Quitar el filtro {{filter}}",
-    "use": "Usar «{{value}}»",
-    "filterHint": "Filtrar:",
-    "short": {
-      "calendar": "Calendario",
-      "attendee": "Asistente",
-      "date": "Fecha"
-    },
-    "date": {
-      "today": "Hoy",
-      "tomorrow": "Mañana",
-      "week": "En los próximos 7 días",
-      "month": "En el próximo mes",
-      "upcoming": "Próximos",
-      "past": "Pasados",
-      "before": "Antes de una fecha…",
-      "after": "Después de una fecha…"
-    },
-    "upcoming": "PRÓXIMOS",
-    "past": "PASADOS",
-    "truncated": "Se muestran los primeros {{count}}; añade un filtro para acotar",
-    "fromServer": "MÁS RESULTADOS DEL SERVIDOR",
-    "noResults": "Sin resultados",
-    "noResultsHint": "Prueba con menos filtros o una palabra más simple.",
-    "offlineNote": "Sin conexión — mostrando solo resultados locales",
-    "serverFailed": "No se pudo contactar con el servidor — mostrando solo resultados locales",
-    "openFailed": "No se pudo abrir este evento"
   }
 }

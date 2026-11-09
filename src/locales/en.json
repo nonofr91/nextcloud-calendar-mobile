@@ -12,7 +12,8 @@
     "errorServer": "The server is temporarily unavailable. Please try again later.",
     "errorRateLimited": "Too many requests. Please wait a moment and try again.",
     "errorRateLimitedRetry": "Too many requests. Please try again in {{seconds}}s.",
-    "back": "Back"
+    "back": "Back",
+    "retry": "Retry"
   },
   "tabs": {
     "calendar": "Calendar",
@@ -152,6 +153,8 @@
     "attachments": "Attachments",
     "attachmentUntitled": "Attachment",
     "attachmentOpenError": "Could not open this attachment",
+    "attachmentEdit": "Edit attachment",
+    "attachmentEditError": "Could not open the editor",
     "attachmentTooLarge": "This attachment is too large to open",
     "addAttachment": "Add attachment",
     "attachmentAddError": "Could not add the attachment",
@@ -253,7 +256,10 @@
     "errorCreateFailed": "Failed to create event",
     "errorUpdateFailed": "Failed to update event",
     "errorDeleteFailed": "Failed to delete event",
-    "alerts": "Alerts"
+    "alerts": "Alerts",
+    "editorLoadSlow": "The editor is taking longer than expected…",
+    "attachNewDocumentHint": "Create and edit on Nextcloud",
+    "editorActionError": "The action could not be completed"
   },
   "import": {
     "title": "Import Event",

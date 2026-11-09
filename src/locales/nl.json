@@ -12,12 +12,12 @@
     "errorServer": "De server is tijdelijk niet beschikbaar. Probeer het later opnieuw.",
     "errorRateLimited": "Te veel verzoeken. Wacht even en probeer het opnieuw.",
     "errorRateLimitedRetry": "Te veel verzoeken. Probeer het opnieuw over {{seconds}}s.",
-    "back": "Terug"
+    "back": "Terug",
+    "retry": "Opnieuw proberen"
   },
   "tabs": {
     "calendar": "Agenda",
-    "settings": "Instellingen",
-    "search": "Zoeken"
+    "settings": "Instellingen"
   },
   "setup": {
     "brand": "Agenda",
@@ -68,22 +68,13 @@
     "drawerAccount": "ACCOUNT",
     "manageAccounts": "Accounts beheren →",
     "drawerCalendars": "AGENDA'S",
-    "drawerShared": "GEDEELDE AGENDA'S",
-    "drawerDeck": "DECK",
-    "drawerTasks": "TAKEN",
     "offlineBanner": "Offline — opgeslagen afspraken worden getoond",
     "noEvents": "Geen afspraken",
     "allDay": "Hele dag",
     "noTitle": "(Geen titel)",
-    "monthCell": {
-      "a11y": "{{date}}, afspraken: {{count}}",
-      "a11yEmpty": "{{date}}, geen afspraken",
-      "hint": "Opent de dagweergave"
-    },
     "drawerNoCalendars": "Geen agenda",
     "calendarNotifications": "Meldingen van {{name}}",
-    "calendarVisibility": "{{name}} tonen",
-    "showCompletedTasks": "Voltooide taken weergeven"
+    "calendarVisibility": "{{name}} tonen"
   },
   "task": {
     "pending": "Taak",
@@ -94,10 +85,52 @@
   },
   "search": {
     "title": "Zoeken",
-    "placeholder": "Afspraken zoeken",
-    "hint": "Zoek op titel, beschrijving, locatie of deelnemer.",
-    "noResults": "Geen overeenkomende afspraken",
-    "clear": "Zoekopdracht wissen"
+    "placeholder": "Afspraken zoeken…",
+    "filters": "FILTERS",
+    "filter": {
+      "calendar": "In een agenda",
+      "attendee": "Met een deelnemer",
+      "date": "Datum",
+      "title": "In titel",
+      "location": "In locatie",
+      "description": "In beschrijving"
+    },
+    "hint": {
+      "name": "naam",
+      "person": "persoon",
+      "text": "tekst"
+    },
+    "more": "Meer filters",
+    "moreHint": "titel, locatie, beschrijving",
+    "recent": "RECENT",
+    "removeRecent": "Verwijderen uit recent",
+    "removeFilter": "Filter {{filter}} verwijderen",
+    "use": "“{{value}}” gebruiken",
+    "filterHint": "Filteren:",
+    "short": {
+      "calendar": "Agenda",
+      "attendee": "Deelnemer",
+      "date": "Datum"
+    },
+    "date": {
+      "today": "Vandaag",
+      "tomorrow": "Morgen",
+      "week": "Binnen 7 dagen",
+      "month": "Binnen een maand",
+      "upcoming": "Komend",
+      "past": "Voorbij",
+      "before": "Voor een datum…",
+      "after": "Na een datum…"
+    },
+    "upcoming": "KOMEND",
+    "past": "VOORBIJ",
+    "truncated": "De eerste {{count}} worden getoond, voeg een filter toe om te verfijnen",
+    "fromServer": "MEER VAN DE SERVER",
+    "noResults": "Geen resultaten",
+    "noResultsHint": "Probeer minder filters of een eenvoudiger woord.",
+    "offlineNote": "Offline — alleen lokale resultaten",
+    "serverFailed": "Server niet bereikbaar — alleen lokale resultaten",
+    "openFailed": "Kan deze afspraak niet openen"
   },
   "event": {
     "titleLabel": "Titel *",
@@ -108,8 +141,6 @@
     "allDay": "Hele dag",
     "start": "Begin",
     "end": "Einde",
-    "timezone": "Tijdzone",
-    "timezoneSearch": "Tijdzone zoeken",
     "location": "Locatie",
     "locationPlaceholder": "Ruimte of adres",
     "openInMaps": "Open in Maps",
@@ -120,6 +151,8 @@
     "attachments": "Bijlagen",
     "attachmentUntitled": "Bijlage",
     "attachmentOpenError": "Kon deze bijlage niet openen",
+    "attachmentEdit": "Bijlage bewerken",
+    "attachmentEditError": "De editor kon niet worden geopend",
     "attachmentTooLarge": "Deze bijlage is te groot om te openen",
     "addAttachment": "Bijlage toevoegen",
     "attachmentAddError": "Bijlage kon niet worden toegevoegd",
@@ -222,28 +255,9 @@
     "errorUpdateFailed": "Bijwerken van afspraak mislukt",
     "errorDeleteFailed": "Verwijderen van afspraak mislukt",
     "alerts": "Herinneringen",
-    "alert": "Melding",
-    "findTime": "Tijd vinden",
-    "findTimeTitle": "Tijd vinden",
-    "findTimeSuggested": "Voorgestelde tijden",
-    "findTimeNoSlots": "Geen vrije tijden gevonden in het venster van 15 dagen.",
-    "findTimeAttendees": "Beschikbaarheid deelnemers",
-    "findTimeAvailable": "Beschikbaar",
-    "findTimeUnknown": "Onbekend",
-    "findTimeApply": "Geselecteerde tijd toepassen",
-    "findTimeLoading": "Beschikbaarheid controleren…",
-    "findTimeError": "Kon beschikbaarheid niet ophalen. De server heeft mogelijk free/busy uitgeschakeld.",
-    "findTimeTimeline": "Beschikbaarheidsoverzicht",
-    "findTimeModeStrict": "All free",
-    "findTimeModePermissive": "Some may be busy",
-    "findTimeRequired": "Required",
-    "findTimeTimelineBusy": "Bezig",
-    "findTimeTimelineUnavailable": "Niet beschikbaar",
-    "findTimeTimelineDragHint": "Sleep de greep om de gebeurtenis te verplaatsen",
-    "findTimeTimelineTip": "Sleep de greep of houd een groene zone lang ingedrukt om te verplaatsen",
-    "findTimeTimelineEvent": "Gebeurtenis",
-    "findTimePrevDay": "Vorige dag",
-    "findTimeNextDay": "Volgende dag"
+    "editorLoadSlow": "De editor laadt langer dan verwacht…",
+    "attachNewDocumentHint": "Aanmaken en bewerken op Nextcloud",
+    "editorActionError": "De actie kon niet worden uitgevoerd"
   },
   "settings": {
     "title": "Instellingen",
@@ -268,11 +282,6 @@
     "weekStart": "Week begint op",
     "sunday": "Zondag",
     "monday": "Maandag",
-    "monthView": {
-      "title": "Maandweergave",
-      "grid": "Raster",
-      "compact": "Compact"
-    },
     "calendarZoom": "Agendazoom",
     "reset": "Resetten",
     "zoom": {
@@ -400,8 +409,7 @@
       "openInApp": "Nextcloud Talk app",
       "openInBrowser": "Browser",
       "askEachTime": "Ask each time"
-    },
-    "tasks": "Taken"
+    }
   },
   "widget": {
     "liveRemaining": "nog {{duration}}",
@@ -457,54 +465,5 @@
     "calendar": "Calendar",
     "from": "From {{name}}",
     "responseFailed": "Could not respond to the invitation."
-  },
-  "search": {
-    "title": "Zoeken",
-    "placeholder": "Afspraken zoeken…",
-    "filters": "FILTERS",
-    "filter": {
-      "calendar": "In een agenda",
-      "attendee": "Met een deelnemer",
-      "date": "Datum",
-      "title": "In titel",
-      "location": "In locatie",
-      "description": "In beschrijving"
-    },
-    "hint": {
-      "name": "naam",
-      "person": "persoon",
-      "text": "tekst"
-    },
-    "more": "Meer filters",
-    "moreHint": "titel, locatie, beschrijving",
-    "recent": "RECENT",
-    "removeRecent": "Verwijderen uit recent",
-    "removeFilter": "Filter {{filter}} verwijderen",
-    "use": "“{{value}}” gebruiken",
-    "filterHint": "Filteren:",
-    "short": {
-      "calendar": "Agenda",
-      "attendee": "Deelnemer",
-      "date": "Datum"
-    },
-    "date": {
-      "today": "Vandaag",
-      "tomorrow": "Morgen",
-      "week": "Binnen 7 dagen",
-      "month": "Binnen een maand",
-      "upcoming": "Komend",
-      "past": "Voorbij",
-      "before": "Voor een datum…",
-      "after": "Na een datum…"
-    },
-    "upcoming": "KOMEND",
-    "past": "VOORBIJ",
-    "truncated": "De eerste {{count}} worden getoond, voeg een filter toe om te verfijnen",
-    "fromServer": "MEER VAN DE SERVER",
-    "noResults": "Geen resultaten",
-    "noResultsHint": "Probeer minder filters of een eenvoudiger woord.",
-    "offlineNote": "Offline — alleen lokale resultaten",
-    "serverFailed": "Server niet bereikbaar — alleen lokale resultaten",
-    "openFailed": "Kan deze afspraak niet openen"
   }
 }

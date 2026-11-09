@@ -4,13 +4,20 @@ import * as Sharing from 'expo-sharing';
 import {
   attachmentDisplayName,
   attachmentIcon,
+  canEditAttachment,
+  prepareAttachmentEdit,
   formatBytes,
   isOpenableAttachment,
+  mimeFromName,
   openAttachment,
 } from '../../../src/features/event/utils/attachments';
 import { trustedFetch, ResponseTooLargeError } from '../../../src/services/shared/trustedFetch';
 import { fetchEventIcs } from '../../../src/services/nextcloud/caldav';
 import { base64Fingerprint } from '../../../src/utils/caldav-parse';
+import {
+  fetchDirectEditors,
+  openDirectEditingUrl,
+} from '../../../src/services/nextcloud/directEditing';
 import type { Account, EventAttachment } from '../../../src/types';
 
 jest.mock('expo-file-system/legacy', () => ({
@@ -30,6 +37,13 @@ jest.mock('expo-sharing', () => ({
 jest.mock('../../../src/services/shared/trustedFetch', () => ({
   trustedFetch: jest.fn(),
   ResponseTooLargeError: class ResponseTooLargeError extends Error {},
+}));
+
+jest.mock('../../../src/services/nextcloud/directEditing', () => ({
+  fetchDirectEditors: jest.fn(),
+  openDirectEditingUrl: jest.fn(),
+  editorForMime:
+    jest.requireActual('../../../src/services/nextcloud/directEditing').editorForMime,
 }));
 
 jest.mock('../../../src/services/nextcloud/caldav', () => ({
@@ -525,5 +539,101 @@ END:VCALENDAR`;
       expect(Alert.alert).toHaveBeenCalledWith('Could not open this attachment');
       expect(mockedFetchIcs).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('canEditAttachment', () => {
+  const acc = account({ baseUrl: 'https://cloud.example.com', davUserId: 'alice' });
+  const dav = 'https://cloud.example.com/remote.php/dav/files/alice/Calendar/a.txt';
+
+  it('accepts own DAV URLs and /f/<id> references', () => {
+    expect(canEditAttachment({ uri: dav }, acc)).toBe(true);
+    expect(canEditAttachment({ uri: 'https://cloud.example.com/f/326' }, acc)).toBe(true);
+    expect(canEditAttachment({ uri: '/f/326' }, acc)).toBe(true);
+  });
+
+  it('rejects shares, foreign files, inline and base64 content', () => {
+    expect(canEditAttachment({ uri: 'https://cloud.example.com/s/tok' }, acc)).toBe(false);
+    expect(canEditAttachment({ uri: 'https://other.tld/f.pdf' }, acc)).toBe(false);
+    expect(canEditAttachment({ base64: 'aGk=' }, acc)).toBe(false);
+    expect(canEditAttachment({ inline: true, filename: 'a.txt' }, acc)).toBe(false);
+    expect(canEditAttachment({ uri: dav }, null)).toBe(false);
+  });
+});
+
+describe('prepareAttachmentEdit', () => {
+  const textEditor = {
+    id: 'text',
+    name: 'Nextcloud Text',
+    mimetypes: ['text/plain', 'text/markdown'],
+    optionalMimetypes: [],
+  };
+
+  it('resolves the DAV path and matching editor', async () => {
+    (fetchDirectEditors as jest.Mock).mockResolvedValue([textEditor]);
+
+    const session = await prepareAttachmentEdit(
+      {
+        uri: 'https://cloud.example.com/remote.php/dav/files/alice/Calendar/note.txt',
+        filename: 'note.txt',
+        fmttype: 'text/plain',
+      },
+      account({ baseUrl: 'https://cloud.example.com', davUserId: 'alice' }),
+    );
+
+    expect(session).toEqual({
+      path: '/Calendar/note.txt',
+      editorId: 'text',
+      name: 'note.txt',
+    });
+  });
+
+  it('falls back to a filename-based mime when FMTTYPE is missing', async () => {
+    (fetchDirectEditors as jest.Mock).mockResolvedValue([textEditor]);
+
+    const session = await prepareAttachmentEdit(
+      { uri: 'https://cloud.example.com/remote.php/dav/files/alice/note.md' },
+      account({ baseUrl: 'https://cloud.example.com', davUserId: 'alice' }),
+    );
+
+    expect(session).toEqual({
+      path: '/note.md',
+      editorId: 'text',
+      name: 'note.md',
+    });
+  });
+
+  it('alerts when no editor supports the mime type', async () => {
+    (fetchDirectEditors as jest.Mock).mockResolvedValue([textEditor]);
+
+    const session = await prepareAttachmentEdit(
+      {
+        uri: 'https://cloud.example.com/remote.php/dav/files/alice/big.zip',
+        fmttype: 'application/zip',
+      },
+      account({ baseUrl: 'https://cloud.example.com', davUserId: 'alice' }),
+    );
+
+    expect(session).toBeNull();
+    expect(Alert.alert).toHaveBeenCalledWith('Could not open the editor');
+  });
+
+  it('alerts for attachments outside own Files space', async () => {
+    await prepareAttachmentEdit(
+      { uri: 'https://other.tld/f.pdf' },
+      account({ baseUrl: 'https://cloud.example.com' }),
+    );
+    expect(Alert.alert).toHaveBeenCalledWith('Could not open the editor');
+    expect(fetchDirectEditors).not.toHaveBeenCalled();
+  });
+});
+
+describe('mimeFromName', () => {
+  it('maps common text extensions', () => {
+    expect(mimeFromName('note.md')).toBe('text/markdown');
+    expect(mimeFromName('a.txt')).toBe('text/plain');
+    expect(mimeFromName('data.CSV')).toBe('text/csv');
+    expect(mimeFromName('bin.exe')).toBeUndefined();
+    expect(mimeFromName(undefined)).toBeUndefined();
   });
 });

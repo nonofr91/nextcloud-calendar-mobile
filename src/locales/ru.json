@@ -12,12 +12,12 @@
     "errorServer": "Сервер временно недоступен. Повторите попытку позже.",
     "errorRateLimited": "Слишком много запросов. Подождите немного и повторите попытку.",
     "errorRateLimitedRetry": "Слишком много запросов. Повторите попытку через {{seconds}} с.",
-    "back": "Назад"
+    "back": "Назад",
+    "retry": "Повторить"
   },
   "tabs": {
     "calendar": "Календарь",
-    "settings": "Настройки",
-    "search": "Поиск"
+    "settings": "Настройки"
   },
   "setup": {
     "brand": "Календарь",
@@ -68,22 +68,13 @@
     "drawerAccount": "АККАУНТ",
     "manageAccounts": "Управление аккаунтами →",
     "drawerCalendars": "КАЛЕНДАРИ",
-    "drawerShared": "ОБЩИЕ КАЛЕНДАРИ",
-    "drawerDeck": "DECK",
-    "drawerTasks": "ЗАДАЧИ",
     "offlineBanner": "Офлайн — показаны сохранённые события",
     "noEvents": "Нет событий",
     "allDay": "Весь день",
     "noTitle": "(Без названия)",
-    "monthCell": {
-      "a11y": "{{date}}, событий: {{count}}",
-      "a11yEmpty": "{{date}}, нет событий",
-      "hint": "Открывает вид дня"
-    },
     "drawerNoCalendars": "Нет календарей",
     "calendarNotifications": "Уведомления календаря «{{name}}»",
-    "calendarVisibility": "Показывать «{{name}}»",
-    "showCompletedTasks": "Показывать завершённые задачи"
+    "calendarVisibility": "Показывать «{{name}}»"
   },
   "task": {
     "pending": "Задача",
@@ -94,10 +85,52 @@
   },
   "search": {
     "title": "Поиск",
-    "placeholder": "Поиск событий",
-    "hint": "Поиск по названию, описанию, месту или участнику.",
-    "noResults": "События не найдены",
-    "clear": "Очистить поиск"
+    "placeholder": "Поиск событий…",
+    "filters": "ФИЛЬТРЫ",
+    "filter": {
+      "calendar": "В календаре",
+      "attendee": "С участником",
+      "date": "Дата",
+      "title": "В названии",
+      "location": "В месте",
+      "description": "В описании"
+    },
+    "hint": {
+      "name": "название",
+      "person": "пользователь",
+      "text": "текст"
+    },
+    "more": "Другие фильтры",
+    "moreHint": "название, место, описание",
+    "recent": "НЕДАВНИЕ",
+    "removeRecent": "Удалить из недавних",
+    "removeFilter": "Удалить фильтр {{filter}}",
+    "use": "Использовать «{{value}}»",
+    "filterHint": "Фильтр:",
+    "short": {
+      "calendar": "Календарь",
+      "attendee": "Участник",
+      "date": "Дата"
+    },
+    "date": {
+      "today": "Сегодня",
+      "tomorrow": "Завтра",
+      "week": "В ближайшие 7 дней",
+      "month": "В течение месяца",
+      "upcoming": "Предстоящие",
+      "past": "Прошедшие",
+      "before": "До даты…",
+      "after": "После даты…"
+    },
+    "upcoming": "ПРЕДСТОЯЩИЕ",
+    "past": "ПРОШЕДШИЕ",
+    "truncated": "Показаны первые {{count}} — добавьте фильтр, чтобы сузить поиск",
+    "fromServer": "ЕЩЁ РЕЗУЛЬТАТЫ С СЕРВЕРА",
+    "noResults": "Нет результатов",
+    "noResultsHint": "Попробуйте меньше фильтров или более простое слово.",
+    "offlineNote": "Нет подключения — показаны только локальные результаты",
+    "serverFailed": "Не удалось связаться с сервером — показаны только локальные результаты",
+    "openFailed": "Не удалось открыть это событие"
   },
   "event": {
     "titleLabel": "Название *",
@@ -108,8 +141,6 @@
     "allDay": "Весь день",
     "start": "Начало",
     "end": "Конец",
-    "timezone": "Часовой пояс",
-    "timezoneSearch": "Поиск часового пояса",
     "location": "Место",
     "locationPlaceholder": "Помещение или адрес",
     "openInMaps": "Open in Maps",
@@ -120,6 +151,8 @@
     "attachments": "Вложения",
     "attachmentUntitled": "Вложение",
     "attachmentOpenError": "Не удалось открыть вложение",
+    "attachmentEdit": "Изменить вложение",
+    "attachmentEditError": "Не удалось открыть редактор",
     "attachmentTooLarge": "Это вложение слишком большое",
     "addAttachment": "Добавить вложение",
     "attachmentAddError": "Не удалось добавить вложение",
@@ -222,28 +255,9 @@
     "errorUpdateFailed": "Не удалось обновить событие",
     "errorDeleteFailed": "Не удалось удалить событие",
     "alerts": "Напоминания",
-    "alert": "Напоминание",
-    "findTime": "Найти время",
-    "findTimeTitle": "Найти время",
-    "findTimeSuggested": "Предложенные слоты",
-    "findTimeNoSlots": "Свободных слотов в 15-дневном окне не найдено.",
-    "findTimeAttendees": "Доступность участников",
-    "findTimeAvailable": "Доступен",
-    "findTimeUnknown": "Неизвестно",
-    "findTimeApply": "Применить выбранный слот",
-    "findTimeLoading": "Проверка доступности…",
-    "findTimeError": "Не удалось получить данные о доступности. Сервер может отключить free/busy.",
-    "findTimeTimeline": "График доступности",
-    "findTimeModeStrict": "All free",
-    "findTimeModePermissive": "Some may be busy",
-    "findTimeRequired": "Required",
-    "findTimeTimelineBusy": "Занят",
-    "findTimeTimelineUnavailable": "Недоступно",
-    "findTimeTimelineDragHint": "Перетащите маркер, чтобы изменить время события",
-    "findTimeTimelineTip": "Перетащите маркер или долго нажмите на зелёную зону, чтобы изменить время",
-    "findTimeTimelineEvent": "Событие",
-    "findTimePrevDay": "Предыдущий день",
-    "findTimeNextDay": "Следующий день"
+    "editorLoadSlow": "Редактор загружается дольше обычного…",
+    "attachNewDocumentHint": "Создать и изменить в Nextcloud",
+    "editorActionError": "Не удалось выполнить действие"
   },
   "import": {
     "title": "Import Event",
@@ -283,11 +297,6 @@
     "weekStart": "Начало недели",
     "sunday": "Воскресенье",
     "monday": "Понедельник",
-    "monthView": {
-      "title": "Вид месяца",
-      "grid": "Сетка",
-      "compact": "Компактный"
-    },
     "calendarZoom": "Масштаб календаря",
     "reset": "Сбросить",
     "zoom": {
@@ -415,8 +424,7 @@
       "openInApp": "Nextcloud Talk app",
       "openInBrowser": "Browser",
       "askEachTime": "Ask each time"
-    },
-    "tasks": "Задачи"
+    }
   },
   "widget": {
     "liveRemaining": "осталось {{duration}}",
@@ -472,54 +480,5 @@
     "calendar": "Calendar",
     "from": "From {{name}}",
     "responseFailed": "Could not respond to the invitation."
-  },
-  "search": {
-    "title": "Поиск",
-    "placeholder": "Поиск событий…",
-    "filters": "ФИЛЬТРЫ",
-    "filter": {
-      "calendar": "В календаре",
-      "attendee": "С участником",
-      "date": "Дата",
-      "title": "В названии",
-      "location": "В месте",
-      "description": "В описании"
-    },
-    "hint": {
-      "name": "название",
-      "person": "пользователь",
-      "text": "текст"
-    },
-    "more": "Другие фильтры",
-    "moreHint": "название, место, описание",
-    "recent": "НЕДАВНИЕ",
-    "removeRecent": "Удалить из недавних",
-    "removeFilter": "Удалить фильтр {{filter}}",
-    "use": "Использовать «{{value}}»",
-    "filterHint": "Фильтр:",
-    "short": {
-      "calendar": "Календарь",
-      "attendee": "Участник",
-      "date": "Дата"
-    },
-    "date": {
-      "today": "Сегодня",
-      "tomorrow": "Завтра",
-      "week": "В ближайшие 7 дней",
-      "month": "В течение месяца",
-      "upcoming": "Предстоящие",
-      "past": "Прошедшие",
-      "before": "До даты…",
-      "after": "После даты…"
-    },
-    "upcoming": "ПРЕДСТОЯЩИЕ",
-    "past": "ПРОШЕДШИЕ",
-    "truncated": "Показаны первые {{count}} — добавьте фильтр, чтобы сузить поиск",
-    "fromServer": "ЕЩЁ РЕЗУЛЬТАТЫ С СЕРВЕРА",
-    "noResults": "Нет результатов",
-    "noResultsHint": "Попробуйте меньше фильтров или более простое слово.",
-    "offlineNote": "Нет подключения — показаны только локальные результаты",
-    "serverFailed": "Не удалось связаться с сервером — показаны только локальные результаты",
-    "openFailed": "Не удалось открыть это событие"
   }
 }
