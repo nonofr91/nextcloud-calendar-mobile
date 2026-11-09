@@ -35,6 +35,27 @@ export function hostnameOf(url: string): string {
   }
 }
 
+// Deterministic per-account accent used on merged views (agenda tag, legend).
+// Derived from the account id so it survives list reordering — not user-picked.
+const ACCOUNT_TAG_COLORS = [
+  '#0082c9', '#2d9f5d', '#b250c7', '#d97706',
+  '#d63b5c', '#0e9594', '#7a6ff0', '#8a6d3b',
+] as const;
+
+export function accountTagColor(accountId: string): string {
+  let hash = 0;
+  for (const ch of accountId) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  return ACCOUNT_TAG_COLORS[hash % ACCOUNT_TAG_COLORS.length];
+}
+
+// Compact "Name · host" tag — the Penpot multi-account language. Skips the
+// host when the display name already spells it out.
+export function accountTagLabel(account: Account): string {
+  const name = account.displayName || account.username;
+  const host = hostnameOf(account.baseUrl);
+  return name && name !== host ? `${name} · ${host}` : name || host;
+}
+
 export function diffProfile(account: Account, patch: AccountProfilePatch): AccountProfilePatch {
   const changes: AccountProfilePatch = {};
   const displayName = normalize(patch.displayName);
