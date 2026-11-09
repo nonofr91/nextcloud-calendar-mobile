@@ -1,5 +1,6 @@
 import ICAL from 'ical.js';
 import type { CalendarEvent, Attendee } from '@/types';
+import { taskIsCompleted } from '@/utils/vtodo';
 import { yieldToUI } from '@/utils/scheduling';
 import { isValidTimeZone, zonedWallTimeToUtc } from '@/utils/timezone';
 import { NO_ALARM_PROP, triggerToMinutes } from '@/features/notifications/alerts';
@@ -303,6 +304,17 @@ function parseVtodo(
   }
 
   const rruleProp = vtodo.getFirstProperty('rrule');
+  const statusRaw = vtodo.getFirstPropertyValue('status');
+  const taskStatus = typeof statusRaw === 'string' ? statusRaw.toUpperCase() : undefined;
+
+  const percentRaw = vtodo.getFirstPropertyValue('percent-complete');
+  const percentNum = percentRaw == null ? NaN : Number(percentRaw);
+  const taskPercent = Number.isFinite(percentNum) ? percentNum : undefined;
+
+  const completedProp = propTime(vtodo.getFirstProperty('completed'));
+  const taskCompletedAt = completedProp
+    ? resolveInstant(completedProp.time, completedProp.tzid)
+    : undefined;
 
   return {
     uid,
@@ -322,6 +334,10 @@ function parseVtodo(
     rrule: rruleProp ? rruleProp.toICALString() : undefined,
     alarms: alarmMinutesList(vtodo),
     isTask: true,
+    taskStatus,
+    taskCompletedAt,
+    taskPercent,
+    taskCompleted: taskIsCompleted(taskStatus, taskCompletedAt, taskPercent),
   };
 }
 

@@ -110,6 +110,9 @@ Create, view, and edit calendar events with support for:
 - Accept, tentatively accept, or decline CalDAV invitations, with the ability to change your response later
 - **Find a time / Free-Busy** — check attendee availability via CalDAV and drag the event to a free slot
 
+### Tasks
+Tasks (VTODO) from your calendars — including Nextcloud Tasks lists and Deck cards — appear alongside events with a checkbox. Tap the checkbox in any calendar view (or the button in the detail screen) to complete or reopen a task; completed tasks show struck through and can be hidden via the "Show completed tasks" toggle in the drawer.
+
 ### Nextcloud Talk Integration
 Optionally attach a Nextcloud Talk room to any event at creation time, the Talk link is stored in the event and surfaced in the event detail view.
 

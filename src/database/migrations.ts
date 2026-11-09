@@ -7,7 +7,12 @@ export const migrations = schemaMigrations({
       steps: [
         addColumns({
           table: 'events',
-          columns: [{ name: 'geo', type: 'string', isOptional: true }],
+          columns: [
+            { name: 'geo', type: 'string', isOptional: true },
+            { name: 'task_status', type: 'string', isOptional: true },
+            { name: 'task_completed_at', type: 'number', isOptional: true },
+            { name: 'task_percent', type: 'number', isOptional: true },
+          ],
         }),
       ],
     },
