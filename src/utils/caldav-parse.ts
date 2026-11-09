@@ -379,6 +379,8 @@ function parseVtodo(
     ? resolveInstant(completedProp.time, completedProp.tzid)
     : undefined;
 
+  const rruleProp = vtodo.getFirstProperty('rrule');
+
   return {
     uid,
     href,
@@ -392,7 +394,8 @@ function parseVtodo(
     allDay,
     color: meta.color,
     attendees: [],
-    isRecurring: false,
+    isRecurring: !!rruleProp,
+    rrule: rruleProp ? rruleProp.toICALString() : undefined,
     alarms: alarmMinutesList(vtodo),
     isTask: true,
     timezone: anchor.time.isDate ? undefined : anchor.tzid,
