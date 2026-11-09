@@ -300,7 +300,9 @@
     "status": "Status",
     "statusConfirmed": "Confirmed",
     "statusTentative": "Tentative",
-    "statusCancelled": "Cancelled"
+    "statusCancelled": "Cancelled",
+    "shareTalkLink": "Share Talk link",
+    "sendLinkToAttendees": "Send to attendees"
   },
   "settings": {
     "title": "Astellungen",
@@ -496,7 +498,9 @@
       "openWithHint": "Wiel aus, wéi Urufflinken an Terminer standardméisseg opgemaach ginn. Hal de Knäppchen „Talk-Raum bäitrieden“ gedréckt, fir dëst eemoleg z'änneren.",
       "openInApp": "Nextcloud Talk-App",
       "openInBrowser": "Browser",
-      "askEachTime": "All Kéier froen"
+      "askEachTime": "All Kéier froen",
+      "callReminder": "Call reminder",
+      "callReminderHint": "Notify 5 minutes before a Talk call"
     },
     "tasks": "Tasks",
     "places": {
@@ -549,7 +553,8 @@
       "invited": "Invited",
       "response": "Response",
       "unknown": "Update"
-    }
+    },
+    "joinCall": "Join call"
   },
   "certTrust": {
     "title": "Net vertrauenswierdegt Zertifikat",

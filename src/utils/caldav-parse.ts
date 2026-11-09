@@ -4,14 +4,13 @@ import { taskIsCompleted } from '@/utils/vtodo';
 import { yieldToUI } from '@/utils/scheduling';
 import { isValidTimeZone, zonedWallTimeToUtc } from '@/utils/timezone';
 import { NO_ALARM_PROP, triggerToMinutes } from '@/features/notifications/alerts';
+import { extractTalkUrl } from '@/utils/talkLink';
 
 interface ParseCalMeta {
   calendarId: string;
   accountId: string;
   color: string;
 }
-
-const TALK_URL_PATTERN = /\/call\//;
 
 const MAX_OCCURRENCES = 1000;
 // Hard bound on iterator steps, independent of emitted occurrences: an
@@ -287,11 +286,16 @@ function exceptionFields(vevent: ICAL.Component): Partial<OverridableFields> {
   const location = vevent.getFirstPropertyValue('location');
   if (typeof location === 'string') {
     fields.location = location;
-    fields.talkUrl = TALK_URL_PATTERN.test(location) ? location : undefined;
   } else if (vevent.getFirstProperty('x-apple-structured-location')) {
     const title = appleLocationTitle(vevent);
     if (title) fields.location = title;
   }
+  const talkUrl = extractTalkUrl(
+    typeof location === 'string' ? location : fields.location,
+    fields.description,
+    vevent,
+  );
+  if (talkUrl) fields.talkUrl = talkUrl;
 
   const attendeeProps = vevent.getAllProperties('attendee');
   if (attendeeProps.length) fields.attendees = readAttendees(attendeeProps);
@@ -500,7 +504,7 @@ export function parseIcsItem(
       const attendees = readAttendees(vevent.getAllProperties('attendee'));
 
       const location = icalEvent.location ?? appleLocationTitle(vevent) ?? undefined;
-      const talkUrl = location && TALK_URL_PATTERN.test(location) ? location : undefined;
+      const talkUrl = extractTalkUrl(location, icalEvent.description ?? undefined, vevent);
 
       const organizerEmail = organizerEmailOf(vevent);
 

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert, Text, Linking } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, Text, Linking, Share } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 import { haptic } from '@/utils/haptics';
 import {
   Pencil, Clock, CalendarDays, MapPin, Video, Repeat, Trash2, Copy, Check, Bell,
-  Navigation, CopyPlus, Mail, ListTodo, SquareCheck, Plus, Globe, Smartphone, FolderOpen, FilePlus2, Ban, Info, EyeOff,
+  Navigation, CopyPlus, Mail, ListTodo, SquareCheck, Plus, Globe, Smartphone, FolderOpen, FilePlus2, Ban, Info, EyeOff, Share2,
 } from 'lucide-react-native';
 import { useLocalSearchParams, useNavigation, useRouter, useTheme } from 'expo-router';
 import dayjs from 'dayjs';
@@ -135,7 +135,7 @@ export default function EventDetailScreen() {
   const copyResetRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(copyResetRef.current), []);
 
-  const { coordinates, isVirtual } = useEventLocation(event?.location, event?.talkUrl, event?.geo);
+  const { coordinates, isVirtual } = useEventLocation(event?.location, event?.geo);
 
   const handleCopyLocation = useCallback(async () => {
     if (!event?.location) return;
@@ -305,6 +305,30 @@ export default function EventDetailScreen() {
             ],
     );
   }, [attachments, eventAccount, t]);
+
+ // Resend the Talk link: generic share sheet, or a mail to the attendees.
+  function shareTalkLink() {
+    if (!event?.talkUrl) return;
+    const message = `${event.summary || t('calendar.noTitle')}\n${event.talkUrl}`;
+    const emails = event.attendees.map((a) => a.email).filter(Boolean);
+    if (emails.length === 0) {
+      void Share.share({ message });
+      return;
+    }
+    Alert.alert(t('event.shareTalkLink'), undefined, [
+      {
+        text: t('event.sendLinkToAttendees'),
+        onPress: () => {
+          const href = `mailto:?bcc=${encodeURIComponent(emails.join(','))}&subject=${encodeURIComponent(
+            event.summary || '',
+          )}&body=${encodeURIComponent(event.talkUrl!)}`;
+          void Linking.openURL(href).catch(() => void Share.share({ message }));
+        },
+      },
+      { text: t('event.shareTalkLink'), onPress: () => void Share.share({ message }) },
+      { text: t('common.cancel'), style: 'cancel' },
+    ]);
+  }
 
   const recurrenceScopeStrings: RecurrenceScopeStrings = {
     message: t('event.recurrenceScopeMessage'),
@@ -673,14 +697,25 @@ export default function EventDetailScreen() {
             />
 
             {event.talkUrl && (
-              <Button
-                testID="event-detail-join"
-                variant="primary"
-                title={t('event.joinTalkRoom')}
-                icon={<Video size={18} color="#fff" />}
-                onPress={() => openTalkRoom(event.talkUrl!, talkOpenMode)}
-                onLongPress={() => promptTalkRoomOpen(event.talkUrl!)}
-              />
+              <Stack direction="horizontal" gap={8} vAlign="center">
+                <View style={{ flex: 1 }}>
+                  <Button
+                    testID="event-detail-join"
+                    variant="primary"
+                    title={t('event.joinTalkRoom')}
+                    icon={<Video size={18} color="#fff" />}
+                    onPress={() => openTalkRoom(event.talkUrl!, talkOpenMode)}
+                    onLongPress={() => promptTalkRoomOpen(event.talkUrl!)}
+                  />
+                </View>
+                <IconButton
+                  testID="event-detail-share-talk"
+                  accessibilityLabel={t('event.shareTalkLink')}
+                  onPress={() => shareTalkLink()}
+                >
+                  <Share2 size={20} color={theme.colors.primary} />
+                </IconButton>
+              </Stack>
             )}
 
             {event.description && (

@@ -119,7 +119,10 @@ Tasks (VTODO) from your calendars — including Nextcloud Tasks lists and Deck c
 - Event duplication from the detail view — a byte-level copy of the stored event (attendees, alarms, recurrence, overrides) under a fresh UID
 
 ### Nextcloud Talk Integration
-Optionally attach a Nextcloud Talk room to any event at creation time, the Talk link is stored in the event and surfaced in the event detail view.
+- Optionally attach a Nextcloud Talk room to any event at creation time; the Talk link is stored in the event and surfaced in the event detail view
+- **Join in one tap** — Talk links are detected from `LOCATION`, `DESCRIPTION`, or `CONFERENCE` properties (matching the web convention), even for events created on another server
+- **Call reminders** — events with a Talk link get an extra local notification 5 minutes before start (configurable in Settings → Talk); the notification's "Join call" action opens Talk directly, and tapping the notification opens the event detail
+- **Resend the link** — share the Talk link or send it to all attendees from the event detail
 
 ### Home Screen Widgets & Live Activities
 Keep your agenda glanceable without opening the app:

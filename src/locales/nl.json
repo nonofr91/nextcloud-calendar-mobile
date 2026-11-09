@@ -87,10 +87,10 @@
     "drawerNoCalendars": "Geen agenda",
     "calendarNotifications": "Meldingen van {{name}}",
     "calendarVisibility": "{{name}} tonen",
+    "pendingSync": "{{count}} wijziging(en) in de wacht — tik om opnieuw te proberen",
     "syncError": "Synchronisatie mislukt — tik om opnieuw te proberen",
     "sevenDays": "7D",
-    "showCompletedTasks": "Voltooide taken weergeven",
-    "pendingSync": "{{count}} wijziging(en) in de wacht — tik om opnieuw te proberen"
+    "showCompletedTasks": "Voltooide taken weergeven"
   },
   "event": {
     "titleLabel": "Titel *",
@@ -107,6 +107,7 @@
     "description": "Omschrijving",
     "descriptionPlaceholder": "Details...",
     "attendees": "Deelnemers",
+    "organizer": "Organisator",
     "attendeePlaceholder": "email@voorbeeld.com",
     "add": "Toevoegen",
     "saving": "Opslaan…",
@@ -186,6 +187,23 @@
     "errorUpdateFailed": "Bijwerken van afspraak mislukt",
     "errorDeleteFailed": "Verwijderen van afspraak mislukt",
     "alerts": "Herinneringen",
+    "findTime": "Tijd vinden",
+    "findTimeTitle": "Tijd vinden",
+    "findTimeLoading": "Vrije tijden zoeken…",
+    "findTimeNone": "Geen vrije tijd die dag.",
+    "findTimeError": "Beschikbaarheid kon niet worden geladen.",
+    "createQueued": "Lokaal opgeslagen — wordt verzonden zodra de verbinding terug is.",
+    "deleteQueued": "Lokaal verwijderd — wordt verwijderd van de server zodra de verbinding terug is.",
+    "queueCreateDropped": "De aanmaak kon niet naar de server worden verzonden — de lokale gebeurtenis is verwijderd.",
+    "queueDeleteDropped": "Het verwijderen kon niet naar de server worden verzonden — de gebeurtenis verschijnt opnieuw bij de volgende synchronisatie.",
+    "queueUpdateDropped": "De wijziging kon niet naar de server worden verzonden — de gebeurtenis wordt opnieuw gesynchroniseerd.",
+    "availability": "Beschikbaarheid",
+    "availabilityBusy": "Bezet",
+    "availabilityFree": "Vrij",
+    "status": "Status",
+    "statusConfirmed": "Bevestigd",
+    "statusTentative": "Voorlopig",
+    "statusCancelled": "Geannuleerd",
     "myParticipation": "My participation",
     "participationAccepted": "You are going",
     "participationTentative": "You might go",
@@ -206,16 +224,12 @@
     "locationPermissionDenied": "Locatietoestemming is vereist om je positie te gebruiken",
     "locationUnavailable": "Kan je huidige locatie niet ophalen",
     "alert": "Melding",
-    "findTime": "Tijd vinden",
-    "findTimeTitle": "Tijd vinden",
     "findTimeSuggested": "Voorgestelde tijden",
     "findTimeNoSlots": "Geen vrije tijden gevonden in het venster van 15 dagen.",
     "findTimeAttendees": "Beschikbaarheid deelnemers",
     "findTimeAvailable": "Beschikbaar",
     "findTimeUnknown": "Onbekend",
     "findTimeApply": "Geselecteerde tijd toepassen",
-    "findTimeLoading": "Beschikbaarheid controleren…",
-    "findTimeError": "Kon beschikbaarheid niet ophalen. De server heeft mogelijk free/busy uitgeschakeld.",
     "findTimeTimeline": "Beschikbaarheidsoverzicht",
     "findTimeModeStrict": "All free",
     "findTimeModePermissive": "Some may be busy",
@@ -287,20 +301,8 @@
     "attachmentTypeVideo": "Video",
     "attachmentTypeArchive": "Archief",
     "attachmentTypeText": "Tekst",
-    "organizer": "Organisator",
-    "findTimeNone": "Geen vrije tijd die dag.",
-    "createQueued": "Lokaal opgeslagen — wordt verzonden zodra de verbinding terug is.",
-    "deleteQueued": "Lokaal verwijderd — wordt verwijderd van de server zodra de verbinding terug is.",
-    "queueCreateDropped": "De aanmaak kon niet naar de server worden verzonden — de lokale gebeurtenis is verwijderd.",
-    "queueDeleteDropped": "Het verwijderen kon niet naar de server worden verzonden — de gebeurtenis verschijnt opnieuw bij de volgende synchronisatie.",
-    "queueUpdateDropped": "De wijziging kon niet naar de server worden verzonden — de gebeurtenis wordt opnieuw gesynchroniseerd.",
-    "availability": "Beschikbaarheid",
-    "availabilityBusy": "Bezet",
-    "availabilityFree": "Vrij",
-    "status": "Status",
-    "statusConfirmed": "Bevestigd",
-    "statusTentative": "Voorlopig",
-    "statusCancelled": "Geannuleerd"
+    "shareTalkLink": "Talk-link delen",
+    "sendLinkToAttendees": "Naar deelnemers sturen"
   },
   "settings": {
     "title": "Instellingen",
@@ -496,7 +498,15 @@
       "openWithHint": "Choose how event call links open by default. Long-press the Join Talk Room button to override.",
       "openInApp": "Nextcloud Talk app",
       "openInBrowser": "Browser",
-      "askEachTime": "Ask each time"
+      "askEachTime": "Ask each time",
+      "callReminder": "Oproepherinnering",
+      "callReminderHint": "Melding 5 minuten voor een Talk-gesprek"
+    },
+    "voice": {
+      "title": "Spraakassistent",
+      "tierNote": "Lokale opdrachten blijven op het apparaat; vrije vragen gebruiken de Nextcloud-assistent wanneer de server die aanbiedt.",
+      "availabilityTitle": "Agenda's die meetellen voor beschikbaarheid",
+      "availabilityHint": "Slotzoekopdracht negeert uitgeschakelde agenda's."
     },
     "tasks": "Taken",
     "places": {
@@ -512,12 +522,6 @@
       "saveError": "Kan deze plaats niet opslaan.",
       "deleteTitle": "Plaats verwijderen",
       "deleteBody": "\"{{name}}\" verwijderen?"
-    },
-    "voice": {
-      "title": "Spraakassistent",
-      "tierNote": "Lokale opdrachten blijven op het apparaat; vrije vragen gebruiken de Nextcloud-assistent wanneer de server die aanbiedt.",
-      "availabilityTitle": "Agenda's die meetellen voor beschikbaarheid",
-      "availabilityHint": "Slotzoekopdracht negeert uitgeschakelde agenda's."
     }
   },
   "widget": {
@@ -549,100 +553,8 @@
       "invited": "Invited",
       "response": "Response",
       "unknown": "Update"
-    }
-  },
-  "certTrust": {
-    "title": "Niet-vertrouwd certificaat",
-    "body": "De server {{host}} heeft een certificaat aangeboden dat niet is ondertekend door een bekende autoriteit.",
-    "warning": "Ga alleen verder als deze vingerafdruk overeenkomt met je server. Een verkeerde vingerafdruk betekent dat iemand je verbinding kan onderscheppen.",
-    "fingerprint": "SHA-256-vingerafdruk",
-    "subject": "Uitgegeven aan",
-    "issuer": "Uitgegeven door",
-    "validFrom": "Geldig vanaf",
-    "validTo": "Geldig tot",
-    "trust": "Vertrouwen en verbinden",
-    "cancel": "Annuleren"
-  },
-  "cleartext": {
-    "title": "Onversleutelde verbinding",
-    "body": "De verbinding met {{host}} is niet versleuteld. Je gebruikersnaam en app-wachtwoord zouden als platte tekst over het netwerk worden verzonden.",
-    "warning": "Iedereen tussen deze telefoon en de server — de wifibeheerder, je internetprovider, elk netwerk ertussen — kan je wachtwoord en agendagegevens meelezen. Een Nextcloud app-wachtwoord geeft toegang tot je hele account, niet alleen tot de agenda.",
-    "remedy": "Veiligere opties: de server bereiken via een VPN zoals Tailscale of WireGuard, of een gratis certificaat instellen met DuckDNS en Let's Encrypt.",
-    "connect": "Toch verbinden",
-    "cancel": "Annuleren"
-  },
-  "invitations": {
-    "title": "Invitations",
-    "noInvitations": "No pending invitations.",
-    "accept": "Accept",
-    "decline": "Decline",
-    "tentative": "Maybe",
-    "accepted": "Accepted",
-    "declined": "Declined",
-    "organizer": "From",
-    "selectCalendar": "Add to calendar",
-    "loading": "Loading invitations…",
-    "error": "Could not load invitations.",
-    "calendar": "Calendar",
-    "from": "From {{name}}",
-    "responseFailed": "Could not respond to the invitation."
-  },
-  "search": {
-    "title": "Zoeken",
-    "placeholder": "Afspraken zoeken…",
-    "filters": "FILTERS",
-    "filter": {
-      "calendar": "In een agenda",
-      "attendee": "Met een deelnemer",
-      "date": "Datum",
-      "title": "In titel",
-      "location": "In locatie",
-      "description": "In beschrijving"
     },
-    "hint": {
-      "name": "naam",
-      "person": "persoon",
-      "text": "tekst"
-    },
-    "more": "Meer filters",
-    "moreHint": "titel, locatie, beschrijving",
-    "recent": "RECENT",
-    "removeRecent": "Verwijderen uit recent",
-    "removeFilter": "Filter {{filter}} verwijderen",
-    "use": "“{{value}}” gebruiken",
-    "filterHint": "Filteren:",
-    "short": {
-      "calendar": "Agenda",
-      "attendee": "Deelnemer",
-      "date": "Datum"
-    },
-    "date": {
-      "today": "Vandaag",
-      "tomorrow": "Morgen",
-      "week": "Binnen 7 dagen",
-      "month": "Binnen een maand",
-      "upcoming": "Komend",
-      "past": "Voorbij",
-      "before": "Voor een datum…",
-      "after": "Na een datum…"
-    },
-    "upcoming": "KOMEND",
-    "past": "VOORBIJ",
-    "truncated": "De eerste {{count}} worden getoond, voeg een filter toe om te verfijnen",
-    "fromServer": "MEER VAN DE SERVER",
-    "noResults": "Geen resultaten",
-    "noResultsHint": "Probeer minder filters of een eenvoudiger woord.",
-    "offlineNote": "Offline — alleen lokale resultaten",
-    "serverFailed": "Server niet bereikbaar — alleen lokale resultaten",
-    "openFailed": "Kan deze afspraak niet openen",
-    "clear": "Zoekopdracht wissen"
-  },
-  "task": {
-    "pending": "Taak",
-    "completed": "Voltooid",
-    "completedWithDate": "Voltooid op {{date}}",
-    "markCompleted": "Markeren als voltooid",
-    "markNotCompleted": "Markeren als niet voltooid"
+    "joinCall": "Deelnemen aan gesprek"
   },
   "briefing": {
     "listen": "Mijn dag beluisteren",
@@ -704,6 +616,76 @@
     "pickAltSlot": "kies een vrij tijdstip:",
     "withAttendees": "met {{names}}"
   },
+  "certTrust": {
+    "title": "Niet-vertrouwd certificaat",
+    "body": "De server {{host}} heeft een certificaat aangeboden dat niet is ondertekend door een bekende autoriteit.",
+    "warning": "Ga alleen verder als deze vingerafdruk overeenkomt met je server. Een verkeerde vingerafdruk betekent dat iemand je verbinding kan onderscheppen.",
+    "fingerprint": "SHA-256-vingerafdruk",
+    "subject": "Uitgegeven aan",
+    "issuer": "Uitgegeven door",
+    "validFrom": "Geldig vanaf",
+    "validTo": "Geldig tot",
+    "trust": "Vertrouwen en verbinden",
+    "cancel": "Annuleren"
+  },
+  "cleartext": {
+    "title": "Onversleutelde verbinding",
+    "body": "De verbinding met {{host}} is niet versleuteld. Je gebruikersnaam en app-wachtwoord zouden als platte tekst over het netwerk worden verzonden.",
+    "warning": "Iedereen tussen deze telefoon en de server — de wifibeheerder, je internetprovider, elk netwerk ertussen — kan je wachtwoord en agendagegevens meelezen. Een Nextcloud app-wachtwoord geeft toegang tot je hele account, niet alleen tot de agenda.",
+    "remedy": "Veiligere opties: de server bereiken via een VPN zoals Tailscale of WireGuard, of een gratis certificaat instellen met DuckDNS en Let's Encrypt.",
+    "connect": "Toch verbinden",
+    "cancel": "Annuleren"
+  },
+  "search": {
+    "title": "Zoeken",
+    "placeholder": "Afspraken zoeken…",
+    "filters": "FILTERS",
+    "filter": {
+      "calendar": "In een agenda",
+      "attendee": "Met een deelnemer",
+      "date": "Datum",
+      "title": "In titel",
+      "location": "In locatie",
+      "description": "In beschrijving"
+    },
+    "hint": {
+      "name": "naam",
+      "person": "persoon",
+      "text": "tekst"
+    },
+    "more": "Meer filters",
+    "moreHint": "titel, locatie, beschrijving",
+    "recent": "RECENT",
+    "removeRecent": "Verwijderen uit recent",
+    "removeFilter": "Filter {{filter}} verwijderen",
+    "use": "“{{value}}” gebruiken",
+    "filterHint": "Filteren:",
+    "short": {
+      "calendar": "Agenda",
+      "attendee": "Deelnemer",
+      "date": "Datum"
+    },
+    "date": {
+      "today": "Vandaag",
+      "tomorrow": "Morgen",
+      "week": "Binnen 7 dagen",
+      "month": "Binnen een maand",
+      "upcoming": "Komend",
+      "past": "Voorbij",
+      "before": "Voor een datum…",
+      "after": "Na een datum…"
+    },
+    "upcoming": "KOMEND",
+    "past": "VOORBIJ",
+    "truncated": "De eerste {{count}} worden getoond, voeg een filter toe om te verfijnen",
+    "fromServer": "MEER VAN DE SERVER",
+    "noResults": "Geen resultaten",
+    "noResultsHint": "Probeer minder filters of een eenvoudiger woord.",
+    "offlineNote": "Offline — alleen lokale resultaten",
+    "serverFailed": "Server niet bereikbaar — alleen lokale resultaten",
+    "openFailed": "Kan deze afspraak niet openen",
+    "clear": "Zoekopdracht wissen"
+  },
   "ai": {
     "title": "AI-assistent",
     "enable": "AI-functies inschakelen",
@@ -730,5 +712,28 @@
       "next": "volgende:",
       "at": "om"
     }
+  },
+  "invitations": {
+    "title": "Invitations",
+    "noInvitations": "No pending invitations.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "tentative": "Maybe",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "organizer": "From",
+    "selectCalendar": "Add to calendar",
+    "loading": "Loading invitations…",
+    "error": "Could not load invitations.",
+    "calendar": "Calendar",
+    "from": "From {{name}}",
+    "responseFailed": "Could not respond to the invitation."
+  },
+  "task": {
+    "pending": "Taak",
+    "completed": "Voltooid",
+    "completedWithDate": "Voltooid op {{date}}",
+    "markCompleted": "Markeren als voltooid",
+    "markNotCompleted": "Markeren als niet voltooid"
   }
 }

@@ -97,7 +97,7 @@ describe('useEventLocation', () => {
     mockIsOnline.mockReturnValue(false);
 
     const { result } = renderHook(() =>
-      useEventLocation('Salle Orion', undefined, { lat: 48.8566, lon: 2.3522 }),
+      useEventLocation('Salle Orion', { lat: 48.8566, lon: 2.3522 }),
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -113,7 +113,7 @@ describe('useEventLocation', () => {
     const fetchSpy = jest.spyOn(globalThis as any, 'fetch');
 
     const { result } = renderHook(() =>
-      useEventLocation('geo:1.0,1.0', undefined, { lat: 48.8566, lon: 2.3522 }),
+      useEventLocation('geo:1.0,1.0', { lat: 48.8566, lon: 2.3522 }),
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -127,7 +127,7 @@ describe('useEventLocation', () => {
 
   it('ignores invalid stored geo and falls back to parsing', async () => {
     const { result } = renderHook(() =>
-      useEventLocation('geo:48.8566,2.3522', undefined, { lat: NaN, lon: 0 }),
+      useEventLocation('geo:48.8566,2.3522', { lat: NaN, lon: 0 }),
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
 

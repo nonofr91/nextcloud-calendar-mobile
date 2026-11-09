@@ -14,7 +14,6 @@ export type UseEventLocationResult = {
 
 export function useEventLocation(
     location: string | undefined,
-    talkUrl?: string,
     geo?: { lat: number; lon: number },
 ): UseEventLocationResult {
     const {i18n} = useTranslation();
@@ -36,7 +35,7 @@ export function useEventLocation(
             };
         }
 
-        if (isVirtualLocation(location, talkUrl)) {
+        if (isVirtualLocation(location)) {
             setState({coordinates: null, isVirtual: true, loading: false});
             return () => {
                 active.current = false;
@@ -82,7 +81,7 @@ export function useEventLocation(
         return () => {
             active.current = false;
         };
-    }, [location, talkUrl, geo?.lat, geo?.lon, i18n.language, online]);
+    }, [location, geo?.lat, geo?.lon, i18n.language, online]);
 
     return state;
 }

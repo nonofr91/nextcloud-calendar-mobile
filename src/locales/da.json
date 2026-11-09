@@ -300,7 +300,9 @@
     "status": "Status",
     "statusConfirmed": "Confirmed",
     "statusTentative": "Tentative",
-    "statusCancelled": "Cancelled"
+    "statusCancelled": "Cancelled",
+    "shareTalkLink": "Share Talk link",
+    "sendLinkToAttendees": "Send to attendees"
   },
   "settings": {
     "title": "Indstillinger",
@@ -496,7 +498,9 @@
       "openWithHint": "Vælg, hvordan links til opkald i begivenheder åbnes som standard. Tryk længe på knappen Deltag i Talk-rum for at vælge noget andet.",
       "openInApp": "Nextcloud Talk-appen",
       "openInBrowser": "Browser",
-      "askEachTime": "Spørg hver gang"
+      "askEachTime": "Spørg hver gang",
+      "callReminder": "Call reminder",
+      "callReminderHint": "Notify 5 minutes before a Talk call"
     },
     "tasks": "Tasks",
     "places": {
@@ -549,7 +553,8 @@
       "invited": "Invited",
       "response": "Response",
       "unknown": "Update"
-    }
+    },
+    "joinCall": "Join call"
   },
   "certTrust": {
     "title": "Ikke-betroet certifikat",

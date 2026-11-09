@@ -87,10 +87,10 @@
     "drawerNoCalendars": "Nessun calendario",
     "calendarNotifications": "Notifiche di {{name}}",
     "calendarVisibility": "Mostra {{name}}",
+    "pendingSync": "{{count}} modifica/he in attesa — tocca per riprovare",
     "syncError": "Sincronizzazione non riuscita — tocca per riprovare",
     "sevenDays": "7G",
-    "showCompletedTasks": "Mostra attività completate",
-    "pendingSync": "{{count}} modifica/he in attesa — tocca per riprovare"
+    "showCompletedTasks": "Mostra attività completate"
   },
   "event": {
     "titleLabel": "Titolo *",
@@ -107,6 +107,7 @@
     "description": "Descrizione",
     "descriptionPlaceholder": "Dettagli...",
     "attendees": "Partecipanti",
+    "organizer": "Organizzatore",
     "attendeePlaceholder": "email@example.com",
     "add": "Aggiungi",
     "saving": "Salvataggio…",
@@ -186,6 +187,23 @@
     "errorUpdateFailed": "Aggiornamento dell'evento non riuscito",
     "errorDeleteFailed": "Eliminazione dell'evento non riuscita",
     "alerts": "Avvisi",
+    "findTime": "Trova un orario",
+    "findTimeTitle": "Trova un orario",
+    "findTimeLoading": "Ricerca degli orari liberi…",
+    "findTimeNone": "Nessun orario libero quel giorno.",
+    "findTimeError": "Impossibile caricare le disponibilità.",
+    "createQueued": "Salvato in locale — sarà inviato al server quando torna la connessione.",
+    "deleteQueued": "Eliminato in locale — sarà rimosso dal server quando torna la connessione.",
+    "queueCreateDropped": "Impossibile inviare la creazione al server — l'evento locale è stato rimosso.",
+    "queueDeleteDropped": "Impossibile inviare l'eliminazione al server — l'evento riapparirà alla prossima sincronizzazione.",
+    "queueUpdateDropped": "Impossibile inviare la modifica al server — l'evento verrà risincronizzato.",
+    "availability": "Disponibilità",
+    "availabilityBusy": "Occupato",
+    "availabilityFree": "Libero",
+    "status": "Stato",
+    "statusConfirmed": "Confermato",
+    "statusTentative": "Provvisorio",
+    "statusCancelled": "Annullato",
     "myParticipation": "My participation",
     "participationAccepted": "You are going",
     "participationTentative": "You might go",
@@ -206,16 +224,12 @@
     "locationPermissionDenied": "È necessaria l'autorizzazione alla posizione per usare la tua posizione",
     "locationUnavailable": "Impossibile ottenere la posizione attuale",
     "alert": "Avviso",
-    "findTime": "Trova orario",
-    "findTimeTitle": "Trova orario",
     "findTimeSuggested": "Orari suggeriti",
     "findTimeNoSlots": "Nessun orario libero trovato nella finestra di 15 giorni.",
     "findTimeAttendees": "Disponibilità partecipanti",
     "findTimeAvailable": "Disponibile",
     "findTimeUnknown": "Sconosciuto",
     "findTimeApply": "Applica orario selezionato",
-    "findTimeLoading": "Verifica disponibilità…",
-    "findTimeError": "Impossibile recuperare la disponibilità. Il server potrebbe avere free/busy disabilitato.",
     "findTimeTimeline": "Cronologia delle disponibilità",
     "findTimeModeStrict": "All free",
     "findTimeModePermissive": "Some may be busy",
@@ -287,20 +301,8 @@
     "attachmentTypeVideo": "Video",
     "attachmentTypeArchive": "Archivio",
     "attachmentTypeText": "Testo",
-    "organizer": "Organizzatore",
-    "findTimeNone": "Nessun orario libero quel giorno.",
-    "createQueued": "Salvato in locale — sarà inviato al server quando torna la connessione.",
-    "deleteQueued": "Eliminato in locale — sarà rimosso dal server quando torna la connessione.",
-    "queueCreateDropped": "Impossibile inviare la creazione al server — l'evento locale è stato rimosso.",
-    "queueDeleteDropped": "Impossibile inviare l'eliminazione al server — l'evento riapparirà alla prossima sincronizzazione.",
-    "queueUpdateDropped": "Impossibile inviare la modifica al server — l'evento verrà risincronizzato.",
-    "availability": "Disponibilità",
-    "availabilityBusy": "Occupato",
-    "availabilityFree": "Libero",
-    "status": "Stato",
-    "statusConfirmed": "Confermato",
-    "statusTentative": "Provvisorio",
-    "statusCancelled": "Annullato"
+    "shareTalkLink": "Condividi link Talk",
+    "sendLinkToAttendees": "Invia ai partecipanti"
   },
   "settings": {
     "title": "Impostazioni",
@@ -496,7 +498,15 @@
       "openWithHint": "Choose how event call links open by default. Long-press the Join Talk Room button to override.",
       "openInApp": "Nextcloud Talk app",
       "openInBrowser": "Browser",
-      "askEachTime": "Ask each time"
+      "askEachTime": "Ask each time",
+      "callReminder": "Promemoria chiamata",
+      "callReminderHint": "Notifica 5 minuti prima di una chiamata Talk"
+    },
+    "voice": {
+      "title": "Assistente vocale",
+      "tierNote": "I comandi locali restano sul dispositivo; le domande libere usano l'assistente Nextcloud quando il server lo offre.",
+      "availabilityTitle": "Calendari che contano per la disponibilità",
+      "availabilityHint": "La ricerca di fasce ignora i calendari disattivati."
     },
     "tasks": "Attività",
     "places": {
@@ -512,12 +522,6 @@
       "saveError": "Impossibile salvare questo luogo.",
       "deleteTitle": "Elimina luogo",
       "deleteBody": "Eliminare «{{name}}»?"
-    },
-    "voice": {
-      "title": "Assistente vocale",
-      "tierNote": "I comandi locali restano sul dispositivo; le domande libere usano l'assistente Nextcloud quando il server lo offre.",
-      "availabilityTitle": "Calendari che contano per la disponibilità",
-      "availabilityHint": "La ricerca di fasce ignora i calendari disattivati."
     }
   },
   "widget": {
@@ -549,115 +553,8 @@
       "invited": "Invited",
       "response": "Response",
       "unknown": "Update"
-    }
-  },
-  "certTrust": {
-    "title": "Certificato non attendibile",
-    "body": "Il server {{host}} ha presentato un certificato non firmato da un'autorità nota.",
-    "warning": "Continua solo se questa impronta corrisponde al tuo server. Un'impronta errata significa che qualcuno potrebbe intercettare la tua connessione.",
-    "fingerprint": "Impronta SHA-256",
-    "subject": "Rilasciato a",
-    "issuer": "Rilasciato da",
-    "validFrom": "Valido dal",
-    "validTo": "Valido fino al",
-    "trust": "Autorizza e connetti",
-    "cancel": "Annulla"
-  },
-  "cleartext": {
-    "title": "Connessione non cifrata",
-    "body": "La connessione a {{host}} non è cifrata. Il tuo nome utente e la password dell'app verrebbero inviati in chiaro sulla rete.",
-    "warning": "Chiunque si trovi tra questo telefono e il server — gestore del Wi-Fi, provider internet, qualsiasi rete intermedia — può leggere la password e i dati del calendario. Una password dell'app Nextcloud dà accesso all'intero account, non solo al calendario.",
-    "remedy": "Opzioni più sicure: raggiungere il server tramite una VPN come Tailscale o WireGuard, oppure configurare un certificato gratuito con DuckDNS e Let's Encrypt.",
-    "connect": "Connetti comunque",
-    "cancel": "Annulla"
-  },
-  "import": {
-    "title": "Import Event",
-    "selectEvent": "Select an event to import",
-    "noEventsFound": "No events found in this file.",
-    "fileError": "Could not read the file.",
-    "parseError": "Could not parse the .ics file.",
-    "importEvent": "Import Event",
-    "retry": "Retry",
-    "back": "Back",
-    "errorNoAccount": "Please set up a Nextcloud account first.",
-    "untitledEvent": "(No title)",
-    "duplicateTitle": "Event already exists",
-    "duplicateMessage": "An event with this identifier already exists in the selected calendar. Importing will overwrite it.",
-    "overwrite": "Overwrite"
-  },
-  "invitations": {
-    "title": "Invitations",
-    "noInvitations": "No pending invitations.",
-    "accept": "Accept",
-    "decline": "Decline",
-    "tentative": "Maybe",
-    "accepted": "Accepted",
-    "declined": "Declined",
-    "organizer": "From",
-    "selectCalendar": "Add to calendar",
-    "loading": "Loading invitations…",
-    "error": "Could not load invitations.",
-    "calendar": "Calendar",
-    "from": "From {{name}}",
-    "responseFailed": "Could not respond to the invitation."
-  },
-  "search": {
-    "title": "Cerca",
-    "placeholder": "Cerca eventi…",
-    "filters": "FILTRI",
-    "filter": {
-      "calendar": "In un calendario",
-      "attendee": "Con un partecipante",
-      "date": "Data",
-      "title": "Nel titolo",
-      "location": "Nel luogo",
-      "description": "Nella descrizione"
     },
-    "hint": {
-      "name": "nome",
-      "person": "persona",
-      "text": "testo"
-    },
-    "more": "Altri filtri",
-    "moreHint": "titolo, luogo, descrizione",
-    "recent": "RECENTI",
-    "removeRecent": "Rimuovi dai recenti",
-    "removeFilter": "Rimuovi il filtro {{filter}}",
-    "use": "Usa «{{value}}»",
-    "filterHint": "Filtra:",
-    "short": {
-      "calendar": "Calendario",
-      "attendee": "Partecipante",
-      "date": "Data"
-    },
-    "date": {
-      "today": "Oggi",
-      "tomorrow": "Domani",
-      "week": "Nei prossimi 7 giorni",
-      "month": "Entro un mese",
-      "upcoming": "In arrivo",
-      "past": "Passati",
-      "before": "Prima di una data…",
-      "after": "Dopo una data…"
-    },
-    "upcoming": "IN ARRIVO",
-    "past": "PASSATI",
-    "truncated": "Mostrati i primi {{count}}: aggiungi un filtro per restringere",
-    "fromServer": "ALTRI RISULTATI DAL SERVER",
-    "noResults": "Nessun risultato",
-    "noResultsHint": "Prova con meno filtri o una parola più semplice.",
-    "offlineNote": "Offline — vengono mostrati solo i risultati locali",
-    "serverFailed": "Impossibile raggiungere il server — vengono mostrati solo i risultati locali",
-    "openFailed": "Impossibile aprire questo evento",
-    "clear": "Cancella ricerca"
-  },
-  "task": {
-    "pending": "Attività",
-    "completed": "Completata",
-    "completedWithDate": "Completata il {{date}}",
-    "markCompleted": "Segna come completata",
-    "markNotCompleted": "Segna come non completata"
+    "joinCall": "Unisciti alla chiamata"
   },
   "briefing": {
     "listen": "Ascolta la mia giornata",
@@ -719,6 +616,76 @@
     "pickAltSlot": "scegli un orario libero:",
     "withAttendees": "con {{names}}"
   },
+  "certTrust": {
+    "title": "Certificato non attendibile",
+    "body": "Il server {{host}} ha presentato un certificato non firmato da un'autorità nota.",
+    "warning": "Continua solo se questa impronta corrisponde al tuo server. Un'impronta errata significa che qualcuno potrebbe intercettare la tua connessione.",
+    "fingerprint": "Impronta SHA-256",
+    "subject": "Rilasciato a",
+    "issuer": "Rilasciato da",
+    "validFrom": "Valido dal",
+    "validTo": "Valido fino al",
+    "trust": "Autorizza e connetti",
+    "cancel": "Annulla"
+  },
+  "cleartext": {
+    "title": "Connessione non cifrata",
+    "body": "La connessione a {{host}} non è cifrata. Il tuo nome utente e la password dell'app verrebbero inviati in chiaro sulla rete.",
+    "warning": "Chiunque si trovi tra questo telefono e il server — gestore del Wi-Fi, provider internet, qualsiasi rete intermedia — può leggere la password e i dati del calendario. Una password dell'app Nextcloud dà accesso all'intero account, non solo al calendario.",
+    "remedy": "Opzioni più sicure: raggiungere il server tramite una VPN come Tailscale o WireGuard, oppure configurare un certificato gratuito con DuckDNS e Let's Encrypt.",
+    "connect": "Connetti comunque",
+    "cancel": "Annulla"
+  },
+  "search": {
+    "title": "Cerca",
+    "placeholder": "Cerca eventi…",
+    "filters": "FILTRI",
+    "filter": {
+      "calendar": "In un calendario",
+      "attendee": "Con un partecipante",
+      "date": "Data",
+      "title": "Nel titolo",
+      "location": "Nel luogo",
+      "description": "Nella descrizione"
+    },
+    "hint": {
+      "name": "nome",
+      "person": "persona",
+      "text": "testo"
+    },
+    "more": "Altri filtri",
+    "moreHint": "titolo, luogo, descrizione",
+    "recent": "RECENTI",
+    "removeRecent": "Rimuovi dai recenti",
+    "removeFilter": "Rimuovi il filtro {{filter}}",
+    "use": "Usa «{{value}}»",
+    "filterHint": "Filtra:",
+    "short": {
+      "calendar": "Calendario",
+      "attendee": "Partecipante",
+      "date": "Data"
+    },
+    "date": {
+      "today": "Oggi",
+      "tomorrow": "Domani",
+      "week": "Nei prossimi 7 giorni",
+      "month": "Entro un mese",
+      "upcoming": "In arrivo",
+      "past": "Passati",
+      "before": "Prima di una data…",
+      "after": "Dopo una data…"
+    },
+    "upcoming": "IN ARRIVO",
+    "past": "PASSATI",
+    "truncated": "Mostrati i primi {{count}}: aggiungi un filtro per restringere",
+    "fromServer": "ALTRI RISULTATI DAL SERVER",
+    "noResults": "Nessun risultato",
+    "noResultsHint": "Prova con meno filtri o una parola più semplice.",
+    "offlineNote": "Offline — vengono mostrati solo i risultati locali",
+    "serverFailed": "Impossibile raggiungere il server — vengono mostrati solo i risultati locali",
+    "openFailed": "Impossibile aprire questo evento",
+    "clear": "Cancella ricerca"
+  },
   "ai": {
     "title": "Assistente IA",
     "enable": "Abilita funzioni IA",
@@ -745,5 +712,43 @@
       "next": "prossimo:",
       "at": "alle"
     }
+  },
+  "import": {
+    "title": "Import Event",
+    "selectEvent": "Select an event to import",
+    "noEventsFound": "No events found in this file.",
+    "fileError": "Could not read the file.",
+    "parseError": "Could not parse the .ics file.",
+    "importEvent": "Import Event",
+    "retry": "Retry",
+    "back": "Back",
+    "errorNoAccount": "Please set up a Nextcloud account first.",
+    "untitledEvent": "(No title)",
+    "duplicateTitle": "Event already exists",
+    "duplicateMessage": "An event with this identifier already exists in the selected calendar. Importing will overwrite it.",
+    "overwrite": "Overwrite"
+  },
+  "invitations": {
+    "title": "Invitations",
+    "noInvitations": "No pending invitations.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "tentative": "Maybe",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "organizer": "From",
+    "selectCalendar": "Add to calendar",
+    "loading": "Loading invitations…",
+    "error": "Could not load invitations.",
+    "calendar": "Calendar",
+    "from": "From {{name}}",
+    "responseFailed": "Could not respond to the invitation."
+  },
+  "task": {
+    "pending": "Attività",
+    "completed": "Completata",
+    "completedWithDate": "Completata il {{date}}",
+    "markCompleted": "Segna come completata",
+    "markNotCompleted": "Segna come non completata"
   }
 }
