@@ -184,7 +184,7 @@ describe('EventDetailScreen attachments', () => {
     expect(queryByLabelText('Remove attachment')).toBeNull();
   });
 
-  it('lists each attachment with its filename, MIME type and size', () => {
+  it('lists each attachment with its filename, type label and size', () => {
     mockEvent = event({
       attachments: [
         {
@@ -199,9 +199,9 @@ describe('EventDetailScreen attachments', () => {
     const { getByText } = render(<EventDetailScreen />, { wrapper });
     expect(getByText('Attachments')).toBeTruthy();
     expect(getByText('doc.pdf')).toBeTruthy();
-    expect(getByText('application/pdf · 2.0 KB')).toBeTruthy();
+    expect(getByText('PDF · 2.0 KB')).toBeTruthy();
     expect(getByText('note.txt')).toBeTruthy();
-    expect(getByText('text/plain')).toBeTruthy();
+    expect(getByText('Text')).toBeTruthy();
   });
 
   it('uses the untitled fallback when an attachment has no filename', () => {
