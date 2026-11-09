@@ -31,6 +31,11 @@ export function attendeeColor(email: string): string {
   return ATTENDEE_COLORS[djb2(key) % ATTENDEE_COLORS.length];
 }
 
+const ATTENDEE_PARAM_KEYS = [
+  'partstat', 'role', 'rsvp', 'cutype', 'member', 'delegatedTo', 'delegatedFrom',
+  'sentBy', 'scheduleAgent', 'scheduleStatus', 'scheduleForceSend',
+] as const;
+
 export function dedupeAttendees(attendees: Attendee[]): Attendee[] {
   const byEmail = new Map<string, Attendee>();
   const result: Attendee[] = [];
@@ -52,6 +57,15 @@ export function dedupeAttendees(attendees: Attendee[]): Attendee[] {
 
     if (!seen.displayName && attendee.displayName) {
       seen.displayName = attendee.displayName;
+    }
+    // First occurrence wins per parameter; later duplicates only fill gaps.
+    for (const key of ATTENDEE_PARAM_KEYS) {
+      if (seen[key] === undefined && attendee[key] !== undefined) {
+        (seen as Record<string, unknown>)[key] = attendee[key];
+      }
+    }
+    if (attendee.extraParams) {
+      seen.extraParams = { ...attendee.extraParams, ...seen.extraParams };
     }
   }
 

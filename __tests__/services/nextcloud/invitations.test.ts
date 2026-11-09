@@ -224,7 +224,7 @@ describe('updateAttendeeStatus', () => {
     expect(postUnfolded).toContain('PARTSTAT=TENTATIVE');
 
     expect(nextAttendees).toEqual([
-      { email: 'bob@example.com', displayName: 'Bob', partstat: 'tentative', role: 'REQ-PARTICIPANT' },
+      { email: 'bob@example.com', displayName: 'Bob', partstat: 'tentative', role: 'REQ-PARTICIPANT', cutype: 'INDIVIDUAL', rsvp: false },
     ]);
   });
 
