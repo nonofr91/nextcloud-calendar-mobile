@@ -172,6 +172,7 @@ export interface BuildIcsParams extends ExtraLines {
     summary: string;
     description: string;
     location: string;
+    geo?: { lat: number; lon: number };
     dtstart: Date;
     dtend: Date;
     organizerEmail: string;
@@ -183,12 +184,17 @@ export interface BuildIcsParams extends ExtraLines {
     sequence?: number;
 }
 
+function geoLine(geo?: { lat: number; lon: number }): string[] {
+    return geo ? [`GEO:${geo.lat};${geo.lon}`] : [];
+}
+
 export function buildIcs(params: BuildIcsParams): string {
     const {
         uid,
         summary,
         description,
         location,
+        geo,
         dtstart,
         dtend,
         organizerEmail,
@@ -208,6 +214,7 @@ export function buildIcs(params: BuildIcsParams): string {
         `DTSTART;TZID=${timezone}:${localStamp(dtstart, timezone)}`,
         `DTEND;TZID=${timezone}:${localStamp(dtend, timezone)}`,
         ...textLines(summary, description, location),
+        ...geoLine(geo),
         ...(rrule ? [rruleLine(rrule)] : []),
         ...schedulingLines(organizerName, organizerEmail, attendees),
         ...extraLines,
@@ -223,6 +230,7 @@ export function buildAllDayIcs(params: BuildAllDayIcsParams): string {
         summary,
         description,
         location,
+        geo,
         dtstart,
         dtend,
         organizerEmail,
@@ -242,6 +250,7 @@ export function buildAllDayIcs(params: BuildAllDayIcsParams): string {
         `DTSTART;VALUE=DATE:${dateStamp(dtstart)}`,
         `DTEND;VALUE=DATE:${dateStamp(endExclusive)}`,
         ...textLines(summary, description, location),
+        ...geoLine(geo),
         ...(rrule ? [rruleLine(rrule, true)] : []),
         ...schedulingLines(organizerName, organizerEmail, attendees),
         ...extraLines,
@@ -255,6 +264,7 @@ export function buildExceptionIcs(params: BuildIcsParams & { recurrenceId: Date;
         summary,
         description,
         location,
+        geo,
         dtstart,
         dtend,
         organizerEmail,
@@ -287,6 +297,7 @@ export function buildExceptionIcs(params: BuildIcsParams & { recurrenceId: Date;
         `SEQUENCE:${sequence}`,
         ...dates,
         ...textLines(summary, description, location),
+        ...geoLine(geo),
         ...schedulingLines(organizerName, organizerEmail, attendees),
         ...extraLines,
         ...alarmLines(alarms),
