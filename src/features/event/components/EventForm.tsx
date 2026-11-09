@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from 'expo-router';
 import { TalkToggle } from './TalkToggle';
 import { AttendeesField } from './AttendeesField';
-import { FindTimeSheet } from './FindTimeSheet';
 import { FindTimeSuggestSheet } from './FindTimeSuggestSheet';
 import { useFindTimeStore } from '@/features/event/stores/findTimeStore';
 import { AttachmentsField } from './AttachmentsField';
