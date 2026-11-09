@@ -15,6 +15,9 @@ import {
   AGENDA_FUTURE_DAYS, AGENDA_PAST_DAYS, agendaRowKey, buildAgendaSections,
 } from '../utils/agendaSections';
 import { useAccounts } from '@/hooks/useAccounts';
+import { accountTagLabel, hostnameOf } from '@/features/account/utils/account';
+import { AvatarImage } from '@/components/AvatarImage';
+import { ServerIcon } from '@/components/ServerIcon';
 import { isEventPending } from '@/utils/eventPending';
 
 dayjs.extend(localizedFormat);
@@ -72,17 +75,21 @@ const DayHeader = memo(({ sectionDate, hasEvents, theme, onPress }: DayHeaderPro
 interface EventRowProps {
   event: CalendarEvent;
   theme: Theme;
+  showAccountTag: boolean;
+  // Events whose account shares a hostname with another account in the list —
+  // identical server logos can't discriminate, so those rows get the user
+  // avatar instead.
+  sameHostAccountIds: ReadonlySet<string>;
   onPress: (e: CalendarEvent) => void;
 }
 
-const EventRow = memo(({ event, theme, onPress }: EventRowProps) => {
+const EventRow = memo(({ event, theme, showAccountTag, sameHostAccountIds, onPress }: EventRowProps) => {
   const { t } = useTranslation();
   const { formatTime } = useTimeFormat();
   const accounts = useAccounts();
-  const pending = isEventPending(
-    event,
-    accounts.find((a) => a.id === event.accountId) ?? null,
-  );
+  const account = accounts.find((a) => a.id === event.accountId) ?? null;
+  const pending = isEventPending(event, account);
+  const accountTag = showAccountTag && account ? accountTagLabel(account) : null;
   const duration = event.allDay
     ? null
     : (() => {
@@ -152,6 +159,13 @@ const EventRow = memo(({ event, theme, onPress }: EventRowProps) => {
               · {event.location}
             </Text>
           ) : null}
+          {accountTag && account && (
+            <View style={styles.eventAccount} accessibilityLabel={accountTag}>
+              {sameHostAccountIds.has(event.accountId)
+                ? <AvatarImage account={account} size={16} />
+                : <ServerIcon account={account} size={16} />}
+            </View>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -172,6 +186,23 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
   const theme = useTheme();
   const listRef = useRef<FlatList<Row>>(null);
   const todayKey = dayjs().format('YYYY-MM-DD');
+
+  // Tags only earn their space when the merged list actually spans accounts.
+  const accounts = useAccounts();
+  const { showAccountTag, sameHostAccountIds } = useMemo(() => {
+    const idsInView = new Set(events.map((e) => e.accountId));
+    const hostCount = new Map<string, number>();
+    for (const a of accounts) {
+      if (!idsInView.has(a.id)) continue;
+      const h = hostnameOf(a.baseUrl);
+      hostCount.set(h, (hostCount.get(h) ?? 0) + 1);
+    }
+    const dup = new Set<string>();
+    for (const a of accounts) {
+      if (idsInView.has(a.id) && (hostCount.get(hostnameOf(a.baseUrl)) ?? 0) > 1) dup.add(a.id);
+    }
+    return { showAccountTag: idsInView.size > 1, sameHostAccountIds: dup };
+  }, [accounts, events]);
 
   const { rows, stickyIndices, offsets, todayIndex } = useMemo(() => {
     const today = dayjs();
@@ -321,8 +352,8 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
   const renderRow = useCallback(({ item }: { item: Row }) => (
     item.type === 'header'
       ? <DayHeader sectionDate={item.date} hasEvents={item.hasEvents} theme={theme} onPress={onPressCell} />
-      : <EventRow event={item.event} theme={theme} onPress={onPressEvent} />
-  ), [theme, onPressCell, onPressEvent]);
+      : <EventRow event={item.event} theme={theme} showAccountTag={showAccountTag} sameHostAccountIds={sameHostAccountIds} onPress={onPressEvent} />
+  ), [theme, onPressCell, onPressEvent, showAccountTag, sameHostAccountIds]);
 
   const keyExtractor = useCallback((item: Row) => (
     item.type === 'header' ? `h-${item.key}` : agendaRowKey(item.key, item.event)
@@ -423,4 +454,11 @@ const styles = StyleSheet.create({
   eventTime: { fontSize: 12, fontWeight: '500' },
   eventDuration: { fontSize: 11 },
   eventLocation: { fontSize: 11, flex: 1 },
+  eventAccount: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 'auto',
+    paddingLeft: 4,
+  },
 });
