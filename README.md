@@ -109,7 +109,7 @@ Create, view, and edit calendar events with support for:
 - Recurring event detection
 - Multiple reminders per event, configurable defaults, and custom offsets
 - Accept, tentatively accept, or decline CalDAV invitations, with the ability to change your response later
-- **Find a time / Free-Busy** — check attendee availability via CalDAV and drag the event to a free slot
+- **Find a time / Free-Busy** — check attendee availability via CalDAV, pick from suggested slots or explore a per-attendee timeline
 
 ### Tasks
 Tasks (VTODO) from your calendars — including Nextcloud Tasks lists and Deck cards — appear alongside events with a checkbox. Tap the checkbox in any calendar view (or the button in the detail screen) to complete or reopen a task; completed tasks show struck through and can be hidden via the "Show completed tasks" toggle in the drawer.

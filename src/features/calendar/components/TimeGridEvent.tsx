@@ -5,7 +5,7 @@ import { SquareCheck } from 'lucide-react-native';
 import { Typography } from '@/ui/components';
 import type { CalendarEvent } from '@/types';
 import type { GridEvent } from '../utils/toGridEvents';
-import { contrastFor } from '../utils/eventInk';
+import { contrastFor } from '@/utils/colors';
 import { useTimeFormat } from '@/hooks/useTimeFormat';
 import { LONG_PRESS_MS } from '../constants';
 
