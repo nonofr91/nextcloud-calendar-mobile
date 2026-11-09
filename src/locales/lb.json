@@ -12,12 +12,16 @@
     "errorServer": "De Server ass momentan net erreechbar. Probéier et wgl. méi spéit nach eng Kéier.",
     "errorRateLimited": "Ze vill Ufroen. Waart wgl. e Moment a probéier et nach eng Kéier.",
     "errorRateLimitedRetry": "Ze vill Ufroen. Probéier et wgl. a(n) {{seconds}} s nach eng Kéier.",
-    "back": "Zeréck"
+    "back": "Zeréck",
+    "retry": "Retry",
+    "save": "Save",
+    "delete": "Delete"
   },
   "tabs": {
     "calendar": "Kalenner",
     "settings": "Astellungen",
-    "search": "Sich"
+    "search": "Sich",
+    "notifications": "Notifications"
   },
   "setup": {
     "brand": "Kalenner",
@@ -82,7 +86,10 @@
     },
     "drawerNoCalendars": "Kee Kalenner",
     "calendarNotifications": "Notifikatioune fir {{name}}",
-    "calendarVisibility": "{{name}} uweisen"
+    "calendarVisibility": "{{name}} uweisen",
+    "syncError": "Sync failed — tap to retry",
+    "sevenDays": "7D",
+    "showCompletedTasks": "Show completed tasks"
   },
   "event": {
     "titleLabel": "Titel *",
@@ -177,7 +184,99 @@
     "errorCreateFailed": "Evenement konnt net erstallt ginn",
     "errorUpdateFailed": "Evenement konnt net aktualiséiert ginn",
     "errorDeleteFailed": "Evenement konnt net geläscht ginn",
-    "alerts": "Erënnerungen"
+    "alerts": "Erënnerungen",
+    "myParticipation": "My participation",
+    "participationAccepted": "You are going",
+    "participationTentative": "You might go",
+    "participationDeclined": "You declined",
+    "participationNeedsAction": "No response yet",
+    "everyMasc": "Every",
+    "everyFem": "Every",
+    "intervalLabel": "Repeat interval",
+    "unitDays_one": "day",
+    "unitDays_other": "days",
+    "unitWeeks_one": "week",
+    "unitWeeks_other": "weeks",
+    "unitMonths_one": "month",
+    "unitMonths_other": "months",
+    "unitYears_one": "year",
+    "unitYears_other": "years",
+    "useMyLocation": "Use my current location",
+    "locationPermissionDenied": "Location permission is required to use your current position",
+    "locationUnavailable": "Unable to get your current location",
+    "alert": "Alert",
+    "findTime": "Find a time",
+    "findTimeTitle": "Find a time",
+    "findTimeSuggested": "Suggested slots",
+    "findTimeNoSlots": "No free slots found in the 15-day window.",
+    "findTimeAttendees": "Attendee availability",
+    "findTimeAvailable": "Available",
+    "findTimeUnknown": "Unknown",
+    "findTimeApply": "Apply selected slot",
+    "findTimeLoading": "Checking availability…",
+    "findTimeError": "Could not fetch availability. The server may have free/busy disabled.",
+    "findTimeTimeline": "Availability timeline",
+    "findTimeTimelineTip": "Drag the handle or long-press a green zone to reschedule",
+    "findTimeModeStrict": "All free",
+    "findTimeModePermissive": "Some may be busy",
+    "findTimeRequired": "Required",
+    "findTimeTimelineBusy": "Busy",
+    "findTimeTimelineUnavailable": "Unavailable",
+    "findTimeTimelineDragHint": "Drag the handle to reschedule",
+    "findTimeTimelineEvent": "Event",
+    "findTimePrevDay": "Previous day",
+    "findTimeNextDay": "Next day",
+    "attachments": "Attachments",
+    "attachmentUntitled": "Attachment",
+    "attachmentOpenError": "Could not open this attachment",
+    "attachmentTooLarge": "This attachment is too large to open",
+    "addAttachment": "Add attachment",
+    "attachmentAddError": "Could not add the attachment",
+    "attachmentRemove": "Remove attachment",
+    "attachmentRemoveConfirm": "Remove this attachment from the event? The file stays in your Nextcloud files.",
+    "attachmentRemoveError": "Could not remove the attachment",
+    "attachmentRemoveAndDelete": "Remove and delete file",
+    "attachmentRemoveConfirmDeletable": "Remove this attachment from the event? You can also delete the file from Nextcloud.",
+    "attachmentRemoveConfirmShare": "Remove this attachment from the event? You can also revoke its public link.",
+    "attachmentFileDeleteError": "Attachment removed, but the file could not be deleted",
+    "attachmentRemoveAndRevoke": "Remove and revoke link",
+    "attachmentShareRevokeError": "Attachment removed, but the public link could not be revoked",
+    "attachmentPending": "Will be uploaded when you save",
+    "noAttachments": "No attachments",
+    "attachFromDevice": "From this device",
+    "attachFromNextcloud": "From Nextcloud files",
+    "pickFromNextcloud": "Choose a file on Nextcloud",
+    "folderEmpty": "This folder is empty",
+    "filesLoadError": "Could not load your files",
+    "attachmentRemote": "Will be linked when you save",
+    "attachmentShareTitle": "Share attachment",
+    "attachmentSharePrompt": "This event has attendees. Create a public link so they can open the file, or keep the link private?",
+    "attachmentSharePublic": "Public link",
+    "attachmentSharePrivate": "Keep private",
+    "timezone": "Time zone",
+    "timezoneSearch": "Search time zones",
+    "attachmentEdit": "Edit attachment",
+    "attachmentEditError": "Could not open the editor",
+    "editorLoadSlow": "The editor is taking longer than expected…",
+    "attachNewDocumentHint": "Create and edit on Nextcloud",
+    "editorActionError": "The action could not be completed",
+    "findTimeRetry": "Retry",
+    "findTimeEveryoneMustBeFree": "Everyone must be free",
+    "findTimeSlotAllFree": "Everyone free",
+    "findTimeSlotBusyNames": "{{names}} busy",
+    "findTimeCurrent": "Current",
+    "findTimeSomeUnknown": "Availability is unknown for some attendees.",
+    "findTimeExplore": "Explore timeline",
+    "findTimeEveryoneLane": "Everyone",
+    "findTimeTapHint": "Tap the top lane to place the event",
+    "findTimeZoomIn": "Zoom in",
+    "findTimeZoomOut": "Zoom out",
+    "findTimeNoRequest": "Open this view from the event form.",
+    "findTimeWorkingHoursOnly": "Working hours only",
+    "duplicateEvent": "Duplicate event",
+    "errorDuplicateFailed": "Failed to duplicate event",
+    "invitationBadge": "Invitation",
+    "invitationFrom": "Invitation from {{name}}"
   },
   "settings": {
     "title": "Astellungen",
@@ -239,13 +338,53 @@
       "liveActivityHint": "Weist wärend engem lafenden Termin eng dauerhaft Notifikatioun.",
       "permissionDenied": "Notifikatioune si fir dës App deaktivéiert.",
       "openSettings": "Systemastellungen opmaachen",
-      "channelName": "Terminerënnerungen"
+      "channelName": "Terminerënnerungen",
+      "badgeChannelName": "App badge",
+      "push": "Push notifications",
+      "pushHint": "Receive real-time updates from the server."
     },
     "widgets": {
       "title": "Widgets",
       "calendars": "Kalenneren a Widgets",
       "calendarsHint": "Wiel aus, wéi eng Kalenneren op de Startbildschierm-Widgets an der Live-Aktivitéit ugewise ginn.",
-      "calendarHidden": "Aus der Agenda ausgeblend"
+      "calendarHidden": "Aus der Agenda ausgeblend",
+      "month": {
+        "title": "Month widget",
+        "hint": "Controls the large month-grid widget on your home screen.",
+        "fontSizeLabel": "Font size",
+        "fontWeightLabel": "Font weight",
+        "themeLabel": "Theme",
+        "cardStyleLabel": "Card style",
+        "dayTapLabel": "Tap a day",
+        "fontSize": {
+          "small": "Small (85%)",
+          "normal": "Normal (100%)",
+          "large": "Large (125% - Recommended)",
+          "xlarge": "Extra Large (150%)",
+          "huge": "Huge (175%)"
+        },
+        "fontWeight": {
+          "light": "Light",
+          "normal": "Normal",
+          "medium": "Medium",
+          "bold": "Bold",
+          "black": "Black"
+        },
+        "theme": {
+          "system": "System",
+          "light": "Light",
+          "dark": "Dark"
+        },
+        "cardStyle": {
+          "card": "Rounded card",
+          "borderless": "Square",
+          "transparent": "Transparent"
+        },
+        "dayTap": {
+          "calendar": "Open that day in Calendar",
+          "newEvent": "Create an event on that day"
+        }
+      }
     },
     "alerts": {
       "timed": "Standarderënnerung",
@@ -334,6 +473,21 @@
       "openInApp": "Nextcloud Talk-App",
       "openInBrowser": "Browser",
       "askEachTime": "All Kéier froen"
+    },
+    "tasks": "Tasks",
+    "places": {
+      "title": "My places",
+      "addTitle": "Add a place",
+      "label": "Name",
+      "labelPlaceholder": "Home, office…",
+      "address": "Address",
+      "addressPlaceholder": "Address or coordinates",
+      "savedTitle": "Saved places",
+      "empty": "No saved places yet",
+      "noPosition": "Capture your position or enter an address first.",
+      "saveError": "Unable to save this place.",
+      "deleteTitle": "Delete place",
+      "deleteBody": "Delete \"{{name}}\"?"
     }
   },
   "widget": {
@@ -353,6 +507,18 @@
       "days": "a(n) {{value}} Deeg",
       "today": "Haut",
       "tomorrow": "Muer"
+    },
+    "title": "Notifications",
+    "empty": "No notifications",
+    "badgeTitle": "{{count}} unread notification",
+    "badgeTitle_other": "{{count}} unread notifications",
+    "type": {
+      "created": "Created",
+      "updated": "Updated",
+      "deleted": "Deleted",
+      "invited": "Invited",
+      "response": "Response",
+      "unknown": "Update"
     }
   },
   "certTrust": {
@@ -374,6 +540,37 @@
     "remedy": "Méi sécher Optiounen: de Server iwwer e VPN wéi Tailscale oder WireGuard erreechen oder e gratis Zertifikat mat DuckDNS a Let's Encrypt ariichten.",
     "connect": "Trotzdeem verbannen",
     "cancel": "Ofbriechen"
+  },
+  "import": {
+    "title": "Import Event",
+    "selectEvent": "Select an event to import",
+    "noEventsFound": "No events found in this file.",
+    "fileError": "Could not read the file.",
+    "parseError": "Could not parse the .ics file.",
+    "importEvent": "Import Event",
+    "retry": "Retry",
+    "back": "Back",
+    "errorNoAccount": "Please set up a Nextcloud account first.",
+    "untitledEvent": "(No title)",
+    "duplicateTitle": "Event already exists",
+    "duplicateMessage": "An event with this identifier already exists in the selected calendar. Importing will overwrite it.",
+    "overwrite": "Overwrite"
+  },
+  "invitations": {
+    "title": "Invitations",
+    "noInvitations": "No pending invitations.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "tentative": "Maybe",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "organizer": "From",
+    "selectCalendar": "Add to calendar",
+    "loading": "Loading invitations…",
+    "error": "Could not load invitations.",
+    "calendar": "Calendar",
+    "from": "From {{name}}",
+    "responseFailed": "Could not respond to the invitation."
   },
   "search": {
     "title": "Sich",
@@ -422,6 +619,14 @@
     "noResultsHint": "Probéier manner Filteren oder e méi einfacht Wuert.",
     "offlineNote": "Offline — et ginn nëmme lokal Resultater ugewisen",
     "serverFailed": "De Server konnt net erreecht ginn — et ginn nëmme lokal Resultater ugewisen",
-    "openFailed": "Dëst Evenement konnt net opgemaach ginn"
+    "openFailed": "Dëst Evenement konnt net opgemaach ginn",
+    "clear": "Clear search"
+  },
+  "task": {
+    "pending": "Task",
+    "completed": "Completed",
+    "completedWithDate": "Completed {{date}}",
+    "markCompleted": "Mark as completed",
+    "markNotCompleted": "Mark as not completed"
   }
 }

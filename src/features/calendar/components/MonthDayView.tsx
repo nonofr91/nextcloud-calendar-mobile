@@ -14,8 +14,6 @@ import { useSettingsStore, type MonthViewStyle } from '@/stores/settingsStore';
 import { useAccountStore } from '@/stores/accountStore';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useTimeFormat } from '@/hooks/useTimeFormat';
-import { useAccountStore } from '@/stores/accountStore';
-import { useActiveAccount } from '@/hooks/useAccounts';
 import { isEventPending } from '@/utils/eventPending';
 import type { CalendarEvent } from '@/types';
 import { MonthGridPage } from './MonthGridPage';
@@ -118,8 +116,6 @@ function MonthDayViewImpl({
   const { t } = useTranslation();
   const language = useSettingsStore((s) => s.language);
   const { formatTime } = useTimeFormat();
-  const activeAccountId = useAccountStore((s) => s.activeAccountId);
-  const activeAccount = useActiveAccount(activeAccountId);
   const { height } = useWindowDimensions();
 
   const selected = useMemo(() => dayjs(date), [date]);

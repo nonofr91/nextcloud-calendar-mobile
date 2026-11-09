@@ -184,9 +184,16 @@ export type CreateEventInput = {
 
 export type CalendarAppStatus = 'unknown' | 'available' | 'unconfigured';
 
+export type NotifyPushCapabilities = {
+  types: string[];
+  websocketUrl: string;
+  preAuthUrl?: string;
+};
+
 export type ServerCapabilities = {
     talkEnabled: boolean;
     calendarApp: CalendarAppStatus;
+    notifyPush?: NotifyPushCapabilities;
 };
 
 export type ViewMode = 'month' | 'week' | '7days' | '3days' | 'day' | 'schedule';
