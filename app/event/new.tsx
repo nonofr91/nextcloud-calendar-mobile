@@ -16,7 +16,9 @@ import { goBackOrHome } from '@/utils/navigationGuard';
 import type { CreateEventInput } from '@/types';
 
 export default function NewEventScreen() {
-  const { date } = useLocalSearchParams<{ date?: string }>();
+  // ?date=<iso>&title=<summary> — deep links (Siri create intent, etc.) pre-fill
+  // the form; the user still reviews and saves, which is the confirmation gate.
+  const { date, title } = useLocalSearchParams<{ date?: string; title?: string }>();
   const router = useRouter();
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -30,6 +32,10 @@ export default function NewEventScreen() {
   const { data: calendars = [] } = useMultiCalendars(visibleAccounts);
 
   const defaultDate = useMemo(() => (date ? new Date(date) : new Date()), [date]);
+  const initialValues = useMemo(
+    () => (title?.trim() ? { summary: title.trim() } : undefined),
+    [title],
+  );
 
   const createMutation = useCreateEvent(visibleAccounts, calendars);
   const formRef = useRef<EventFormHandle>(null);
@@ -86,6 +92,7 @@ export default function NewEventScreen() {
           ref={formRef}
           calendars={calendars}
           defaultDate={defaultDate}
+          initialValues={initialValues}
           organizerEmail={organizerEmail}
           organizerName={organizerName}
           onSubmit={handleSubmit}

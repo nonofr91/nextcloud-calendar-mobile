@@ -485,6 +485,43 @@ describe('buildExceptionIcs', () => {
     expect(ics).toContain('DTSTART;TZID=America/New_York:20260601T100000');
     expect(ics).toContain('TZID:America/New_York');
   });
+
+  it('emits explicit STATUS/TRANSP, including RFC defaults, so an occurrence can override a non-default master', () => {
+    const ics = buildExceptionIcs({
+      ...base,
+      timezone: 'Europe/Paris',
+      recurrenceId: new Date(2026, 9, 9),
+      status: 'confirmed',
+      transp: 'opaque',
+    });
+
+    expect(ics).toContain('STATUS:CONFIRMED\r\n');
+    expect(ics).toContain('TRANSP:OPAQUE\r\n');
+  });
+
+  it('emits non-default STATUS/TRANSP explicitly', () => {
+    const ics = buildExceptionIcs({
+      ...base,
+      timezone: 'Europe/Paris',
+      recurrenceId: new Date(2026, 9, 9),
+      status: 'cancelled',
+      transp: 'transparent',
+    });
+
+    expect(ics).toContain('STATUS:CANCELLED\r\n');
+    expect(ics).toContain('TRANSP:TRANSPARENT\r\n');
+  });
+
+  it('omits STATUS/TRANSP when unset, keeping master inheritance', () => {
+    const ics = buildExceptionIcs({
+      ...base,
+      timezone: 'Europe/Paris',
+      recurrenceId: new Date(2026, 9, 9),
+    });
+
+    expect(ics).not.toContain('STATUS:');
+    expect(ics).not.toContain('TRANSP:');
+  });
 });
 
 describe('truncateRruleUntil', () => {
@@ -759,5 +796,52 @@ describe('cloneEventIcs', () => {
     expect(out).toContain('UID:todo-uid-1');
     // VTODO DTSTAMP must stay untouched too.
     expect(out).toContain('BEGIN:VTODO' + CRLF + 'UID:todo-uid-1' + CRLF + 'DTSTAMP:20260101T080000Z');
+  });
+});
+
+describe('STATUS/TRANSP emission', () => {
+  it('emits STATUS when set to a non-default value', () => {
+    expect(buildIcs({ ...base, status: 'tentative' })).toContain('STATUS:TENTATIVE\r\n');
+    expect(buildIcs({ ...base, status: 'cancelled' })).toContain('STATUS:CANCELLED\r\n');
+    expect(buildAllDayIcs({ ...allDayBase, status: 'tentative' })).toContain('STATUS:TENTATIVE\r\n');
+  });
+
+  it('emits TRANSP only for transparent', () => {
+    expect(buildIcs({ ...base, transp: 'transparent' })).toContain('TRANSP:TRANSPARENT\r\n');
+    expect(buildAllDayIcs({ ...allDayBase, transp: 'transparent' })).toContain('TRANSP:TRANSPARENT\r\n');
+    expect(buildIcs({ ...base, transp: 'opaque' })).not.toContain('TRANSP');
+  });
+
+  it('emits nothing for RFC defaults or unset fields', () => {
+    for (const ics of [
+      buildIcs(base),
+      buildIcs({ ...base, status: 'confirmed', transp: 'opaque' }),
+      buildAllDayIcs(allDayBase),
+    ]) {
+      expect(ics).not.toContain('STATUS');
+      expect(ics).not.toContain('TRANSP');
+    }
+  });
+
+  it('writes them on exception VEVENTs', () => {
+    const ics = buildExceptionIcs({
+      ...base,
+      timezone: 'Europe/Paris',
+      recurrenceId: new Date('2026-08-26T12:00:00Z'),
+      status: 'cancelled',
+      transp: 'transparent',
+    });
+    expect(ics).toContain('STATUS:CANCELLED\r\n');
+    expect(ics).toContain('TRANSP:TRANSPARENT\r\n');
+  });
+
+  it('round-trips status/transp through the CalDAV parser', () => {
+    const ics = buildIcs({ ...base, status: 'tentative', transp: 'transparent' });
+    const [event] = parseIcsObjects(
+      [{ ics, href: '/cal/a.ics' }],
+      { calendarId: 'c1', accountId: 'a1', color: '#000' },
+    );
+    expect(event.status).toBe('tentative');
+    expect(event.transp).toBe('transparent');
   });
 });

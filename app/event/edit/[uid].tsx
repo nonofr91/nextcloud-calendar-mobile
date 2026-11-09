@@ -100,7 +100,8 @@ export default function EditEventScreen() {
     alarms: event.alarms,
     rrule: parseRrule(event.rrule),
     attachments: event.attachments,
-    timezone: event.timezone,
+    timezone: event.timezone,   transp: event.transp,
+    status: event.status,
   };
 
   const scopeLabel =

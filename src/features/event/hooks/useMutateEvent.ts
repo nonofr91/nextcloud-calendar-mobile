@@ -256,14 +256,14 @@ function buildIcsForInput(
         dtstart: input.dtstart, dtend: input.dtend,
         organizerEmail: input.organizerEmail, organizerName: input.organizerName,
         attendees: input.attendees, rrule: input.rrule, alarms,
-        sequence, extraLines: extras, calendarLines,
+        sequence, status: input.status, transp: input.transp, extraLines: extras, calendarLines,
       })
     : buildIcs({
         uid, summary: input.summary, description, location, geo: input.geo,
         dtstart: input.dtstart, dtend: input.dtend,
         organizerEmail: input.organizerEmail, organizerName: input.organizerName,
         attendees: input.attendees, timezone, rrule: input.rrule, alarms,
-        sequence, extraLines: extras, calendarLines,
+        sequence, status: input.status, transp: input.transp, extraLines: extras, calendarLines,
       });
 }
 
@@ -328,6 +328,8 @@ function eventFromInput(
     rrule: undefined,
     alarms: resolveAlarms(input),
     timezone: input.allDay ? undefined : timezone,
+    transp: input.transp,
+    status: input.status,
   };
 }
 
@@ -528,6 +530,8 @@ export function useUpdateEvent(accounts: readonly Account[], calendars: Calendar
         attendees: input.attendees,
         alarms: resolveAlarms(input),
         timezone: input.allDay ? undefined : inputTimezone(input) ?? event.timezone,
+        transp: input.transp ?? event.transp,
+        status: input.status ?? event.status,
       };
 
       let marked: string[] = [];
@@ -633,6 +637,7 @@ export function useUpdateEvent(accounts: readonly Account[], calendars: Calendar
             attendees: input.attendees, timezone: exTz, recurrenceId: occurrenceSlot(event), recurrenceIdTzid: masterTz,
             alarms: resolveAlarms(input),
             sequence: extractSequence(masterIcs) + 1,
+            status: input.status, transp: input.transp,
             // ATTACH must not be copied into the exception (it inherits the
             // master's attachments at parse time — a copy would go stale), and
             // EXDATE lines are meaningless on a RECURRENCE-ID component.

@@ -79,7 +79,7 @@ export async function scheduleEventAlerts(now: Date = new Date()): Promise<void>
 
       const notifDisabled = useCalendarStore.getState().notifDisabledCalendarIds;
       const events = (await readUpcomingEvents(HORIZON_DAYS, now))
-        .filter((event) => !hasCalendarFlag(notifDisabled, event.accountId, event.calendarId));
+        .filter((event) => !hasCalendarFlag(notifDisabled, event.accountId, event.calendarId) && event.status !== 'cancelled');
 
       const due = events
         .flatMap((event) => alertTimes(event, timedAlerts, allDayAlerts).map((at) => ({ event, at })))

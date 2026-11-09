@@ -102,6 +102,8 @@ const EventRow = memo(({ event, theme, showAccountTag, sameHostAccountIds, onPre
       })();
 
   const allDayLabel = t('calendar.allDay');
+  const isCancelled = event.status === 'cancelled';
+  const isTentative = event.status === 'tentative';
 
   return (
     <TouchableOpacity
@@ -123,12 +125,14 @@ const EventRow = memo(({ event, theme, showAccountTag, sameHostAccountIds, onPre
             : <Square size={20} color={theme.colors.textTertiary} />}
         </View>
       )}
-      <View style={[styles.eventContent, event.taskCompleted && styles.eventContentDone]}>
+      <View style={[styles.eventContent, event.taskCompleted && styles.eventContentDone, isCancelled && styles.eventContentCancelled]}>
         <Text
           style={[
             styles.eventTitle,
             { color: theme.colors.text },
             event.taskCompleted && styles.doneText,
+            isCancelled && styles.eventTitleCancelled,
+            isTentative && styles.eventTitleTentative,
           ]}
           numberOfLines={2}
         >
@@ -428,6 +432,9 @@ const styles = StyleSheet.create({
   eventTitle: { fontSize: 14, fontWeight: '600', marginBottom: 3 },
   doneText: { textDecorationLine: 'line-through' },
   eventMeta: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4 },
+  eventContentCancelled: { opacity: 0.5 },
+  eventTitleCancelled: { textDecorationLine: 'line-through' },
+  eventTitleTentative: { fontStyle: 'italic' },
   eventTime: { fontSize: 12, fontWeight: '500' },
   eventDuration: { fontSize: 11 },
   eventLocation: { fontSize: 11, flex: 1 },

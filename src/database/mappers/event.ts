@@ -1,4 +1,4 @@
-import type { Attendee, CalendarEvent, EventAttachment } from '@/types';
+import type { Attendee, CalendarEvent, EventAttachment, EventStatus, EventTransp } from '@/types';
 import { dedupeAttendees } from '@/utils/attendees';
 import { taskIsCompleted } from '@/utils/vtodo';
 
@@ -74,5 +74,7 @@ export function mapEventToShared(event: Event): CalendarEvent {
     taskCompleted: taskIsCompleted(event.taskStatus, event.taskCompletedAt, event.taskPercent),
     attachments: parseAttachments(event.attachments ?? undefined),
     timezone: event.timezone ?? undefined,
+    transp: event.transp as EventTransp | undefined,
+    status: event.status as EventStatus | undefined,
   };
 }

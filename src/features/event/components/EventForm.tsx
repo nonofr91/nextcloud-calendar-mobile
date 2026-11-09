@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { View, StyleSheet, ScrollView, Platform, KeyboardAvoidingView, Keyboard, useWindowDimensions, LayoutChangeEvent, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform, KeyboardAvoidingView, Keyboard, useWindowDimensions, LayoutChangeEvent, Alert } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import * as ExpoLocation from 'expo-location';
 import { LocateFixed } from 'lucide-react-native';
@@ -29,7 +29,7 @@ import { resolveOrganizer } from '@/features/event/utils/organizer';
 import { hostnameOf } from '@/features/account/utils/account';
 import type {
   CalendarMeta, Attendee, CreateEventInput, EventAttachment, PendingAttachment,
-  RecurrenceRule, TalkRoomType, Account, SuggestedSlot,
+  RecurrenceRule, TalkRoomType, Account, SuggestedSlot, EventTransp, EventStatus,
 } from '@/types';
 import { TimezonePicker } from './TimezonePicker';
 import { isValidTimeZone, resolveAccountTimezone, wallDateToUtc, zonedUtcToWallDate } from '@/utils/timezone';
@@ -57,6 +57,8 @@ export interface InitialValues {
   extraLines?: string[];
   attachments?: EventAttachment[];
   timezone?: string;
+  transp?: EventTransp;
+  status?: EventStatus;
 }
 
 interface Props {
@@ -178,6 +180,8 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
   const [removedAttachments, setRemovedAttachments] = useState<EventAttachment[]>([]);
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
   const [remoteAttachments, setRemoteAttachments] = useState<EventAttachment[]>([]);
+  const [transp, setTransp] = useState<EventTransp>(initialValues?.transp ?? 'opaque');
+  const [status, setStatus] = useState<EventStatus>(initialValues?.status ?? 'confirmed');
   const [titleError, setTitleError] = useState<string | null>(null);
   const [calendarError, setCalendarError] = useState<string | null>(null);
   const [endError, setEndError] = useState<string | null>(null);
@@ -354,6 +358,7 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
       dtend: allDay ? dtend : wallDateToUtc(dtend, timezone),
       allDay,
       timezone: allDay ? undefined : timezone,
+      transp, status,
     });
   }
 
@@ -377,6 +382,18 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
       })
     );
   }
+
+  const selectedCalendarIsReadOnly = selectedCal?.isReadOnly ?? false;
+
+  const TRANSP_OPTIONS: SelectOption<EventTransp>[] = [
+    { value: 'opaque', label: t('event.availabilityBusy') },
+    { value: 'transparent', label: t('event.availabilityFree') },
+  ];
+  const STATUS_OPTIONS: SelectOption<EventStatus>[] = [
+    { value: 'confirmed', label: t('event.statusConfirmed') },
+    { value: 'tentative', label: t('event.statusTentative') },
+    { value: 'cancelled', label: t('event.statusCancelled') },
+  ];
 
   const startBlock = (
     <View style={twoColDates ? styles.grow : undefined}>
@@ -560,6 +577,35 @@ export const EventForm = forwardRef<EventFormHandle, Props>(function EventForm({
           </View>
         </Stack>
 
+        <Stack
+          direction={twoColDates ? 'horizontal' : 'vertical'}
+          gap={twoColDates ? 12 : 16}
+          hAlign="stretch"
+        >
+          <View style={twoColDates ? styles.grow : undefined}>
+            <Text style={[styles.pickerLabel, { color: theme.colors.textSecondary }]}>{t('event.availability')}</Text>
+            <Select
+              testID="event-form-availability"
+              value={transp}
+              options={TRANSP_OPTIONS}
+              onChange={setTransp}
+              accessibilityLabel={t('event.availability')}
+              disabled={selectedCalendarIsReadOnly}
+            />
+          </View>
+          <View style={twoColDates ? styles.grow : undefined}>
+            <Text style={[styles.pickerLabel, { color: theme.colors.textSecondary }]}>{t('event.status')}</Text>
+            <Select
+              testID="event-form-status"
+              value={status}
+              options={STATUS_OPTIONS}
+              onChange={setStatus}
+              accessibilityLabel={t('event.status')}
+              disabled={selectedCalendarIsReadOnly}
+            />
+          </View>
+        </Stack>
+
         <View onLayout={(e) => onFieldLayout('location', e)}>
           <TextField
             testID="event-form-location"
@@ -723,6 +769,7 @@ const styles = StyleSheet.create({
   chipRow: { gap: 8 },
   placeSuggestions: { marginTop: 8, flexDirection: 'row', flexWrap: 'wrap', gap: 8, padding: 10 },
   grow: { flex: 1 },
+  pickerLabel: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
   pushRight: { marginLeft: 'auto' },
   iosPickerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
 });

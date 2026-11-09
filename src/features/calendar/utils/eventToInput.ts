@@ -20,5 +20,7 @@ export function eventToInput(event: CalendarEvent, account: Account): CreateEven
     rrule: parseRrule(event.rrule),
     alarms: event.alarms,
     timezone: event.timezone,
+    transp: event.transp,
+    status: event.status,
   };
 }

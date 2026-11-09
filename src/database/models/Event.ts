@@ -36,4 +36,6 @@ export default class Event extends Model {
   @field('task_percent') taskPercent?: number;
   @field('attachments') attachments?: string;
   @field('timezone') timezone?: string;
+  @field('transp') transp?: string;
+  @field('status') status?: string;
 }

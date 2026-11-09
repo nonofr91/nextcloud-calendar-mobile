@@ -7,8 +7,6 @@ import {resolveUse24h} from '@/utils/timeFormat';
 import {useAccountStore, anyCalendarConfigured} from '@/stores/accountStore';
 import {useCalendarStore} from '@/stores/calendarStore';
 import {hasCalendarFlag} from '@/utils/calendars';
-import {SHARED_KEYS, setSharedString} from '@/services/shared/appGroupStorage';
-
 import {buildAgendaTimeline} from '../core/agendaSnapshot';
 import {AGENDA_DAYS} from '../core/buildTimeline';
 import {readUpcomingEvents, visibleAccountIdsToRead} from '../core/readEvents';
@@ -16,6 +14,7 @@ import {selectOngoingEvent, shouldClearLiveEvent} from '../core/liveEvent';
 import {readLiveEvent} from '../storage/widgetStore';
 import {homeWidget} from '../surfaces/homeWidget';
 import {liveActivity} from '../surfaces/liveActivity';
+import {SHARED_KEYS, setSharedString} from '@/services/shared/appGroupStorage';
 
 let running = false;
 let pending = false;
@@ -56,6 +55,19 @@ async function runSync(now: Date): Promise<void> {
                 maxPerSection: 10
             });
             await homeWidget.update(timeline);
+
+            // Mirror the current snapshot + voice flag to shared app-group
+            // defaults — Siri App Intents read these without running JS.
+            const t = now.getTime();
+            const current = timeline.filter((e) => new Date(e.atIso).getTime() <= t).pop()
+                ?? timeline[0];
+            setSharedString(SHARED_KEYS.agendaSnapshot, JSON.stringify(current?.snapshot ?? null));
+            setSharedString(
+                SHARED_KEYS.voiceEnabled,
+                Object.values(useSettingsStore.getState().voiceAssistantByAccount).some(Boolean)
+                    ? '1'
+                    : '0',
+            );
         }
 
         if (liveActivity.isSupported()) {

@@ -91,7 +91,8 @@ export function writeEvent(row: Event, ev: CalendarEvent): void {
     row.taskCompletedAt = ev.taskCompletedAt?.getTime() ?? undefined;
     row.taskPercent = ev.taskPercent ?? undefined;
     row.attachments = serializeAttachments(ev.attachments);
-    row.timezone = ev.timezone ?? undefined;
+    row.timezone = ev.timezone ?? undefined;   row.transp = ev.transp;
+    row.status = ev.status;
 }
 
 function calendarUnchanged(row: Calendar, c: CalendarMeta): boolean {
@@ -131,7 +132,9 @@ function eventUnchanged(row: Event, ev: CalendarEvent): boolean {
         (row.taskPercent ?? undefined) === (ev.taskPercent ?? undefined) &&
         (row.attendees ?? '[]') === JSON.stringify(ev.attendees ?? []) &&
         (row.attachments ?? undefined) === serializeAttachments(ev.attachments) &&
-        (row.timezone ?? undefined) === (ev.timezone ?? undefined)
+        (row.timezone ?? undefined) === (ev.timezone ?? undefined) &&
+        (row.transp ?? undefined) === (ev.transp ?? undefined) &&
+        (row.status ?? undefined) === (ev.status ?? undefined)
     );
 }
 

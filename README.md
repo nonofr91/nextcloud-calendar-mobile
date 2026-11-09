@@ -131,6 +131,13 @@ Widgets are kept up to date through the app's background sync, and tapping an ev
 
 The Android month widget opens the app on the tapped day (or jumps straight to event creation, configurable in Settings → Widgets), and its calendars, colors, and font size follow your in-app widget settings.
 
+### Voice Assistant & Siri
+- Optional in-app voice assistant — bilingual EN/FR commands parsed locally for offline use, with free-form requests routed to your Nextcloud server's Context Agent (Assistant + AI provider required)
+- Confirmation card before every create/move/delete — nothing mutates without a tap
+- On-device speech recognition option (device/locale permitting), otherwise a clearly indicated network fallback
+- iOS App Shortcuts — "Hey Siri, agenda du jour dans Nextcloud Calendar", next event, ask the assistant, pre-fill a new event — all hands-free, including in CarPlay
+- See [.github/VOICE_ASSISTANT.md](.github/VOICE_ASSISTANT.md) for the full guide, including the zero-code CarPlay path via the native iOS CalDAV account
+
 ### Theming & Personalization
 - Light, dark, and system-auto theme modes
 - Adjustable zoom level (hour row height: 45–120 px)

@@ -1,5 +1,5 @@
 import ICAL from 'ical.js';
-import type { CalendarEvent, Attendee, EventAttachment } from '@/types';
+import type { CalendarEvent, Attendee, EventAttachment, EventStatus, EventTransp } from '@/types';
 import { taskIsCompleted } from '@/utils/vtodo';
 import { yieldToUI } from '@/utils/scheduling';
 import { isValidTimeZone, zonedWallTimeToUtc } from '@/utils/timezone';
@@ -257,7 +257,23 @@ type OverridableFields = Pick<
   | 'organizerEmail'
   | 'alarms'
   | 'attachments'
+  | 'transp'
+  | 'status'
 >;
+
+const EVENT_TRANSP_VALUES: readonly EventTransp[] = ['opaque', 'transparent'];
+const EVENT_STATUS_VALUES: readonly EventStatus[] = ['confirmed', 'tentative', 'cancelled'];
+
+function enumProp<T extends string>(
+  vevent: ICAL.Component,
+  name: string,
+  allowed: readonly T[],
+): T | undefined {
+  const raw = vevent.getFirstPropertyValue(name);
+  if (typeof raw !== 'string') return undefined;
+  const value = raw.toLowerCase() as T;
+  return allowed.includes(value) ? value : undefined;
+}
 
 function exceptionFields(vevent: ICAL.Component): Partial<OverridableFields> {
   const fields: Partial<OverridableFields> = {};
@@ -290,7 +306,11 @@ function exceptionFields(vevent: ICAL.Component): Partial<OverridableFields> {
   if (alarms !== undefined) fields.alarms = alarms;
 
   const attachProps = vevent.getAllProperties('attach');
-  if (attachProps.length) fields.attachments = readAttachments(attachProps);
+  if (attachProps.length) fields.attachments = readAttachments(attachProps); const transp = enumProp(vevent, 'transp', EVENT_TRANSP_VALUES);
+  if (transp) fields.transp = transp;
+
+  const status = enumProp(vevent, 'status', EVENT_STATUS_VALUES);
+  if (status) fields.status = status;
 
   return fields;
 }
@@ -516,7 +536,8 @@ export function parseIcsItem(
         rrule: rruleStr,
         alarms,
         attachments,
-        timezone: tzid,
+        timezone: tzid,       transp: enumProp(vevent, 'transp', EVENT_TRANSP_VALUES),
+        status: enumProp(vevent, 'status', EVENT_STATUS_VALUES),
       };
 
       if (isRecurring && (rangeStart || rangeEnd)) {
@@ -664,6 +685,7 @@ export function extractVtimezoneLines(ics: string, excludeTzid?: string): string
 const WRITER_MANAGED_PROPS = new Set([
   'uid', 'dtstamp', 'sequence', 'dtstart', 'dtend', 'summary', 'description',
   'location', 'rrule', 'organizer', 'attendee', 'recurrence-id', 'last-modified', 'prodid',
+  'transp', 'status',
   NO_ALARM_PROP.toLowerCase(),
 ]);
 

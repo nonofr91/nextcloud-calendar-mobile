@@ -48,7 +48,8 @@ function applyPatch(row: Event, patch: Partial<CalendarEvent>): void {
   if ('taskStatus' in patch) row.taskStatus = patch.taskStatus ?? undefined;
   if ('taskCompletedAt' in patch) row.taskCompletedAt = patch.taskCompletedAt?.getTime() ?? undefined;
   if ('taskPercent' in patch) row.taskPercent = patch.taskPercent ?? undefined;
-  if ('timezone' in patch) row.timezone = patch.timezone ?? undefined;
+  if ('timezone' in patch) row.timezone = patch.timezone ?? undefined; if (patch.transp !== undefined) row.transp = patch.transp;
+  if (patch.status !== undefined) row.status = patch.status;
 }
 
 export async function eventExists(
