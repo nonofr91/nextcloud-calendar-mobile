@@ -366,14 +366,6 @@ export default function EventDetailScreen() {
   const handleRespond = useCallback(async (response: InvitationResponse) => {
     if (!event) return;
     await respondMutation.mutateAsync(event, response);
-    if (response === 'declined') {
-      goBackOrHome(router);
-    }
-  }, [event, respondMutation, router]);
-
-  const handleRespond = useCallback(async (response: InvitationResponse) => {
-    if (!event) return;
-    await respondMutation.mutateAsync(event, response);
   }, [event, respondMutation]);
 
   const isLoading = eventsLoading;
