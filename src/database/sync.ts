@@ -16,6 +16,7 @@ import {settleAll} from '@/utils/settle';
 import {getDatabaseInstance} from './DatabaseProvider';
 import Calendar from './models/Calendar';
 import Event from './models/Event';
+import {pendingKeys} from './pendingWrites';
 import {safeWrite} from './utils/safeTransaction';
 
 export function eventKey(accountId: string, calendarId: string, uid: string): string {
@@ -177,16 +178,6 @@ export async function syncCalendars(account: Account): Promise<CalendarMeta[]> {
 }
 
 
-let localWrites = 0;
-
-export function markLocalWrite(): void {
-    localWrites += 1;
-}
-
-export function localWriteEpoch(): number {
-    return localWrites;
-}
-
 export function seriesBaseUid(uid: string): string {
     const i = uid.indexOf('_occ_');
     return i === -1 ? uid : uid.slice(0, i);
@@ -206,7 +197,6 @@ export async function syncEvents(
 ): Promise<SyncEventsResult> {
     if (calendars.length === 0) return { failedCount: 0 };
 
-    const epoch = localWriteEpoch();
     const {
         events: remote,
         syncedCalendarIds,
@@ -233,8 +223,6 @@ export async function syncEvents(
             )
             .fetch();
 
-        if (localWriteEpoch() !== epoch) return;
-
         const windowKeys = new Set(windowRows.map(rowKey));
         const strayUids = remote
             .filter((ev) => !windowKeys.has(eventKey(ev.accountId, ev.calendarId, ev.uid)))
@@ -245,7 +233,7 @@ export async function syncEvents(
                 .fetch()
             : [];
 
-        if (localWriteEpoch() !== epoch) return;
+        const pending = pendingKeys();
 
         const inWindow = new Set(windowRows.map((r) => r.id));
         const byKey = new Map<string, Event>();
@@ -262,6 +250,7 @@ export async function syncEvents(
             const k = eventKey(ev.accountId, ev.calendarId, ev.uid);
             if (seen.has(k)) continue;
             seen.add(k);
+            if (pending.has(k)) continue;
             const found = byKey.get(k);
             if (!found) {
                 ops.push(prepareCreateEvent(events, ev));
@@ -276,6 +265,7 @@ export async function syncEvents(
             for (const [k, r] of byKey) {
                 if (seen.has(k)) continue;
                 if (!inWindow.has(r.id)) continue;
+                if (pending.has(k)) continue;
                 if (syncedIds.has(r.calendarId) || !knownIds.has(r.calendarId)) {
                     ops.push(r.prepareMarkAsDeleted());
                 }
@@ -374,8 +364,6 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
     const storedToken = row?.syncToken;
     const forceFull = needsHorizonReset(row?.expandedCenter, now);
 
-    const epoch = localWriteEpoch();
-
     let result: SyncCollectionResult = await syncCollection(
         account, calendar, forceFull ? '' : storedToken,
     );
@@ -394,13 +382,17 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
             const existing = await events
                 .query(Q.where('account_id', account.id), Q.where('calendar_id', calendar.id))
                 .fetch();
-            if (localWriteEpoch() !== epoch) return;
+            const pending = pendingKeys();
             for (const r of existing) {
+                if (pending.has(rowKey(r))) continue;
                 if (r.start < endMs && r.end > startMs) {
                     ops.push(r.prepareMarkAsDeleted());
                 }
             }
-            for (const ev of fetched) ops.push(prepareCreateEvent(events, ev));
+            for (const ev of fetched) {
+                if (pending.has(eventKey(ev.accountId, ev.calendarId, ev.uid))) continue;
+                ops.push(prepareCreateEvent(events, ev));
+            }
             pushSyncTokenOp(ops, calendars, row, calendar, account, result.newToken, now);
             if (ops.length > 0) await db.batch(ops);
         }, 30000, 'syncCalendarDelta');
@@ -441,8 +433,9 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
 
         const touched = new Set<string>([...result.deleted, ...returnedHrefs]);
         const existing = await collectByHref(events, account.id, touched);
-        if (localWriteEpoch() !== epoch) return;
+        const pending = pendingKeys();
         for (const r of existing) {
+            if (pending.has(rowKey(r))) continue;
             if (deletedSet.has(r.href)) {
                 ops.push(r.prepareMarkAsDeleted());
             } else if (returnedHrefs.has(r.href)) {
@@ -458,6 +451,7 @@ export async function syncCalendarDelta(account: Account, calendar: CalendarMeta
             const k = eventKey(ev.accountId, ev.calendarId, ev.uid);
             if (keptKeys.has(k) || createdKeys.has(k)) continue;
             createdKeys.add(k);
+            if (pending.has(k)) continue;
             ops.push(prepareCreateEvent(events, ev));
         }
         pushSyncTokenOp(ops, calendars, row, calendar, account, result.newToken, now);

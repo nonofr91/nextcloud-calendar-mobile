@@ -26,6 +26,8 @@ import {
   shiftSeriesDates,
 } from '@/database/eventWrites';
 import { syncCalendarDelta } from '@/database/sync';
+import { releasePending } from '@/database/pendingWrites';
+import { eventKey } from '@/database/sync';
 import { occurrenceSlot } from '@/features/event/occurrenceTarget';
 import type { Account, CalendarMeta, CalendarEvent, CreateEventInput, RecurrenceEditScope } from '@/types';
 
@@ -344,47 +346,50 @@ export function useCreateEvent(account: Account, calendars: CalendarMeta[]) {
       const optimistic = input.rrule
         ? expandOccurrences(uid, input, calendar, account, timezone)
         : [eventFromInput(uid, input, calendar, account, undefined, timezone)];
-      await insertEvents(optimistic);
 
-      // A retry after an ambiguous failure (request reached the server but the
-      // response was lost) must not PUT a second resource: the first attempt's
-      // optimistic rows are still here, so an identical event already exists.
-      const { dtstart: probeStart, dtend: probeEnd } = inputDates(input);
-      const dup = await findIdenticalEvent(
-        account.id,
-        calendar.id,
-        { summary: input.summary, dtstart: probeStart, dtend: probeEnd, allDay: input.allDay },
-        uid,
-      );
-      if (dup) {
-        await removeWhere(account.id, (e) => seriesBaseUid(e.uid) === uid);
-        return;
-      }
-
+      let marked: string[] = [];
       let resolved: { location: string; description: string };
       let failures = 0;
       let uploadedPaths: string[] = [];
       try {
+        marked = await insertEvents(optimistic);
+
+        // A retry after an ambiguous failure (request reached the server but the
+        // response was lost) must not PUT a second resource: the first attempt's
+        // optimistic rows are still here, so an identical event already exists.
+        const { dtstart: probeStart, dtend: probeEnd } = inputDates(input);
+        const dup = await findIdenticalEvent(
+          account.id,
+          calendar.id,
+          { summary: input.summary, dtstart: probeStart, dtend: probeEnd, allDay: input.allDay },
+          uid,
+        );
+        if (dup) {
+          await removeWhere(account.id, (e) => seriesBaseUid(e.uid) === uid, { trackPending: false });
+          return;
+        }
+
         resolved = await resolveLocationAndDescription(account, input);
-        const timezone = inputTimezone(input) ?? resolveTimezone(account);
         const ics = buildIcsForInput(uid, input, resolved.location, resolved.description, timezone, 0, input.extraLines);
         await putEvent(account, calendar, uid, ics);
 
         const real = input.rrule
           ? expandOccurrences(uid, input, calendar, account, timezone, resolved)
           : [eventFromInput(uid, input, calendar, account, resolved, timezone)];
-        await insertEvents(real);
+        await insertEvents(real, { trackPending: false });
         const built = buildIcsForInput(uid, input, resolved.location, resolved.description, timezone);
         const delta = await applyAttachmentDelta(account, built, input);
         failures = delta.failures;
         uploadedPaths = delta.uploadedPaths;
         await putEvent(account, calendar, uid, delta.ics);
       } catch (error) {
-        await removeWhere(account.id, (e) => seriesBaseUid(e.uid) === uid);
+        await removeWhere(account.id, (e) => seriesBaseUid(e.uid) === uid, { trackPending: false });
         // The event was never created — uploaded files would be orphaned.
         await cleanupUploaded(account, uploadedPaths);
         Alert.alert(i18n.t('event.errorCreateFailed'), describeMutationError(error));
         return;
+      } finally {
+        releasePending(marked);
       }
 
       // The PUT succeeded — the event exists on the server. Local writes are
@@ -395,7 +400,7 @@ export function useCreateEvent(account: Account, calendars: CalendarMeta[]) {
         ? expandOccurrences(uid, input, calendar, account, timezone, resolved)
         : [eventFromInput(uid, input, calendar, account, resolved, timezone)];
       try {
-        await insertEvents(real);
+        await insertEvents(real, { trackPending: false });
       } catch (error) {
         console.warn('[useCreateEvent] post-PUT local write failed; forcing resync', error);
         resync = true;
@@ -444,22 +449,23 @@ export function useUpdateEvent(account: Account, calendars: CalendarMeta[]) {
         timezone: input.allDay ? undefined : inputTimezone(input) ?? event.timezone,
       };
 
-      if (shiftsWholeSeries) {
-        await shiftSeriesDates(account.id, base, deltaStart, deltaEnd, datesOnly ? {} : nonTemporalPatch);
-      } else {
-        await patchByUid(account.id, event.uid, {
-          ...(datesOnly ? {} : nonTemporalPatch),
-          dtstart,
-          dtend,
-          ...(targetCal && {
-            calendarId: targetCal.id,
-            color: targetCal.color,
-            href: buildEventHref(targetCal, event.uid),
-          }),
-        });
-      }
-
+      let marked: string[] = [];
       try {
+        if (shiftsWholeSeries) {
+          marked = await shiftSeriesDates(account.id, base, deltaStart, deltaEnd, datesOnly ? {} : nonTemporalPatch);
+        } else {
+          marked = await patchByUid(account.id, event.uid, {
+            ...(datesOnly ? {} : nonTemporalPatch),
+            dtstart,
+            dtend,
+            ...(targetCal && {
+              calendarId: targetCal.id,
+              color: targetCal.color,
+              href: buildEventHref(targetCal, event.uid),
+            }),
+          });
+        }
+
         const { location, description } = await resolveLocationAndDescription(account, input);
         let timezone = inputTimezone(input) ?? resolveTimezone(account);
         const scheduled = withServerOrganizer(input, event);
@@ -598,6 +604,8 @@ export function useUpdateEvent(account: Account, calendars: CalendarMeta[]) {
       } catch (error) {
         await restoreSeries(account.id, base, snapshot);
         Alert.alert(i18n.t('event.errorUpdateFailed'), describeMutationError(error));
+      } finally {
+        releasePending(marked);
       }
     }, [account, calendars]),
   );
@@ -607,20 +615,22 @@ export function useDeleteEvent(account: Account) {
   return useAction<{ event: CalendarEvent; scope?: RecurrenceEditScope }>(
     useCallback(async ({ event, scope = 'all' }) => {
       const base = seriesBaseUid(event.uid);
-      let removed: CalendarEvent[];
-      if (!event.isRecurring || scope === 'all') {
-        removed = await removeWhere(account.id, (e) => seriesBaseUid(e.uid) === base);
-      } else if (scope === 'thisAndFollowing') {
-        const from = occurrenceSlot(event).getTime();
-        removed = await removeWhere(
-          account.id,
-          (e) => seriesBaseUid(e.uid) === base && new Date(e.dtstart).getTime() >= from,
-        );
-      } else {
-        removed = await removeWhere(account.id, (e) => e.uid === event.uid);
-      }
-
+      let removed: CalendarEvent[] = [];
+      let marked: string[] = [];
       try {
+        if (!event.isRecurring || scope === 'all') {
+          removed = await removeWhere(account.id, (e) => seriesBaseUid(e.uid) === base);
+        } else if (scope === 'thisAndFollowing') {
+          const from = occurrenceSlot(event).getTime();
+          removed = await removeWhere(
+            account.id,
+            (e) => seriesBaseUid(e.uid) === base && new Date(e.dtstart).getTime() >= from,
+          );
+        } else {
+          removed = await removeWhere(account.id, (e) => e.uid === event.uid);
+        }
+        marked = removed.map((e) => eventKey(e.accountId, e.calendarId, e.uid));
+
         if (!event.isRecurring || scope === 'all') {
           await deleteEvent(account, event.href);
           return;
@@ -634,8 +644,10 @@ export function useDeleteEvent(account: Account) {
           await updateEvent(account, event.href, truncateRruleUntil(masterIcs, oneDayBefore), etag);
         }
       } catch (error) {
-        await insertEvents(removed);
+        await insertEvents(removed, { trackPending: false });
         Alert.alert(i18n.t('event.errorDeleteFailed'), describeMutationError(error));
+      } finally {
+        releasePending(marked);
       }
     }, [account]),
   );
