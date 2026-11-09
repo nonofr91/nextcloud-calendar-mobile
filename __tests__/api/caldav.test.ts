@@ -1,4 +1,4 @@
-import { deleteEvent, moveEvent, syncCollection, fetchEvents, fetchEventsByHrefs, fetchCalendars, validateCredentials, MULTIGET_BATCH } from '../../src/services/nextcloud/caldav';
+import { deleteEvent, moveEvent, putEvent, syncCollection, fetchEvents, fetchEventsByHrefs, fetchCalendars, validateCredentials, MULTIGET_BATCH, buildEventHref } from '../../src/services/nextcloud/caldav';
 import type { Account, CalendarMeta } from '../../src/types';
 
 const account: Account = {
@@ -258,6 +258,24 @@ describe('fetchEventsByHrefs', () => {
     expect(mockFetch).not.toHaveBeenCalled();
     expect(events).toEqual([]);
     expect(returnedHrefs.size).toBe(0);
+  });
+
+  it('reports which hrefs actually returned calendar-data via returnedHrefs', async () => {
+    // b.ics is listed in the multistatus but carries no calendar-data.
+    const xml = `<d:multistatus xmlns:d="DAV:" xmlns:cal="urn:ietf:params:xml:ns:caldav">${
+      respFor('/p/a.ics', 'a')
+    }<d:response><d:href>/p/b.ics</d:href><d:propstat><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>`;
+    mockFetch.mockResolvedValue({ status: 207, text: async () => xml });
+
+    const { returnedHrefs } = await fetchEventsByHrefs(
+      account,
+      cal,
+      ['https://cloud.example.com/p/a.ics', 'https://cloud.example.com/p/b.ics'],
+      range.s,
+      range.e,
+    );
+
+    expect([...returnedHrefs]).toEqual(['https://cloud.example.com/p/a.ics']);
   });
 });
 
@@ -736,5 +754,42 @@ describe('fetchEvents — subscribed feed with unstable UIDs', () => {
     const events = await fetchEvents(account, subscribed, range.s, range.e);
     expect(events).toHaveLength(2);
     expect(new Set(events.map((e) => e.uid)).size).toBe(2);
+  });
+});
+
+describe('buildEventHref', () => {
+  it('encodes UIDs with reserved URL characters', () => {
+    const href = buildEventHref(targetCalendar, 'uid-with@host:part');
+    expect(href).toBe(
+      'https://cloud.example.com/remote.php/dav/calendars/john/work/uid-with%40host%3Apart.ics',
+    );
+  });
+
+  it('leaves plain UUID UIDs unchanged', () => {
+    const href = buildEventHref(targetCalendar, 'plain-uid-123');
+    expect(href).toBe(
+      'https://cloud.example.com/remote.php/dav/calendars/john/work/plain-uid-123.ics',
+    );
+  });
+});
+
+describe('putEvent', () => {
+  it('PUTs the ICS body to <calendar.url><uid>.ics with a text/calendar content type', async () => {
+    mockFetch.mockResolvedValue({ ok: true, status: 201 });
+    const ics = 'BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nUID:new-uid\r\nEND:VEVENT\r\nEND:VCALENDAR';
+    await putEvent(account, targetCalendar, 'new-uid', ics);
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://cloud.example.com/remote.php/dav/calendars/john/work/new-uid.ics',
+      expect.objectContaining({
+        method: 'PUT',
+        body: ics,
+        headers: expect.objectContaining({ 'Content-Type': 'text/calendar; charset=utf-8' }),
+      })
+    );
+  });
+
+  it('throws on error status', async () => {
+    mockFetch.mockResolvedValue({ ok: false, status: 412, text: () => Promise.resolve('') });
+    await expect(putEvent(account, targetCalendar, 'u', 'ics')).rejects.toThrow('putEvent HTTP 412');
   });
 });

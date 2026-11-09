@@ -7,12 +7,16 @@ import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'expo-router';
+import { Square, SquareCheck, HelpCircle } from 'lucide-react-native';
 import type { Theme } from '@/theme';
 import type { CalendarEvent } from '@/types';
 import { useTimeFormat } from '@/hooks/useTimeFormat';
 import {
   AGENDA_FUTURE_DAYS, AGENDA_PAST_DAYS, agendaRowKey, buildAgendaSections,
 } from '../utils/agendaSections';
+import { useAccountStore } from '@/stores/accountStore';
+import { useActiveAccount } from '@/hooks/useAccounts';
+import { isEventPending } from '@/utils/eventPending';
 
 dayjs.extend(localizedFormat);
 
@@ -28,7 +32,7 @@ const HEADER_HEIGHT = 57;
 const EVENT_ROW_HEIGHT = 72;
 
 const TODAY_JUMP_GUARD_MS = 500;
-const JUMP_VERIFY_WINDOW_MS = 1200;
+const JUMP_VERIFY_WINDOW_MS = 5000;
 const JUMP_CHECK_DELAY_MS = 120;
 
 interface DayHeaderProps {
@@ -75,6 +79,9 @@ interface EventRowProps {
 const EventRow = memo(({ event, theme, onPress }: EventRowProps) => {
   const { t } = useTranslation();
   const { formatTime } = useTimeFormat();
+  const activeAccountId = useAccountStore((s) => s.activeAccountId);
+  const activeAccount = useActiveAccount(activeAccountId);
+  const pending = isEventPending(event, activeAccount);
   const duration = event.allDay
     ? null
     : (() => {
@@ -91,20 +98,43 @@ const EventRow = memo(({ event, theme, onPress }: EventRowProps) => {
 
   return (
     <TouchableOpacity
-      style={[styles.eventRow, { backgroundColor: theme.colors.surface }]}
+      style={[
+        styles.eventRow,
+        { backgroundColor: theme.colors.surface },
+        pending && styles.eventRowPending,
+      ]}
       onPress={() => onPress(event)}
       activeOpacity={0.75}
     >
       <View style={[styles.colorBar, { backgroundColor: event.color }]} />
-      <View style={[styles.eventContent, isCancelled && styles.eventContentCancelled]}>
+      {event.isTask && (
+        <View
+          style={styles.taskCheckbox}
+          accessibilityRole="image"
+          accessibilityLabel={
+            event.taskCompleted ? t('task.completed') : t('task.pending')
+          }
+        >
+          {event.taskCompleted
+            ? <SquareCheck size={20} color={event.color} />
+            : <Square size={20} color={theme.colors.textTertiary} />}
+        </View>
+      )}
+      {pending && (
+        <View style={styles.pendingIcon} pointerEvents="none">
+          <HelpCircle size={16} color={theme.colors.textTertiary} />
+        </View>
+      )}
+      <View style={[styles.eventContent, isCancelled && styles.eventContentCancelled, event.taskCompleted && styles.eventContentDone]}>
         <Text
           style={[
             styles.eventTitle,
             { color: theme.colors.text },
             isCancelled && styles.eventTitleCancelled,
             isTentative && styles.eventTitleTentative,
+            event.taskCompleted && styles.doneText,
           ]}
-          numberOfLines={1}
+          numberOfLines={2}
         >
           {event.summary || t('calendar.noTitle')}
         </Text>
@@ -179,10 +209,17 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
   const anchorRef = useRef({ key: todayKey, delta: 0 });
   const layoutRef = useRef({ rows, offsets });
   const userScrollingRef = useRef(false);
-  const onUserScrollStart = useCallback(() => { userScrollingRef.current = true; }, []);
+  const pendingJumpRef = useRef<{ key: string; expiresAt: number } | null>(null);
+
+  const onScrollBeginDrag = useCallback(() => {
+    pendingJumpRef.current = null;
+    userScrollingRef.current = true;
+  }, []);
+  const onMomentumScrollBegin = useCallback(() => {
+    if (!pendingJumpRef.current) userScrollingRef.current = true;
+  }, []);
   const onUserScrollEnd = useCallback(() => { userScrollingRef.current = false; }, []);
 
-  const pendingJumpRef = useRef<{ key: string; expiresAt: number } | null>(null);
   const jumpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const offsetForKey = useCallback((key: string): number | null => {
@@ -306,10 +343,12 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
       style={{ flex: 1, backgroundColor: theme.colors.background }}
       contentContainerStyle={{ paddingBottom: 80 }}
       onScroll={onScroll}
-      onScrollBeginDrag={onUserScrollStart}
+      onScrollBeginDrag={onScrollBeginDrag}
       onScrollEndDrag={onUserScrollEnd}
-      onMomentumScrollBegin={onUserScrollStart}
+      onMomentumScrollBegin={onMomentumScrollBegin}
       onMomentumScrollEnd={onUserScrollEnd}
+      onContentSizeChange={issuePendingJump}
+      onLayout={issuePendingJump}
       scrollEventThrottle={32}
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig.current}
@@ -358,13 +397,28 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     height: EVENT_ROW_HEIGHT - 6,
   },
+  eventRowPending: {
+    borderStyle: 'dotted',
+    borderWidth: 2,
+    borderColor: 'rgba(0,0,0,0.15)',
+    opacity: 0.85,
+  },
+  pendingIcon: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    zIndex: 1,
+  },
   colorBar: { width: 4 },
+  taskCheckbox: { justifyContent: 'center', paddingHorizontal: 8 },
   eventContent: { flex: 1, padding: 10, justifyContent: 'center' },
   eventContentCancelled: { opacity: 0.5 },
+  eventContentDone: { opacity: 0.55 },
   eventTitle: { fontSize: 14, fontWeight: '600', marginBottom: 3 },
   eventTitleCancelled: { textDecorationLine: 'line-through' },
   eventTitleTentative: { fontStyle: 'italic' },
-  eventMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  doneText: { textDecorationLine: 'line-through' },
+  eventMeta: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4 },
   eventTime: { fontSize: 12, fontWeight: '500' },
   eventDuration: { fontSize: 11 },
   eventLocation: { fontSize: 11, flex: 1 },

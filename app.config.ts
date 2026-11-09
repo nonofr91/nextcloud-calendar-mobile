@@ -42,6 +42,28 @@ const config: ExpoConfig = {
             NSAppTransportSecurity: {
                 NSAllowsArbitraryLoads: true,
             },
+            CFBundleDocumentTypes: [
+                {
+                    CFBundleTypeName: 'iCalendar File',
+                    CFBundleTypeRole: 'Editor',
+                    LSHandlerRank: 'Alternate',
+                    LSItemContentTypes: [
+                        'com.apple.ical.ics',
+                        'com.soluce.nextcloud-calendar.ics',
+                    ],
+                },
+            ],
+            UTImportedTypeDeclarations: [
+                {
+                    UTTypeConformsTo: ['public.data', 'public.content'],
+                    UTTypeDescription: 'iCalendar File',
+                    UTTypeIdentifier: 'com.soluce.nextcloud-calendar.ics',
+                    UTTypeTagSpecification: {
+                        'public.filename-extension': ['ics'],
+                        'public.mime-type': ['text/calendar', 'application/ics'],
+                    },
+                },
+            ],
         },
         entitlements: {
             'com.apple.security.application-groups': ['group.com.soluce.nextcloud-calendar'],
@@ -51,12 +73,38 @@ const config: ExpoConfig = {
     android: {
         package: 'com.soluce.nextcloudcalendar',
         versionCode,
-        permissions: ['USE_EXACT_ALARM', 'SCHEDULE_EXACT_ALARM'],
+        permissions: [
+            'USE_EXACT_ALARM',
+            'SCHEDULE_EXACT_ALARM',
+            'android.permission.POST_NOTIFICATIONS',
+            'android.permission.RECEIVE_BOOT_COMPLETED',
+            'android.permission.VIBRATE',
+        ],
         adaptiveIcon: {
             foregroundImage: './assets/adaptive-icon.png',
             backgroundColor: '#109be6',
         },
         softwareKeyboardLayoutMode: 'resize',
+        intentFilters: [
+            {
+                action: 'VIEW',
+                category: ['DEFAULT', 'BROWSABLE'],
+                data: [
+                    { scheme: 'content', mimeType: 'text/calendar' },
+                    { scheme: 'content', mimeType: 'application/ics' },
+                    { scheme: 'file', mimeType: 'text/calendar' },
+                    { scheme: 'file', mimeType: 'application/ics' },
+                ],
+            },
+            {
+                action: 'VIEW',
+                category: ['DEFAULT', 'BROWSABLE'],
+                data: [
+                    { scheme: 'content', mimeType: '*/*', pathPattern: '/.*\\.ics' },
+                    { scheme: 'file', mimeType: '*/*', pathPattern: '/.*\\.ics' },
+                ],
+            },
+        ],
     },
 
     web: {
@@ -88,6 +136,7 @@ const config: ExpoConfig = {
         '@react-native-community/datetimepicker',
         'expo-router',
         'expo-secure-store',
+        'expo-sharing',
         'expo-web-browser',
         [
             'expo-camera',
@@ -179,6 +228,18 @@ const config: ExpoConfig = {
                         targetCellWidth: 4,
                         targetCellHeight: 4,
                         description: 'Multi-day agenda grouped by day',
+                        previewImage: './assets/icon.png',
+                        updatePeriodMillis: 1800000,
+                        resizeMode: 'horizontal|vertical',
+                    },
+                    {
+                        name: 'CalendarMonthWidget',
+                        label: 'Nextcloud Calendar month',
+                        minWidth: '250dp',
+                        minHeight: '250dp',
+                        targetCellWidth: 4,
+                        targetCellHeight: 4,
+                        description: 'A six-week month view with events',
                         previewImage: './assets/icon.png',
                         updatePeriodMillis: 1800000,
                         resizeMode: 'horizontal|vertical',

@@ -1,5 +1,6 @@
 import ICAL from 'ical.js';
-import type { CalendarEvent, Attendee, EventStatus, EventTransp } from '@/types';
+import type { CalendarEvent, Attendee, EventStatus, EventTransp, EventAttachment } from '@/types';
+import { taskIsCompleted } from '@/utils/vtodo';
 import { yieldToUI } from '@/utils/scheduling';
 import { isValidTimeZone, zonedWallTimeToUtc } from '@/utils/timezone';
 import { NO_ALARM_PROP, triggerToMinutes } from '@/features/notifications/alerts';
@@ -56,19 +57,145 @@ export function alarmMinutesList(vevent: ICAL.Component): number[] | undefined {
   return [...new Set(minutes)].sort((a, b) => b - a);
 }
 
+const KNOWN_ATTENDEE_PARAMS = new Set([
+  'cn', 'cutype', 'member', 'role', 'partstat', 'rsvp', 'delegated-to', 'delegated-from',
+  'sent-by', 'schedule-agent', 'schedule-status', 'schedule-force-send',
+]);
+
+function paramString(prop: ICAL.Property, name: string): string | undefined {
+  const value = prop.getParameter(name) as string | string[] | undefined;
+  return typeof value === 'string' ? value : undefined;
+}
+
+function paramList(prop: ICAL.Property, name: string): string[] | undefined {
+  const value = prop.getParameter(name) as string | string[] | undefined;
+  if (Array.isArray(value)) return value.length ? value.map(String) : undefined;
+  return typeof value === 'string' ? [value] : undefined;
+}
+
 function readAttendees(props: ICAL.Property[]): Attendee[] {
   const seen = new Set<string>();
   const attendees: Attendee[] = [];
   for (const prop of props) {
     const value = (prop.getFirstValue() as string) ?? '';
     const email = value.replace(/^mailto:/i, '');
-    const displayName = (prop.getParameter('cn') as string) ?? undefined;
     const key = email.toLowerCase();
     if (email && seen.has(key)) continue;
     if (email) seen.add(key);
-    attendees.push({ email, displayName });
+    const jcalParams = (prop.toJSON()[1] ?? {}) as Record<string, string | string[]>;
+    const extraParams = Object.fromEntries(
+      Object.entries(jcalParams).filter(([name]) => !KNOWN_ATTENDEE_PARAMS.has(name)),
+    );
+    const rsvp = paramString(prop, 'rsvp');
+    attendees.push({
+      email,
+      displayName: paramString(prop, 'cn'),
+      partstat: paramString(prop, 'partstat')?.toLowerCase(),
+      role: paramString(prop, 'role'),
+      rsvp: rsvp === undefined ? undefined : rsvp.toUpperCase() === 'TRUE',
+      cutype: paramString(prop, 'cutype'),
+      member: paramList(prop, 'member'),
+      delegatedTo: paramList(prop, 'delegated-to'),
+      delegatedFrom: paramList(prop, 'delegated-from'),
+      sentBy: paramString(prop, 'sent-by'),
+      scheduleAgent: paramString(prop, 'schedule-agent'),
+      scheduleStatus: paramString(prop, 'schedule-status'),
+      scheduleForceSend: paramString(prop, 'schedule-force-send'),
+      ...(Object.keys(extraParams).length ? { extraParams } : {}),
+    });
   }
   return attendees;
+}
+
+function filenameFromUri(uri: string): string | undefined {
+  const segment = uri.split(/[?#]/, 1)[0].split('/').filter(Boolean).pop();
+  if (!segment) return undefined;
+  try {
+    return decodeURIComponent(segment) || undefined;
+  } catch {
+    return segment;
+  }
+}
+
+function base64DecodedSize(b64: string): number {
+  const padding = b64.endsWith('==') ? 2 : b64.endsWith('=') ? 1 : 0;
+  return Math.max(0, Math.floor(b64.length * 3 / 4) - padding);
+}
+
+/**
+ * Cheap content fingerprint for a base64 payload: length plus the first and
+ * last 64 chars. Stored on stripped attachments so a re-fetch can re-identify
+ * the exact ATTACH even when another one shares filename/fmttype/size.
+ */
+export function base64Fingerprint(b64: string): string {
+  return `${b64.length}:${b64.slice(0, 64)}${b64.slice(-64)}`;
+}
+
+function attachSize(prop: ICAL.Property, base64?: string): number | undefined {
+  const raw = prop.getParameter('size');
+  const n = typeof raw === 'number' ? raw : Number(raw);
+  if (Number.isFinite(n) && n > 0) return n;
+  if (base64) return base64DecodedSize(base64) || undefined;
+  return undefined;
+}
+
+export function readAttachments(props: ICAL.Property[]): EventAttachment[] {
+  const seen = new Set<string>();
+  const out: EventAttachment[] = [];
+  for (const prop of props) {
+    const value = prop.getFirstValue();
+    const fmttype = (prop.getParameter('fmttype') as string) ?? undefined;
+    let filename =
+      ((prop.getParameter('filename') ?? prop.getParameter('x-filename')) as string) ?? undefined;
+    if (value instanceof ICAL.Binary) {
+      const base64 = String(value);
+      if (!base64) continue;
+      if (seen.has(base64)) continue;
+      seen.add(base64);
+      out.push({ base64, fmttype, filename, size: attachSize(prop, base64) });
+    } else if (typeof value === 'string' && value) {
+      if (seen.has(value)) continue;
+      seen.add(value);
+      filename = filename ?? filenameFromUri(value);
+      out.push({ uri: value, fmttype, filename, size: attachSize(prop) });
+    }
+  }
+  return out;
+}
+
+/**
+ * Embedded payloads are kept out of WatermelonDB when they would bloat it:
+ * occurrence rows would duplicate the base64, and large embeds would slow the
+ * per-sync unchanged comparison. Small embeds stay inline so they can be
+ * opened offline; the rest is re-fetched via `href` on demand.
+ */
+const MAX_STORED_ATTACHMENT_BYTES = 64 * 1024;
+
+function stripInlineContent(att: EventAttachment, force = false): EventAttachment {
+  if (!att.base64) return att;
+  if (!force && base64DecodedSize(att.base64) <= MAX_STORED_ATTACHMENT_BYTES) return att;
+  return {
+    ...att,
+    base64: undefined,
+    inline: true,
+    digest: base64Fingerprint(att.base64),
+  };
+}
+
+/** All attachments declared by every VEVENT/VTODO of an ICS document. */
+export function extractEventAttachments(ics: string): EventAttachment[] {
+  try {
+    const comp = new ICAL.Component(parseIcsToJcal(ics));
+    const out: EventAttachment[] = [];
+    for (const name of ['vevent', 'vtodo']) {
+      for (const sub of comp.getAllSubcomponents(name)) {
+        out.push(...readAttachments(sub.getAllProperties('attach')));
+      }
+    }
+    return out;
+  } catch {
+    return [];
+  }
 }
 
 function organizerEmailOf(vevent: ICAL.Component): string | undefined {
@@ -78,7 +205,7 @@ function organizerEmailOf(vevent: ICAL.Component): string | undefined {
 
 type OverridableFields = Pick<
   CalendarEvent,
-  'summary' | 'description' | 'location' | 'talkUrl' | 'attendees' | 'organizerEmail' | 'alarms' | 'transp' | 'status'
+  'summary' | 'description' | 'location' | 'talkUrl' | 'attendees' | 'organizerEmail' | 'alarms' | 'transp' | 'status' | 'attachments'
 >;
 
 const EVENT_TRANSP_VALUES: readonly EventTransp[] = ['opaque', 'transparent'];
@@ -124,6 +251,9 @@ function exceptionFields(vevent: ICAL.Component): Partial<OverridableFields> {
   const status = enumProp(vevent, 'status', EVENT_STATUS_VALUES);
   if (status) fields.status = status;
 
+  const attachProps = vevent.getAllProperties('attach');
+  if (attachProps.length) fields.attachments = readAttachments(attachProps);
+
   return fields;
 }
 
@@ -146,7 +276,7 @@ function isOverridden(slot: ICAL.Time, overrideIds: Set<string>): boolean {
   return overrideIds.has(slot.convertToZone(ICAL.Timezone.utcTimezone).toString());
 }
 
-function resolveInstant(t: ICAL.Time, tzid: string | undefined, isEnd = false): Date {
+export function resolveInstant(t: ICAL.Time, tzid: string | undefined, isEnd = false): Date {
   if (t.isDate) {
     return isEnd
       ? new Date(t.year, t.month - 1, t.day - 1)
@@ -189,7 +319,7 @@ function repairIcsFolding(ics: string): string {
   return out.join('\r\n');
 }
 
-function parseIcsToJcal(ics: string): ReturnType<typeof ICAL.parse> {
+export function parseIcsToJcal(ics: string): ReturnType<typeof ICAL.parse> {
   try {
     return ICAL.parse(ics);
   } catch {
@@ -237,6 +367,20 @@ function parseVtodo(
     dtend = new Date(dtstart.getTime() + DEFAULT_TODO_DURATION_MS);
   }
 
+  const statusRaw = vtodo.getFirstPropertyValue('status');
+  const taskStatus = typeof statusRaw === 'string' ? statusRaw.toUpperCase() : undefined;
+
+  const percentRaw = vtodo.getFirstPropertyValue('percent-complete');
+  const percentNum = percentRaw == null ? NaN : Number(percentRaw);
+  const taskPercent = Number.isFinite(percentNum) ? percentNum : undefined;
+
+  const completedProp = propTime(vtodo.getFirstProperty('completed'));
+  const taskCompletedAt = completedProp
+    ? resolveInstant(completedProp.time, completedProp.tzid)
+    : undefined;
+
+  const rruleProp = vtodo.getFirstProperty('rrule');
+
   return {
     uid,
     href,
@@ -250,9 +394,18 @@ function parseVtodo(
     allDay,
     color: meta.color,
     attendees: [],
-    isRecurring: false,
+    isRecurring: !!rruleProp,
+    rrule: rruleProp ? rruleProp.toICALString() : undefined,
     alarms: alarmMinutesList(vtodo),
     isTask: true,
+    timezone: anchor.time.isDate ? undefined : anchor.tzid,
+    taskStatus,
+    taskCompletedAt,
+    taskPercent,
+    taskCompleted: taskIsCompleted(taskStatus, taskCompletedAt, taskPercent),
+    attachments: readAttachments(vtodo.getAllProperties('attach')).map((a) =>
+      stripInlineContent(a),
+    ),
   };
 }
 
@@ -295,6 +448,10 @@ export function parseIcsItem(
 
       const alarms = alarmMinutesList(vevent);
 
+      const attachments = readAttachments(vevent.getAllProperties('attach')).map((a) =>
+        stripInlineContent(a),
+      );
+
       const rruleProp = vevent.getFirstProperty('rrule');
       const isRecurring = !!rruleProp;
       const rruleStr: string | undefined = rruleProp
@@ -319,6 +476,8 @@ export function parseIcsItem(
         alarms,
         transp: enumProp(vevent, 'transp', EVENT_TRANSP_VALUES),
         status: enumProp(vevent, 'status', EVENT_STATUS_VALUES),
+        timezone: tzid,
+        attachments,
       };
 
       if (isRecurring && (rangeStart || rangeEnd)) {
@@ -342,15 +501,23 @@ export function parseIcsItem(
 
           if (!inRange(occStart, occEnd)) return false;
 
+          const fieldOverrides =
+            item && item.component !== vevent ? exceptionFields(item.component) : {};
+          const occAttachments = (fieldOverrides.attachments ?? base.attachments)?.map((a) =>
+            stripInlineContent(a, true),
+          );
+
           events.push({
             ...base,
-            ...(item && item.component !== vevent ? exceptionFields(item.component) : {}),
+            ...fieldOverrides,
+            attachments: occAttachments,
             uid: `${icalEvent.uid}_occ_${slot.toUnixTime()}`,
             href,
             recurrenceId: resolveInstant(slot, tzid),
             dtstart: occStart,
             dtend: occEnd,
             allDay: startDate.isDate,
+            timezone: startDate.isDate ? undefined : occTzid,
           });
           return true;
         };
@@ -428,6 +595,33 @@ export function extractSequence(ics: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+/**
+ * Raw lines of every VTIMEZONE block in `ics`, except the one for
+ * `excludeTzid` (callers regenerate that zone when rewriting the event).
+ * Used to keep foreign-zone VTIMEZONEs — e.g. referenced by a preserved
+ * EXDATE — across a full ICS rewrite.
+ */
+export function extractVtimezoneLines(ics: string, excludeTzid?: string): string[] {
+  const out: string[] = [];
+  let block: string[] | null = null;
+  let tzid = '';
+  for (const line of repairIcsFolding(ics).split('\r\n')) {
+    if (line === 'BEGIN:VTIMEZONE') {
+      block = [line];
+      tzid = '';
+      continue;
+    }
+    if (!block) continue;
+    block.push(line);
+    if (line.startsWith('TZID:')) tzid = line.slice('TZID:'.length).trim();
+    if (line === 'END:VTIMEZONE') {
+      if (tzid !== excludeTzid) out.push(...block);
+      block = null;
+    }
+  }
+  return out;
+}
+
 const WRITER_MANAGED_PROPS = new Set([
   'uid', 'dtstamp', 'sequence', 'dtstart', 'dtend', 'summary', 'description',
   'location', 'rrule', 'organizer', 'attendee', 'recurrence-id', 'last-modified', 'prodid',
@@ -435,13 +629,19 @@ const WRITER_MANAGED_PROPS = new Set([
   NO_ALARM_PROP.toLowerCase(),
 ]);
 
-export function extractExtraVeventLines(ics: string): string[] {
+export function extractExtraVeventLines(ics: string, targetUid?: string): string[] {
   try {
     const comp = new ICAL.Component(parseIcsToJcal(ics));
     const vevents = comp.getAllSubcomponents('vevent');
     if (vevents.length === 0) return [];
     const master =
-      vevents.find((v: ICAL.Component) => !v.getFirstPropertyValue('recurrence-id')) ?? vevents[0];
+      vevents.find((v: ICAL.Component) => {
+        if (v.getFirstPropertyValue('recurrence-id')) return false;
+        if (!targetUid) return true;
+        const uid = v.getFirstPropertyValue('uid');
+        return uid === targetUid;
+      }) ??
+      vevents[0];
     return master
       .getAllProperties()
       .filter((p: ICAL.Property) => !WRITER_MANAGED_PROPS.has(p.name))

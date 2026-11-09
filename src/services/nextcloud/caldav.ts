@@ -55,7 +55,7 @@ function extractPropHref(xml: string, localName: string): string | undefined {
   return href ? decodeXmlEntities(href).trim() : undefined;
 }
 
-function splitResponses(xml: string): string[] {
+export function splitResponses(xml: string): string[] {
   const chunks: string[] = [];
   const re = /<d:response[^>]*>([\s\S]*?)<\/d:response>/g;
   let m: RegExpExecArray | null;
@@ -63,7 +63,7 @@ function splitResponses(xml: string): string[] {
   return chunks;
 }
 
-async function davFetch(
+export async function davFetch(
   url: string,
   account: Pick<Account, 'username' | 'appPassword'>,
   options: { method?: string; headers?: Record<string, string>; body?: string; maxRetries?: number }
@@ -95,7 +95,7 @@ export async function validateCredentials(params: {
 
   if (!principalPath) {
     const principalUrl = `${params.baseUrl}/remote.php/dav/principals/users/${encodeURIComponent(params.username)}/`;
-    const fallback = await davFetch(principalUrl, params, { method: 'PROPFIND', headers: { Depth: '0', 'Content-Type': 'application/xml' }, maxRetries: 0 });
+    const fallback = await davFetch(principalUrl, params, { method: 'PROPFIND', headers: { Depth: '0', 'Content-Type': 'application/xml' } });
     if (fallback.status !== 207 && !fallback.ok) throw httpErrorFrom(fallback, 'validateCredentials');
     return { davUserId: params.username };
   }
@@ -408,12 +408,30 @@ export async function fetchEventsForCalendars(
 }
 
 export async function fetchEventIcs(account: Account, href: string): Promise<string> {
+  const { ics } = await fetchEventIcsWithEtag(account, href);
+  return ics;
+}
+
+/**
+ * GETs an event's ICS along with its ETag — pass it to updateEvent so the PUT
+ * carries If-Match and fails instead of overwriting a concurrent change.
+ */
+export async function fetchEventIcsWithEtag(
+  account: Account,
+  href: string,
+): Promise<{ ics: string; etag?: string }> {
   const res = await davFetch(href, account, {
     method: 'GET',
     headers: { Accept: 'text/calendar' },
   });
   if (!res.ok) throw new Error(`fetchEventIcs HTTP ${res.status}`);
-  return res.text();
+  const etag = res.headers.get('etag') ?? undefined;
+  // Weak etags can never satisfy If-Match (strong comparison required).
+  return { ics: await res.text(), etag: etag?.startsWith('W/') ? undefined : etag };
+}
+
+export function buildEventHref(calendar: CalendarMeta, uid: string): string {
+  return `${calendar.url}${encodeURIComponent(uid)}.ics`;
 }
 
 export async function putEvent(
@@ -422,7 +440,7 @@ export async function putEvent(
   uid: string,
   ics: string
 ): Promise<void> {
-  const url = `${calendar.url}${uid}.ics`;
+  const url = buildEventHref(calendar, uid);
   const res = await davFetch(url, account, {
     method: 'PUT',
     headers: { 'Content-Type': 'text/calendar; charset=utf-8' },
@@ -438,11 +456,15 @@ export async function putEvent(
 export async function updateEvent(
   account: Account,
   href: string,
-  ics: string
+  ics: string,
+  etag?: string
 ): Promise<void> {
   const res = await davFetch(href, account, {
     method: 'PUT',
-    headers: { 'Content-Type': 'text/calendar; charset=utf-8' },
+    headers: {
+      'Content-Type': 'text/calendar; charset=utf-8',
+      ...(etag ? { 'If-Match': etag } : {}),
+    },
     body: ics,
   });
   if (!res.ok) {
@@ -458,7 +480,7 @@ export async function moveEvent(
   targetCalendar: CalendarMeta,
   uid: string
 ): Promise<void> {
-  const destination = `${targetCalendar.url}${uid}.ics`;
+  const destination = buildEventHref(targetCalendar, uid);
   const res = await davFetch(fromHref, account, {
     method: 'MOVE',
     headers: { Destination: destination, Overwrite: 'T' },
@@ -525,10 +547,11 @@ export async function fetchEventsByHrefs(
     const items: { ics: string; href: string }[] = [];
     for (const chunk of splitResponses(xml)) {
       const hrefMatch = chunk.match(/<d:href>([^<]+)<\/d:href>/);
-      if (hrefMatch?.[1]) returnedHrefs.add(absUrl(account, hrefMatch[1]));
       const dataMatch = chunk.match(/<cal:calendar-data[^>]*>([\s\S]*?)<\/cal:calendar-data>/);
       if (dataMatch?.[1] && hrefMatch?.[1]) {
-        items.push({ ics: decodeXmlEntities(dataMatch[1].trim()), href: absUrl(account, hrefMatch[1]) });
+        const href = absUrl(account, hrefMatch[1]);
+        items.push({ ics: decodeXmlEntities(dataMatch[1].trim()), href });
+        returnedHrefs.add(href);
       }
     }
 

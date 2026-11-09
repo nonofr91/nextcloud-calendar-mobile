@@ -12,12 +12,14 @@
     "errorServer": "Сервер временно недоступен. Повторите попытку позже.",
     "errorRateLimited": "Слишком много запросов. Подождите немного и повторите попытку.",
     "errorRateLimitedRetry": "Слишком много запросов. Повторите попытку через {{seconds}} с.",
-    "back": "Назад"
+    "back": "Назад",
+    "retry": "Повторить"
   },
   "tabs": {
     "calendar": "Календарь",
     "settings": "Настройки",
-    "search": "Поиск"
+    "search": "Поиск",
+    "notifications": "Notifications"
   },
   "setup": {
     "brand": "Календарь",
@@ -60,6 +62,7 @@
     "today": "Сегодня",
     "day": "День",
     "week": "Неделя",
+    "sevenDays": "7д",
     "threeDays": "3д",
     "month": "Месяц",
     "schedule": "Повестка",
@@ -72,6 +75,7 @@
     "drawerDeck": "DECK",
     "drawerTasks": "ЗАДАЧИ",
     "offlineBanner": "Офлайн — показаны сохранённые события",
+    "syncError": "Ошибка синхронизации — нажмите, чтобы повторить",
     "noEvents": "Нет событий",
     "allDay": "Весь день",
     "noTitle": "(Без названия)",
@@ -82,8 +86,65 @@
     },
     "drawerNoCalendars": "Нет календарей",
     "calendarNotifications": "Уведомления календаря «{{name}}»",
-        "calendarVisibility": "Показывать «{{name}}»",
-        "pendingSync": "{{count}} изменение(й) ожидает — нажмите, чтобы повторить"
+    "calendarVisibility": "Показывать «{{name}}»",
+    "pendingSync": "{{count}} изменение(й) ожидает — нажмите, чтобы повторить",
+    "showCompletedTasks": "Показывать завершённые задачи"
+  },
+  "search": {
+    "title": "Поиск",
+    "placeholder": "Поиск событий…",
+    "filters": "ФИЛЬТРЫ",
+    "filter": {
+      "calendar": "В календаре",
+      "attendee": "С участником",
+      "date": "Дата",
+      "title": "В названии",
+      "location": "В месте",
+      "description": "В описании"
+    },
+    "hint": {
+      "name": "название",
+      "person": "пользователь",
+      "text": "текст"
+    },
+    "more": "Другие фильтры",
+    "moreHint": "название, место, описание",
+    "recent": "НЕДАВНИЕ",
+    "removeRecent": "Удалить из недавних",
+    "removeFilter": "Удалить фильтр {{filter}}",
+    "use": "Использовать «{{value}}»",
+    "filterHint": "Фильтр:",
+    "short": {
+      "calendar": "Календарь",
+      "attendee": "Участник",
+      "date": "Дата"
+    },
+    "date": {
+      "today": "Сегодня",
+      "tomorrow": "Завтра",
+      "week": "В ближайшие 7 дней",
+      "month": "В течение месяца",
+      "upcoming": "Предстоящие",
+      "past": "Прошедшие",
+      "before": "До даты…",
+      "after": "После даты…"
+    },
+    "upcoming": "ПРЕДСТОЯЩИЕ",
+    "past": "ПРОШЕДШИЕ",
+    "truncated": "Показаны первые {{count}} — добавьте фильтр, чтобы сузить поиск",
+    "fromServer": "ЕЩЁ РЕЗУЛЬТАТЫ С СЕРВЕРА",
+    "noResults": "Нет результатов",
+    "noResultsHint": "Попробуйте меньше фильтров или более простое слово.",
+    "offlineNote": "Нет подключения — показаны только локальные результаты",
+    "serverFailed": "Не удалось связаться с сервером — показаны только локальные результаты",
+    "openFailed": "Не удалось открыть это событие"
+  },
+  "task": {
+    "pending": "Задача",
+    "completed": "Завершена",
+    "completedWithDate": "Завершена {{date}}",
+    "markCompleted": "Отметить как завершённую",
+    "markNotCompleted": "Отметить как незавершённую"
   },
   "event": {
     "titleLabel": "Название *",
@@ -94,6 +155,8 @@
     "allDay": "Весь день",
     "start": "Начало",
     "end": "Конец",
+    "timezone": "Часовой пояс",
+    "timezoneSearch": "Поиск часового пояса",
     "location": "Место",
     "locationPlaceholder": "Помещение или адрес",
     "openInMaps": "Open in Maps",
@@ -102,6 +165,49 @@
     "attendees": "Участники",
     "organizer": "Организатор",
     "attendeePlaceholder": "email@example.com",
+    "myParticipation": "My participation",
+    "participationAccepted": "You are going",
+    "participationTentative": "You might go",
+    "participationDeclined": "You declined",
+    "participationNeedsAction": "No response yet",
+    "attachments": "Вложения",
+    "attachmentUntitled": "Вложение",
+    "attachmentTypeDocument": "Документ Word",
+    "attachmentTypeSpreadsheet": "Электронная таблица",
+    "attachmentTypePresentation": "Презентация",
+    "attachmentTypePdf": "PDF",
+    "attachmentTypeImage": "Изображение",
+    "attachmentTypeAudio": "Аудио",
+    "attachmentTypeVideo": "Видео",
+    "attachmentTypeArchive": "Архив",
+    "attachmentTypeText": "Текст",
+    "attachmentOpenError": "Не удалось открыть вложение",
+    "attachmentEdit": "Изменить вложение",
+    "attachmentEditError": "Не удалось открыть редактор",
+    "attachmentTooLarge": "Это вложение слишком большое",
+    "addAttachment": "Добавить вложение",
+    "attachmentAddError": "Не удалось добавить вложение",
+    "attachmentRemove": "Удалить вложение",
+    "attachmentRemoveConfirm": "Удалить это вложение из события? Файл останется в ваших файлах Nextcloud.",
+    "attachmentRemoveError": "Не удалось удалить вложение",
+    "attachmentRemoveAndDelete": "Удалить вложение и файл",
+    "attachmentRemoveConfirmDeletable": "Удалить это вложение из события? Можно также удалить файл из Nextcloud.",
+    "attachmentRemoveConfirmShare": "Удалить это вложение из события? Можно также отозвать его публичную ссылку.",
+    "attachmentFileDeleteError": "Вложение удалено, но файл не удалось удалить",
+    "attachmentRemoveAndRevoke": "Удалить и отозвать ссылку",
+    "attachmentShareRevokeError": "Вложение удалено, но не удалось отозвать публичную ссылку",
+    "attachmentPending": "Будет загружено при сохранении",
+    "noAttachments": "Нет вложений",
+    "attachFromDevice": "С этого устройства",
+    "attachFromNextcloud": "Из файлов Nextcloud",
+    "pickFromNextcloud": "Выбрать файл на Nextcloud",
+    "folderEmpty": "Эта папка пуста",
+    "filesLoadError": "Не удалось загрузить файлы",
+    "attachmentRemote": "Будет привязан при сохранении",
+    "attachmentShareTitle": "Поделиться вложением",
+    "attachmentSharePrompt": "У этого события есть участники. Создать публичную ссылку, чтобы они могли открыть файл, или оставить ссылку закрытой?",
+    "attachmentSharePublic": "Публичная ссылка",
+    "attachmentSharePrivate": "Оставить закрытой",
     "add": "Добавить",
     "saving": "Сохранение…",
     "saveEvent": "Сохранить событие",
@@ -115,6 +221,17 @@
     "freqWeekly": "Еженедельно",
     "freqMonthly": "Ежемесячно",
     "freqYearly": "Ежегодно",
+    "everyMasc": "Каждые",
+    "everyFem": "Каждые",
+    "intervalLabel": "Интервал повторения",
+    "unitDays_one": "день",
+    "unitDays_other": "дней",
+    "unitWeeks_one": "неделя",
+    "unitWeeks_other": "недель",
+    "unitMonths_one": "месяц",
+    "unitMonths_other": "месяцев",
+    "unitYears_one": "год",
+    "unitYears_other": "лет",
     "daySu": "Вс",
     "dayMo": "Пн",
     "dayTu": "Вт",
@@ -167,6 +284,7 @@
     "recurring": "Повторяющееся",
     "joinTalkRoom": "Войти в комнату Talk",
     "deleteEvent": "Удалить событие",
+    "duplicateEvent": "Дублировать событие",
     "delete": "Удалить",
     "allDayTime": "Весь день",
     "recurrenceScopeMessage": "Какие события вы хотите изменить?",
@@ -179,25 +297,64 @@
     "errorCreateFailed": "Не удалось создать событие",
     "errorUpdateFailed": "Не удалось обновить событие",
     "errorDeleteFailed": "Не удалось удалить событие",
-        "alerts": "Напоминания",
-        "findTime": "Найти время",
-        "findTimeTitle": "Найти время",
-        "findTimeLoading": "Поиск свободного времени…",
-        "findTimeNone": "В этот день нет свободного времени.",
-        "findTimeError": "Не удалось загрузить занятость.",
-        "createQueued": "Сохранено локально — будет отправлено при восстановлении связи.",
-        "deleteQueued": "Удалено локально — будет удалено с сервера при восстановлении связи.",
-        "queueCreateDropped": "Не удалось отправить создание на сервер — локальное событие удалено.",
-        "queueDeleteDropped": "Не удалось отправить удаление на сервер — событие появится снова при следующей синхронизации.",
-        "queueUpdateDropped": "Не удалось отправить изменение на сервер — событие будет синхронизировано повторно.",
+    "errorDuplicateFailed": "Не удалось дублировать событие",
     "alerts": "Напоминания",
+    "editorLoadSlow": "Редактор загружается дольше обычного…",
+    "attachNewDocumentHint": "Создать и изменить в Nextcloud",
+    "editorActionError": "Не удалось выполнить действие",
+    "findTime": "Найти время",
+    "findTimeTitle": "Найти время",
+    "findTimeLoading": "Проверка доступности…",
+    "findTimeNone": "В этот день нет свободного времени.",
+    "findTimeError": "Не удалось получить данные о доступности. Сервер может отключить free/busy.",
+    "createQueued": "Сохранено локально — будет отправлено при восстановлении связи.",
+    "deleteQueued": "Удалено локально — будет удалено с сервера при восстановлении связи.",
+    "queueCreateDropped": "Не удалось отправить создание на сервер — локальное событие удалено.",
+    "queueDeleteDropped": "Не удалось отправить удаление на сервер — событие появится снова при следующей синхронизации.",
+    "queueUpdateDropped": "Не удалось отправить изменение на сервер — событие будет синхронизировано повторно.",
     "availability": "Доступность",
     "availabilityBusy": "Занят",
     "availabilityFree": "Свободен",
     "status": "Статус",
     "statusConfirmed": "Подтверждено",
     "statusTentative": "Предварительно",
-    "statusCancelled": "Отменено"
+    "statusCancelled": "Отменено",
+    "findTimeSuggested": "Предложенные слоты",
+    "findTimeNoSlots": "Свободных слотов в 15-дневном окне не найдено.",
+    "findTimeAttendees": "Доступность участников",
+    "findTimeAvailable": "Доступен",
+    "findTimeUnknown": "Неизвестно",
+    "findTimeApply": "Применить выбранный слот",
+    "findTimeRetry": "Повторить",
+    "findTimeEveryoneMustBeFree": "Все должны быть свободны",
+    "findTimeSlotAllFree": "Все свободны",
+    "findTimeSlotBusyNames": "{{names}} занят(ы)",
+    "findTimeCurrent": "Текущее",
+    "findTimeSomeUnknown": "Доступность некоторых участников неизвестна.",
+    "findTimeExplore": "Открыть обзор",
+    "findTimeEveryoneLane": "Все",
+    "findTimeTapHint": "Нажмите на верхнюю строку, чтобы разместить событие",
+    "findTimeZoomIn": "Увеличить",
+    "findTimeZoomOut": "Уменьшить",
+    "findTimeNoRequest": "Откройте этот экран из формы события.",
+    "findTimeWorkingHoursOnly": "Только рабочие часы"
+  },
+  "import": {
+    "title": "Import Event",
+    "selectEvent": "Select an event to import",
+    "noEventsFound": "No events found in this file.",
+    "fileError": "Could not read the file.",
+    "parseError": "Could not parse the .ics file.",
+    "importEvent": "Import Event",
+    "retry": "Retry",
+    "back": "Back",
+    "errorNoAccount": "Please set up a Nextcloud account first.",
+    "untitledEvent": "(No title)",
+    "duplicateTitle": "Event already exists",
+    "duplicateMessage": "An event with this identifier already exists in the selected calendar. Importing will overwrite it.",
+    "overwrite": "Overwrite",
+    "alerts": "Напоминания",
+    "alert": "Напоминание"
   },
   "settings": {
     "title": "Настройки",
@@ -259,13 +416,53 @@
       "liveActivityHint": "Показывает постоянное уведомление во время события.",
       "permissionDenied": "Уведомления для этого приложения отключены.",
       "openSettings": "Открыть системные настройки",
-      "channelName": "Напоминания о событиях"
+      "channelName": "Напоминания о событиях",
+      "badgeChannelName": "App badge",
+      "push": "Push notifications",
+      "pushHint": "Receive real-time updates from the server."
     },
     "widgets": {
       "title": "Виджеты",
       "calendars": "Календари в виджетах",
       "calendarsHint": "Выберите, какие календари показывать в виджетах на главном экране и в живой активности.",
-      "calendarHidden": "Скрыт из повестки"
+      "calendarHidden": "Скрыт из повестки",
+      "month": {
+        "title": "Month widget",
+        "hint": "Controls the large month-grid widget on your home screen.",
+        "fontSizeLabel": "Font size",
+        "fontWeightLabel": "Font weight",
+        "themeLabel": "Theme",
+        "cardStyleLabel": "Card style",
+        "dayTapLabel": "Tap a day",
+        "fontSize": {
+          "small": "Small (85%)",
+          "normal": "Normal (100%)",
+          "large": "Large (125% - Recommended)",
+          "xlarge": "Extra Large (150%)",
+          "huge": "Huge (175%)"
+        },
+        "fontWeight": {
+          "light": "Light",
+          "normal": "Normal",
+          "medium": "Medium",
+          "bold": "Bold",
+          "black": "Black"
+        },
+        "theme": {
+          "system": "System",
+          "light": "Light",
+          "dark": "Dark"
+        },
+        "cardStyle": {
+          "card": "Rounded card",
+          "borderless": "Square",
+          "transparent": "Transparent"
+        },
+        "dayTap": {
+          "calendar": "Open that day in Calendar",
+          "newEvent": "Create an event on that day"
+        }
+      }
     },
     "alerts": {
       "timed": "Напоминание по умолчанию",
@@ -360,7 +557,8 @@
       "tierNote": "Локальные команды выполняются на устройстве; свободные вопросы используют ассистент Nextcloud, если сервер его предоставляет.",
       "availabilityTitle": "Календари, учитываемые для доступности",
       "availabilityHint": "Поиск слотов игнорирует отключённые календари."
-    }
+    },
+    "tasks": "Задачи"
   },
   "widget": {
     "liveRemaining": "осталось {{duration}}",
@@ -379,6 +577,18 @@
       "days": "через {{value}} дн.",
       "today": "Сегодня",
       "tomorrow": "Завтра"
+    },
+    "title": "Notifications",
+    "empty": "No notifications",
+    "badgeTitle": "{{count}} unread notification",
+    "badgeTitle_other": "{{count}} unread notifications",
+    "type": {
+      "created": "Created",
+      "updated": "Updated",
+      "deleted": "Deleted",
+      "invited": "Invited",
+      "response": "Response",
+      "unknown": "Update"
     }
   },
   "briefing": {
@@ -411,7 +621,7 @@
     "nothingFound": "События не найдены.",
     "chooseOne": "Какое?",
     "whichCalendar": "В каком календаре?",
-        "whichEvent": "Какой?",
+    "whichEvent": "Какой?",
     "calendarReadOnly": "только чтение",
     "noWritableCalendar": "Нет доступного для записи календаря.",
     "whichSlot": "Какой слот {{date}}?",
@@ -433,13 +643,13 @@
     "confirmDescription": "Описание: {{value}}",
     "confirmMove": "Перенести «{{title}}» на {{when}}?",
     "confirmDelete": "Удалить «{{title}}»?",
-        "confirmAgent": "Отправить этот запрос агенту Nextcloud? Он может изменить ваш календарь.",
+    "confirmAgent": "Отправить этот запрос агенту Nextcloud? Он может изменить ваш календарь.",
     "untitled": "Без названия",
     "nothingOnDay": "На {{date}} ничего нет.",
-        "attendeesDropped": "участники не распознаны: {{names}}",
-        "attendeesBusy": "внимание, занят в это время: {{names}}",
-        "pickAltSlot": "выберите свободное время:",
-        "withAttendees": "с {{names}}"
+    "attendeesDropped": "участники не распознаны: {{names}}",
+    "attendeesBusy": "внимание, занят в это время: {{names}}",
+    "pickAltSlot": "выберите свободное время:",
+    "withAttendees": "с {{names}}"
   },
   "certTrust": {
     "title": "Недоверенный сертификат",
@@ -460,55 +670,6 @@
     "remedy": "Более безопасные варианты: подключаться к серверу через VPN, например Tailscale или WireGuard, либо настроить бесплатный сертификат с DuckDNS и Let's Encrypt.",
     "connect": "Всё равно подключиться",
     "cancel": "Отмена"
-  },
-  "search": {
-    "title": "Поиск",
-    "placeholder": "Поиск событий…",
-    "filters": "ФИЛЬТРЫ",
-    "filter": {
-      "calendar": "В календаре",
-      "attendee": "С участником",
-      "date": "Дата",
-      "title": "В названии",
-      "location": "В месте",
-      "description": "В описании"
-    },
-    "hint": {
-      "name": "название",
-      "person": "пользователь",
-      "text": "текст"
-    },
-    "more": "Другие фильтры",
-    "moreHint": "название, место, описание",
-    "recent": "НЕДАВНИЕ",
-    "removeRecent": "Удалить из недавних",
-    "removeFilter": "Удалить фильтр {{filter}}",
-    "use": "Использовать «{{value}}»",
-    "filterHint": "Фильтр:",
-    "short": {
-      "calendar": "Календарь",
-      "attendee": "Участник",
-      "date": "Дата"
-    },
-    "date": {
-      "today": "Сегодня",
-      "tomorrow": "Завтра",
-      "week": "В ближайшие 7 дней",
-      "month": "В течение месяца",
-      "upcoming": "Предстоящие",
-      "past": "Прошедшие",
-      "before": "До даты…",
-      "after": "После даты…"
-    },
-    "upcoming": "ПРЕДСТОЯЩИЕ",
-    "past": "ПРОШЕДШИЕ",
-    "truncated": "Показаны первые {{count}} — добавьте фильтр, чтобы сузить поиск",
-    "fromServer": "ЕЩЁ РЕЗУЛЬТАТЫ С СЕРВЕРА",
-    "noResults": "Нет результатов",
-    "noResultsHint": "Попробуйте меньше фильтров или более простое слово.",
-    "offlineNote": "Нет подключения — показаны только локальные результаты",
-    "serverFailed": "Не удалось связаться с сервером — показаны только локальные результаты",
-    "openFailed": "Не удалось открыть это событие"
   },
   "ai": {
     "title": "ИИ-ассистент",
@@ -536,5 +697,21 @@
       "next": "следующее:",
       "at": "в"
     }
+  },
+  "invitations": {
+    "title": "Invitations",
+    "noInvitations": "No pending invitations.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "tentative": "Maybe",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "organizer": "From",
+    "selectCalendar": "Add to calendar",
+    "loading": "Loading invitations…",
+    "error": "Could not load invitations.",
+    "calendar": "Calendar",
+    "from": "From {{name}}",
+    "responseFailed": "Could not respond to the invitation."
   }
 }

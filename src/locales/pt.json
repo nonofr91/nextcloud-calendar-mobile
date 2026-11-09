@@ -12,12 +12,14 @@
     "errorServer": "O servidor está temporariamente indisponível. Tente novamente mais tarde.",
     "errorRateLimited": "Demasiados pedidos. Aguarde um momento e tente novamente.",
     "errorRateLimitedRetry": "Demasiados pedidos. Tente novamente dentro de {{seconds}}s.",
-    "back": "Voltar"
+    "back": "Voltar",
+    "retry": "Tentar novamente"
   },
   "tabs": {
     "calendar": "Calendário",
     "settings": "Definições",
-    "search": "Pesquisar"
+    "search": "Pesquisar",
+    "notifications": "Notifications"
   },
   "setup": {
     "brand": "Calendário",
@@ -60,6 +62,7 @@
     "today": "Hoje",
     "day": "Dia",
     "week": "Semana",
+    "sevenDays": "7D",
     "threeDays": "3D",
     "month": "Mês",
     "schedule": "Agenda",
@@ -72,6 +75,7 @@
     "drawerDeck": "DECK",
     "drawerTasks": "TAREFAS",
     "offlineBanner": "Offline — a mostrar eventos guardados",
+    "syncError": "Falha de sincronização — toque para tentar novamente",
     "noEvents": "Sem eventos",
     "allDay": "Dia inteiro",
     "noTitle": "(Sem título)",
@@ -82,8 +86,65 @@
     },
     "drawerNoCalendars": "Nenhum calendário",
     "calendarNotifications": "Notificações de {{name}}",
-        "calendarVisibility": "Mostrar {{name}}",
-        "pendingSync": "{{count}} alteração(ões) pendente(s) — tocar para tentar de novo"
+    "calendarVisibility": "Mostrar {{name}}",
+    "pendingSync": "{{count}} alteração(ões) pendente(s) — tocar para tentar de novo",
+    "showCompletedTasks": "Mostrar tarefas concluídas"
+  },
+  "search": {
+    "title": "Pesquisar",
+    "placeholder": "Pesquisar eventos…",
+    "filters": "FILTROS",
+    "filter": {
+      "calendar": "Num calendário",
+      "attendee": "Com um participante",
+      "date": "Data",
+      "title": "No título",
+      "location": "Na localização",
+      "description": "Na descrição"
+    },
+    "hint": {
+      "name": "nome",
+      "person": "pessoa",
+      "text": "texto"
+    },
+    "more": "Mais filtros",
+    "moreHint": "título, localização, descrição",
+    "recent": "RECENTES",
+    "removeRecent": "Remover das recentes",
+    "removeFilter": "Remover o filtro {{filter}}",
+    "use": "Usar «{{value}}»",
+    "filterHint": "Filtrar:",
+    "short": {
+      "calendar": "Calendário",
+      "attendee": "Participante",
+      "date": "Data"
+    },
+    "date": {
+      "today": "Hoje",
+      "tomorrow": "Amanhã",
+      "week": "Nos próximos 7 dias",
+      "month": "No próximo mês",
+      "upcoming": "Próximos",
+      "past": "Passados",
+      "before": "Antes de uma data…",
+      "after": "Depois de uma data…"
+    },
+    "upcoming": "PRÓXIMOS",
+    "past": "PASSADOS",
+    "truncated": "A mostrar os primeiros {{count}}; adicione um filtro para refinar",
+    "fromServer": "MAIS RESULTADOS DO SERVIDOR",
+    "noResults": "Sem resultados",
+    "noResultsHint": "Experimente menos filtros ou uma palavra mais simples.",
+    "offlineNote": "Offline — apenas resultados locais",
+    "serverFailed": "Não foi possível contactar o servidor — apenas resultados locais",
+    "openFailed": "Não foi possível abrir este evento"
+  },
+  "task": {
+    "pending": "Tarefa",
+    "completed": "Concluída",
+    "completedWithDate": "Concluída em {{date}}",
+    "markCompleted": "Marcar como concluída",
+    "markNotCompleted": "Marcar como não concluída"
   },
   "event": {
     "titleLabel": "Título *",
@@ -94,6 +155,8 @@
     "allDay": "Dia inteiro",
     "start": "Início",
     "end": "Fim",
+    "timezone": "Fuso horário",
+    "timezoneSearch": "Pesquisar fuso horário",
     "location": "Localização",
     "locationPlaceholder": "Sala ou morada",
     "openInMaps": "Open in Maps",
@@ -102,6 +165,49 @@
     "attendees": "Participantes",
     "organizer": "Organizador",
     "attendeePlaceholder": "email@exemplo.com",
+    "myParticipation": "My participation",
+    "participationAccepted": "You are going",
+    "participationTentative": "You might go",
+    "participationDeclined": "You declined",
+    "participationNeedsAction": "No response yet",
+    "attachments": "Anexos",
+    "attachmentUntitled": "Anexo",
+    "attachmentTypeDocument": "Documento Word",
+    "attachmentTypeSpreadsheet": "Folha de cálculo",
+    "attachmentTypePresentation": "Apresentação",
+    "attachmentTypePdf": "PDF",
+    "attachmentTypeImage": "Imagem",
+    "attachmentTypeAudio": "Áudio",
+    "attachmentTypeVideo": "Vídeo",
+    "attachmentTypeArchive": "Arquivo",
+    "attachmentTypeText": "Texto",
+    "attachmentOpenError": "Não foi possível abrir este anexo",
+    "attachmentEdit": "Editar anexo",
+    "attachmentEditError": "Não foi possível abrir o editor",
+    "attachmentTooLarge": "Este anexo é demasiado grande",
+    "addAttachment": "Adicionar anexo",
+    "attachmentAddError": "Não foi possível adicionar o anexo",
+    "attachmentRemove": "Remover anexo",
+    "attachmentRemoveConfirm": "Remover este anexo do evento? O ficheiro permanece nos seus ficheiros Nextcloud.",
+    "attachmentRemoveError": "Não foi possível remover o anexo",
+    "attachmentRemoveAndDelete": "Remover e eliminar o ficheiro",
+    "attachmentRemoveConfirmDeletable": "Remover este anexo do evento? Também pode eliminar o ficheiro do Nextcloud.",
+    "attachmentRemoveConfirmShare": "Remover este anexo do evento? Também pode revogar a sua ligação pública.",
+    "attachmentFileDeleteError": "Anexo removido, mas o ficheiro não pôde ser eliminado",
+    "attachmentRemoveAndRevoke": "Remover e revogar a ligação",
+    "attachmentShareRevokeError": "Anexo removido, mas não foi possível revogar a ligação pública",
+    "attachmentPending": "Será enviado ao guardar",
+    "noAttachments": "Sem anexos",
+    "attachFromDevice": "Deste dispositivo",
+    "attachFromNextcloud": "Dos ficheiros Nextcloud",
+    "pickFromNextcloud": "Escolher um ficheiro no Nextcloud",
+    "folderEmpty": "Esta pasta está vazia",
+    "filesLoadError": "Não foi possível carregar os ficheiros",
+    "attachmentRemote": "Será ligado ao guardar",
+    "attachmentShareTitle": "Partilhar anexo",
+    "attachmentSharePrompt": "Este evento tem participantes. Criar uma ligação pública para que possam abrir o ficheiro, ou manter a ligação privada?",
+    "attachmentSharePublic": "Ligação pública",
+    "attachmentSharePrivate": "Manter privada",
     "add": "Adicionar",
     "saving": "A guardar…",
     "saveEvent": "Guardar evento",
@@ -115,6 +221,17 @@
     "freqWeekly": "Semanal",
     "freqMonthly": "Mensal",
     "freqYearly": "Anual",
+    "everyMasc": "A cada",
+    "everyFem": "A cada",
+    "intervalLabel": "Intervalo de repetição",
+    "unitDays_one": "dia",
+    "unitDays_other": "dias",
+    "unitWeeks_one": "semana",
+    "unitWeeks_other": "semanas",
+    "unitMonths_one": "mês",
+    "unitMonths_other": "meses",
+    "unitYears_one": "ano",
+    "unitYears_other": "anos",
     "daySu": "Dom",
     "dayMo": "Seg",
     "dayTu": "Ter",
@@ -167,6 +284,7 @@
     "recurring": "Recorrente",
     "joinTalkRoom": "Entrar na sala do Talk",
     "deleteEvent": "Eliminar evento",
+    "duplicateEvent": "Duplicar evento",
     "delete": "Eliminar",
     "allDayTime": "Dia inteiro",
     "recurrenceScopeMessage": "Que eventos pretende modificar?",
@@ -179,25 +297,48 @@
     "errorCreateFailed": "Falha ao criar o evento",
     "errorUpdateFailed": "Falha ao atualizar o evento",
     "errorDeleteFailed": "Falha ao eliminar o evento",
-        "alerts": "Alertas",
-        "findTime": "Encontrar horário",
-        "findTimeTitle": "Encontrar horário",
-        "findTimeLoading": "A procurar horários livres…",
-        "findTimeNone": "Sem horário livre nesse dia.",
-        "findTimeError": "Não foi possível carregar as disponibilidades.",
-        "createQueued": "Guardado localmente — será enviado quando a ligação voltar.",
-        "deleteQueued": "Eliminado localmente — será removido do servidor quando a ligação voltar.",
-        "queueCreateDropped": "Não foi possível enviar a criação ao servidor — o evento local foi removido.",
-        "queueDeleteDropped": "Não foi possível enviar a eliminação ao servidor — o evento reaparecerá na próxima sincronização.",
-        "queueUpdateDropped": "Não foi possível enviar a alteração ao servidor — o evento será ressincronizado.",
+    "errorDuplicateFailed": "Falha ao duplicar o evento",
     "alerts": "Alertas",
+    "findTime": "Encontrar horário",
+    "findTimeTitle": "Encontrar horário",
+    "findTimeLoading": "Verificando disponibilidade…",
+    "findTimeNone": "Sem horário livre nesse dia.",
+    "findTimeError": "Não foi possível obter a disponibilidade. O servidor pode ter free/busy desativado.",
+    "createQueued": "Guardado localmente — será enviado quando a ligação voltar.",
+    "deleteQueued": "Eliminado localmente — será removido do servidor quando a ligação voltar.",
+    "queueCreateDropped": "Não foi possível enviar a criação ao servidor — o evento local foi removido.",
+    "queueDeleteDropped": "Não foi possível enviar a eliminação ao servidor — o evento reaparecerá na próxima sincronização.",
+    "queueUpdateDropped": "Não foi possível enviar a alteração ao servidor — o evento será ressincronizado.",
     "availability": "Disponibilidade",
     "availabilityBusy": "Ocupado",
     "availabilityFree": "Livre",
     "status": "Estado",
     "statusConfirmed": "Confirmado",
     "statusTentative": "Provisório",
-    "statusCancelled": "Cancelado"
+    "statusCancelled": "Cancelado",
+    "editorLoadSlow": "O editor está a demorar mais do que o esperado…",
+    "attachNewDocumentHint": "Criar e editar no Nextcloud",
+    "editorActionError": "Não foi possível concluir a ação",
+    "alert": "Alerta",
+    "findTimeSuggested": "Horários sugeridos",
+    "findTimeNoSlots": "Nenhum horário livre encontrado na janela de 15 dias.",
+    "findTimeAttendees": "Disponibilidade dos participantes",
+    "findTimeAvailable": "Disponível",
+    "findTimeUnknown": "Desconhecido",
+    "findTimeApply": "Aplicar horário selecionado",
+    "findTimeRetry": "Tentar novamente",
+    "findTimeEveryoneMustBeFree": "Todos devem estar livres",
+    "findTimeSlotAllFree": "Todos livres",
+    "findTimeSlotBusyNames": "{{names}} ocupado(s)",
+    "findTimeCurrent": "Atual",
+    "findTimeSomeUnknown": "A disponibilidade de alguns participantes é desconhecida.",
+    "findTimeExplore": "Explorar calendário",
+    "findTimeEveryoneLane": "Todos",
+    "findTimeTapHint": "Toque na linha superior para posicionar o evento",
+    "findTimeZoomIn": "Ampliar",
+    "findTimeZoomOut": "Reduzir",
+    "findTimeNoRequest": "Abra esta vista a partir do formulário do evento.",
+    "findTimeWorkingHoursOnly": "Apenas horário de trabalho"
   },
   "settings": {
     "title": "Definições",
@@ -259,13 +400,53 @@
       "liveActivityHint": "Mostra uma notificação persistente enquanto um evento decorre.",
       "permissionDenied": "As notificações estão desativadas para esta app.",
       "openSettings": "Abrir definições do sistema",
-      "channelName": "Alertas de eventos"
+      "channelName": "Alertas de eventos",
+      "badgeChannelName": "App badge",
+      "push": "Push notifications",
+      "pushHint": "Receive real-time updates from the server."
     },
     "widgets": {
       "title": "Widgets",
       "calendars": "Calendários nos widgets",
       "calendarsHint": "Escolha que calendários aparecem nos widgets do ecrã inicial e na atividade em direto.",
-      "calendarHidden": "Oculto da agenda"
+      "calendarHidden": "Oculto da agenda",
+      "month": {
+        "title": "Month widget",
+        "hint": "Controls the large month-grid widget on your home screen.",
+        "fontSizeLabel": "Font size",
+        "fontWeightLabel": "Font weight",
+        "themeLabel": "Theme",
+        "cardStyleLabel": "Card style",
+        "dayTapLabel": "Tap a day",
+        "fontSize": {
+          "small": "Small (85%)",
+          "normal": "Normal (100%)",
+          "large": "Large (125% - Recommended)",
+          "xlarge": "Extra Large (150%)",
+          "huge": "Huge (175%)"
+        },
+        "fontWeight": {
+          "light": "Light",
+          "normal": "Normal",
+          "medium": "Medium",
+          "bold": "Bold",
+          "black": "Black"
+        },
+        "theme": {
+          "system": "System",
+          "light": "Light",
+          "dark": "Dark"
+        },
+        "cardStyle": {
+          "card": "Rounded card",
+          "borderless": "Square",
+          "transparent": "Transparent"
+        },
+        "dayTap": {
+          "calendar": "Open that day in Calendar",
+          "newEvent": "Create an event on that day"
+        }
+      }
     },
     "alerts": {
       "timed": "Alerta predefinido",
@@ -360,7 +541,8 @@
       "tierNote": "Os comandos locais correm no dispositivo; as perguntas livres usam o assistente Nextcloud quando o servidor o disponibiliza.",
       "availabilityTitle": "Calendários que contam para a disponibilidade",
       "availabilityHint": "A pesquisa de horários ignora os calendários desativados."
-    }
+    },
+    "tasks": "Tarefas"
   },
   "widget": {
     "liveRemaining": "faltam {{duration}}",
@@ -379,6 +561,18 @@
       "days": "em {{value}} dias",
       "today": "Hoje",
       "tomorrow": "Amanhã"
+    },
+    "title": "Notifications",
+    "empty": "No notifications",
+    "badgeTitle": "{{count}} unread notification",
+    "badgeTitle_other": "{{count}} unread notifications",
+    "type": {
+      "created": "Created",
+      "updated": "Updated",
+      "deleted": "Deleted",
+      "invited": "Invited",
+      "response": "Response",
+      "unknown": "Update"
     }
   },
   "briefing": {
@@ -411,7 +605,7 @@
     "nothingFound": "Nenhum evento encontrado.",
     "chooseOne": "Qual?",
     "whichCalendar": "Em qual calendário?",
-        "whichEvent": "Qual?",
+    "whichEvent": "Qual?",
     "calendarReadOnly": "só leitura",
     "noWritableCalendar": "Nenhum calendário editável encontrado.",
     "whichSlot": "Qual horário em {{date}}?",
@@ -433,13 +627,13 @@
     "confirmDescription": "Descrição: {{value}}",
     "confirmMove": "Mover «{{title}}» para {{when}}?",
     "confirmDelete": "Eliminar «{{title}}»?",
-        "confirmAgent": "Enviar este pedido ao agente Nextcloud? Ele pode modificar o seu calendário.",
+    "confirmAgent": "Enviar este pedido ao agente Nextcloud? Ele pode modificar o seu calendário.",
     "untitled": "Sem título",
     "nothingOnDay": "Nada em {{date}}.",
-        "attendeesDropped": "convidados não reconhecidos: {{names}}",
-        "attendeesBusy": "atenção, indisponível a essa hora: {{names}}",
-        "pickAltSlot": "escolha um horário livre:",
-        "withAttendees": "com {{names}}"
+    "attendeesDropped": "convidados não reconhecidos: {{names}}",
+    "attendeesBusy": "atenção, indisponível a essa hora: {{names}}",
+    "pickAltSlot": "escolha um horário livre:",
+    "withAttendees": "com {{names}}"
   },
   "certTrust": {
     "title": "Certificado não confiável",
@@ -460,55 +654,6 @@
     "remedy": "Opções mais seguras: aceder ao servidor através de uma VPN como Tailscale ou WireGuard, ou configurar um certificado gratuito com DuckDNS e Let's Encrypt.",
     "connect": "Ligar mesmo assim",
     "cancel": "Cancelar"
-  },
-  "search": {
-    "title": "Pesquisar",
-    "placeholder": "Pesquisar eventos…",
-    "filters": "FILTROS",
-    "filter": {
-      "calendar": "Num calendário",
-      "attendee": "Com um participante",
-      "date": "Data",
-      "title": "No título",
-      "location": "Na localização",
-      "description": "Na descrição"
-    },
-    "hint": {
-      "name": "nome",
-      "person": "pessoa",
-      "text": "texto"
-    },
-    "more": "Mais filtros",
-    "moreHint": "título, localização, descrição",
-    "recent": "RECENTES",
-    "removeRecent": "Remover das recentes",
-    "removeFilter": "Remover o filtro {{filter}}",
-    "use": "Usar «{{value}}»",
-    "filterHint": "Filtrar:",
-    "short": {
-      "calendar": "Calendário",
-      "attendee": "Participante",
-      "date": "Data"
-    },
-    "date": {
-      "today": "Hoje",
-      "tomorrow": "Amanhã",
-      "week": "Nos próximos 7 dias",
-      "month": "No próximo mês",
-      "upcoming": "Próximos",
-      "past": "Passados",
-      "before": "Antes de uma data…",
-      "after": "Depois de uma data…"
-    },
-    "upcoming": "PRÓXIMOS",
-    "past": "PASSADOS",
-    "truncated": "A mostrar os primeiros {{count}}; adicione um filtro para refinar",
-    "fromServer": "MAIS RESULTADOS DO SERVIDOR",
-    "noResults": "Sem resultados",
-    "noResultsHint": "Experimente menos filtros ou uma palavra mais simples.",
-    "offlineNote": "Offline — apenas resultados locais",
-    "serverFailed": "Não foi possível contactar o servidor — apenas resultados locais",
-    "openFailed": "Não foi possível abrir este evento"
   },
   "ai": {
     "title": "Assistente de IA",
@@ -536,5 +681,21 @@
       "next": "seguinte:",
       "at": "às"
     }
+  },
+  "invitations": {
+    "title": "Invitations",
+    "noInvitations": "No pending invitations.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "tentative": "Maybe",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "organizer": "From",
+    "selectCalendar": "Add to calendar",
+    "loading": "Loading invitations…",
+    "error": "Could not load invitations.",
+    "calendar": "Calendar",
+    "from": "From {{name}}",
+    "responseFailed": "Could not respond to the invitation."
   }
 }

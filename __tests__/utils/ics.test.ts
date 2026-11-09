@@ -1,4 +1,4 @@
-import { buildIcs, buildAllDayIcs, buildExceptionIcs, shiftIcsDates, injectExdate, truncateRruleUntil, upsertOverride } from '@/utils/ics';
+import { buildIcs, buildAllDayIcs, buildExceptionIcs, cloneEventIcs, shiftIcsDates, injectExdate, truncateRruleUntil, upsertOverride } from '@/utils/ics';
 import { parseRrule } from '@/features/calendar/utils/parseRrule';
 import { parseIcsObjects, extractExtraVeventLines } from '@/utils/caldav-parse';
 import type { Attendee } from '../../src/types';
@@ -50,6 +50,32 @@ describe('buildIcs', () => {
     expect(ics).toContain('RRULE:FREQ=WEEKLY\r\n');
   });
 
+  it('emits a VTIMEZONE block matching the event TZID before the VEVENT', () => {
+    const ics = buildIcs({ ...base, timezone: 'Europe/Paris' });
+    expect(ics.indexOf('BEGIN:VTIMEZONE')).toBeGreaterThan(-1);
+    expect(ics.indexOf('BEGIN:VTIMEZONE')).toBeLessThan(ics.indexOf('BEGIN:VEVENT'));
+    expect(ics).toContain('TZID:Europe/Paris\r\n');
+  });
+
+  it('keeps foreign VTIMEZONE blocks passed via calendarLines', () => {
+    const foreign = [
+      'BEGIN:VTIMEZONE', 'TZID:America/New_York', 'BEGIN:STANDARD',
+      'DTSTART:19701101T020000', 'TZOFFSETFROM:-0400', 'TZOFFSETTO:-0500',
+      'END:STANDARD', 'END:VTIMEZONE',
+    ];
+    const ics = buildIcs({ ...base, timezone: 'Europe/Paris', calendarLines: foreign });
+    expect(ics).toContain('TZID:America/New_York\r\n');
+    expect(ics).toContain('TZID:Europe/Paris\r\n');
+  });
+
+  it('round-trips the event timezone through the CalDAV parser', () => {
+    const ics = buildIcs({ ...base, timezone: 'America/New_York' });
+    const [ev] = parseIcsObjects([{ ics, href: '/e.ics' }], {
+      calendarId: 'cal', accountId: 'acc', color: '#fff',
+    });
+    expect(ev.timezone).toBe('America/New_York');
+  });
+
   it('encodes UID correctly', () => {
     expect(buildIcs(base)).toContain('UID:test-uid-123\r\n');
   });
@@ -80,6 +106,54 @@ describe('buildIcs', () => {
     expect(ics).toContain('CN=Alice');
   });
 
+  it('preserves attendee PARTSTAT and ROLE', () => {
+    const ics = buildIcs({
+      ...base,
+      attendees: [
+        { email: 'alice@example.com', partstat: 'accepted', role: 'chair' },
+        { email: 'bob@example.com', partstat: 'declined' },
+        { email: 'carol@example.com' },
+      ],
+    });
+    const unfolded = ics.replace(/\r?\n[ \t]/g, '');
+    expect(unfolded).toContain('ATTENDEE;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:alice@example.com');
+    expect(unfolded).toContain('ATTENDEE;PARTSTAT=DECLINED:mailto:bob@example.com');
+    expect(unfolded).toContain('ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:carol@example.com');
+  });
+
+  it('writes the invitation defaults for a freshly added attendee', () => {
+    const ics = buildIcs({ ...base, attendees: [{ email: 'bob@example.com' }] });
+    // Long lines are folded per RFC 5545 — unfold before comparing content.
+    expect(ics.replace(/\r\n /g, '')).toContain(
+      'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:bob@example.com\r\n',
+    );
+  });
+
+  it('quotes param values that contain a comma, colon or semicolon', () => {
+    const ics = buildIcs({
+      ...base,
+      organizerName: 'Doe, John',
+      attendees: [{ email: 'a@example.com', displayName: 'Smith; Alice' }],
+    });
+    expect(ics).toContain('ORGANIZER;CN="Doe, John":mailto:john@example.com\r\n');
+    expect(ics).toContain('CN="Smith; Alice":mailto:a@example.com\r\n');
+  });
+
+  it('preserves attendee PARTSTAT and ROLE', () => {
+    const ics = buildIcs({
+      ...base,
+      attendees: [
+        { email: 'alice@example.com', partstat: 'accepted', role: 'chair', rsvp: false },
+        { email: 'bob@example.com', partstat: 'declined', cutype: 'individual', role: 'req-participant', rsvp: false },
+        { email: 'carol@example.com' },
+      ],
+    });
+    const unfolded = ics.replace(/\r?\n[ \t]/g, '');
+    expect(unfolded).toContain('ATTENDEE;ROLE=CHAIR;PARTSTAT=ACCEPTED;RSVP=FALSE:mailto:alice@example.com');
+    expect(unfolded).toContain('ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=DECLINED;RSVP=FALSE:mailto:bob@example.com');
+    expect(unfolded).toContain('ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:carol@example.com');
+  });
+
   it('escapes special chars in summary', () => {
     const ics = buildIcs({ ...base, summary: 'Sync, Team; All' });
     expect(ics).toContain('SUMMARY:Sync\\, Team\\; All\r\n');
@@ -102,7 +176,7 @@ describe('buildIcs', () => {
 
   it('omits LOCATION when empty', () => {
     const ics = buildIcs({ ...base, location: '' });
-    expect(ics).not.toContain('LOCATION');
+    expect(ics).not.toMatch(/^LOCATION:/m);
   });
 });
 
@@ -450,6 +524,19 @@ describe('buildExceptionIcs', () => {
     expect(ics).not.toContain('STATUS:');
     expect(ics).not.toContain('TRANSP:');
   });
+
+  it('keeps the master TZID on RECURRENCE-ID when the exception overrides the zone', () => {
+    const slot = new Date('2026-09-02T12:00:00Z'); // 14:00 Paris / 08:00 NYC
+    const ics = buildExceptionIcs({
+      ...base,
+      timezone: 'America/New_York',
+      recurrenceId: slot,
+      recurrenceIdTzid: 'Europe/Paris',
+    });
+    expect(ics).toContain('RECURRENCE-ID;TZID=Europe/Paris:20260902T140000');
+    expect(ics).toContain('DTSTART;TZID=America/New_York:20260601T100000');
+    expect(ics).toContain('TZID:America/New_York');
+  });
 });
 
 describe('truncateRruleUntil', () => {
@@ -473,6 +560,73 @@ describe('truncateRruleUntil', () => {
     expect(out).toContain('RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU\r\n');
     expect(out).toContain('RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU\r\n');
     expect(out.match(/UNTIL=/g)).toHaveLength(1);
+  });
+});
+
+describe('ATTENDEE parameter preservation', () => {
+  const invitedIcs = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'BEGIN:VEVENT',
+    'UID:inv-1',
+    'DTSTAMP:20260601T090000Z',
+    'DTSTART:20260605T140000Z',
+    'DTEND:20260605T150000Z',
+    'SUMMARY:Review',
+    'ORGANIZER;CN=Boss:mailto:boss@example.com',
+    'ATTENDEE;CUTYPE=RESOURCE;MEMBER="mailto:g1@x.com","mailto:g2@x.com";ROLE=OPT-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE;DELEGATED-TO="mailto:d@x.com";DELEGATED-FROM="mailto:f@x.com";SENT-BY="mailto:s@x.com";SCHEDULE-AGENT=CLIENT;X-CUSTOM=keepme;CN="Doe, Jane":mailto:jane@x.com',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+
+  const calMeta = { calendarId: 'c1', accountId: 'a1', color: '#000' };
+
+  it('parses every scheduling parameter into the Attendee record', () => {
+    const [event] = parseIcsObjects([{ ics: invitedIcs, href: '/cal/inv.ics' }], calMeta);
+    const att = event.attendees[0];
+    expect(att.email).toBe('jane@x.com');
+    expect(att.displayName).toBe('Doe, Jane');
+    expect(att.cutype).toBe('RESOURCE');
+    expect(att.member).toEqual(['mailto:g1@x.com', 'mailto:g2@x.com']);
+    expect(att.role).toBe('OPT-PARTICIPANT');
+    expect(att.partstat).toBe('accepted');
+    expect(att.rsvp).toBe(false);
+    expect(att.delegatedTo).toEqual(['mailto:d@x.com']);
+    expect(att.delegatedFrom).toEqual(['mailto:f@x.com']);
+    expect(att.sentBy).toBe('mailto:s@x.com');
+    expect(att.scheduleAgent).toBe('CLIENT');
+    expect(att.extraParams).toEqual({ 'x-custom': 'keepme' });
+  });
+
+  it('re-emits the exact ATTENDEE line after a parse → build round-trip', () => {
+    const [event] = parseIcsObjects([{ ics: invitedIcs, href: '/cal/inv.ics' }], calMeta);
+    const ics = buildIcs({
+      ...base,
+      summary: 'Review',
+      attendees: event.attendees,
+      timezone: 'UTC',
+    });
+    // Long lines are folded per RFC 5545 — unfold before comparing content.
+    expect(ics.replace(/\r\n /g, '')).toContain(
+      'ATTENDEE;CUTYPE=RESOURCE;MEMBER="mailto:g1@x.com","mailto:g2@x.com";ROLE=OPT-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE;DELEGATED-TO="mailto:d@x.com";DELEGATED-FROM="mailto:f@x.com";SENT-BY="mailto:s@x.com";SCHEDULE-AGENT=CLIENT;X-CUSTOM=keepme;CN="Doe, Jane":mailto:jane@x.com\r\n',
+    );
+  });
+
+  it('keeps PARTSTAT=ACCEPTED instead of resetting invitees to NEEDS-ACTION', () => {
+    const serverIcs = invitedIcs.replace('X-CUSTOM=keepme;', '');
+    const [event] = parseIcsObjects([{ ics: serverIcs, href: '/cal/inv.ics' }], calMeta);
+    const ics = buildIcs({ ...base, attendees: event.attendees });
+    expect(ics).toContain('PARTSTAT=ACCEPTED');
+    expect(ics).not.toContain('PARTSTAT=NEEDS-ACTION');
+  });
+
+  it('emits a non-mailto cal-address verbatim instead of wrapping it in mailto:', () => {
+    const ics = buildIcs({
+      ...base,
+      attendees: [{ email: 'urn:uuid:abc-123', partstat: 'needs-action' }],
+    });
+    expect(ics).toContain('PARTSTAT=NEEDS-ACTION:urn:uuid:abc-123\r\n');
+    expect(ics).not.toContain('mailto:urn:uuid');
   });
 });
 
@@ -571,5 +725,110 @@ describe('STATUS/TRANSP emission', () => {
     );
     expect(event.status).toBe('tentative');
     expect(event.transp).toBe('transparent');
+  });
+});
+describe('cloneEventIcs', () => {
+  const now = new Date('2026-07-01T12:00:00Z');
+  const CRLF = '\r\n';
+  const stored = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//SabreDAV//EN',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VTIMEZONE',
+    'TZID:Europe/Paris',
+    'BEGIN:STANDARD',
+    'DTSTART:16011028T030000',
+    'RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10',
+    'TZOFFSETFROM:+0200',
+    'TZOFFSETTO:+0100',
+    'TZNAME:CET',
+    'END:STANDARD',
+    'END:VTIMEZONE',
+    'BEGIN:VEVENT',
+    'UID:orig-uid-1',
+    'DTSTAMP:20260101T080000Z',
+    'SEQUENCE:5',
+    'DTSTART;TZID=Europe/Paris:20260610T140000',
+    'DTEND;TZID=Europe/Paris:20260610T150000',
+    'SUMMARY:Planning',
+    'RRULE:FREQ=WEEKLY;BYDAY=WE',
+    'EXDATE;TZID=Europe/Paris:20260624T140000',
+    'RDATE;TZID=Europe/Paris:20260701T140000',
+    'ORGANIZER;CN=Alice:mailto:alice@example.com',
+    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=T',
+    ' RUE;CN=Bob:mailto:bob@example.com',
+    'X-CUSTOM-FIELD:keep-me',
+    'BEGIN:VALARM',
+    'TRIGGER:-PT15M',
+    'ACTION:DISPLAY',
+    'END:VALARM',
+    'END:VEVENT',
+    'BEGIN:VEVENT',
+    'UID:orig-uid-1',
+    'RECURRENCE-ID;TZID=Europe/Paris:20260617T140000',
+    'DTSTAMP:20260101T080000Z',
+    'SEQUENCE:2',
+    'DTSTART;TZID=Europe/Paris:20260617T160000',
+    'DTEND;TZID=Europe/Paris:20260617T170000',
+    'SUMMARY:Planning (moved)',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join(CRLF);
+
+  it('rewrites UID on master and override VEVENTs only', () => {
+    const out = cloneEventIcs(stored, 'clone-uid-9', now);
+    expect(out.match(/^UID:[^\r\n]*/gm)).toEqual(['UID:clone-uid-9', 'UID:clone-uid-9']);
+    expect(out).not.toContain('orig-uid-1');
+  });
+
+  it('stamps DTSTAMP and resets SEQUENCE on every VEVENT', () => {
+    const out = cloneEventIcs(stored, 'c', now);
+    expect(out.match(/^DTSTAMP:20260701T120000Z$/gm)).toHaveLength(2);
+    expect(out.match(/^SEQUENCE:0$/gm)).toHaveLength(2);
+    expect(out).not.toContain('SEQUENCE:5');
+    expect(out).not.toContain('SEQUENCE:2');
+  });
+
+  it('preserves recurrence, alarms, attendees params, VTIMEZONE and X-* byte-for-byte', () => {
+    const out = cloneEventIcs(stored, 'c', now);
+    for (const keep of [
+      'RRULE:FREQ=WEEKLY;BYDAY=WE',
+      'EXDATE;TZID=Europe/Paris:20260624T140000',
+      'RDATE;TZID=Europe/Paris:20260701T140000',
+      'RECURRENCE-ID;TZID=Europe/Paris:20260617T140000',
+      'BEGIN:VTIMEZONE',
+      'X-CUSTOM-FIELD:keep-me',
+      'BEGIN:VALARM',
+      'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=T' + CRLF + ' RUE;CN=Bob:mailto:bob@example.com',
+    ]) {
+      expect(out).toContain(keep);
+    }
+  });
+
+  it('rewrites a folded UID including its continuation lines', () => {
+    const folded = stored.replace(
+      'UID:orig-uid-1',
+      'UID:a-very-long-uid-that-exceeds-seventy-five-characters-and-therefore-mu' + CRLF + ' st-be-folded-onto-a-second-line-orig-uid-1'
+    );
+    const out = cloneEventIcs(folded, 'clone-uid-9', now);
+    expect(out).not.toContain('a-very-long-uid');
+    expect(out).not.toContain('st-be-folded');
+    expect(out.match(/^UID:[^\r\n]*/gm)).toEqual(['UID:clone-uid-9', 'UID:clone-uid-9']);
+  });
+
+  it('does not insert SEQUENCE when absent', () => {
+    const noSeq = stored.replace(/^SEQUENCE:5\r\n/m, '').replace(/^SEQUENCE:2\r\n/m, '');
+    const out = cloneEventIcs(noSeq, 'c', now);
+    expect(out).not.toContain('SEQUENCE');
+  });
+
+  it('leaves non-VEVENT UIDs untouched', () => {
+    const withTodo = stored.replace('END:VCALENDAR',
+      'BEGIN:VTODO' + CRLF + 'UID:todo-uid-1' + CRLF + 'DTSTAMP:20260101T080000Z' + CRLF + 'END:VTODO' + CRLF + 'END:VCALENDAR');
+    const out = cloneEventIcs(withTodo, 'clone-uid-9', now);
+    expect(out).toContain('UID:todo-uid-1');
+    // VTODO DTSTAMP must stay untouched too.
+    expect(out).toContain('BEGIN:VTODO' + CRLF + 'UID:todo-uid-1' + CRLF + 'DTSTAMP:20260101T080000Z');
   });
 });

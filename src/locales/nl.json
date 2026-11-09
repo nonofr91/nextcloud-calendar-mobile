@@ -12,12 +12,14 @@
     "errorServer": "De server is tijdelijk niet beschikbaar. Probeer het later opnieuw.",
     "errorRateLimited": "Te veel verzoeken. Wacht even en probeer het opnieuw.",
     "errorRateLimitedRetry": "Te veel verzoeken. Probeer het opnieuw over {{seconds}}s.",
-    "back": "Terug"
+    "back": "Terug",
+    "retry": "Opnieuw proberen"
   },
   "tabs": {
     "calendar": "Agenda",
     "settings": "Instellingen",
-    "search": "Zoeken"
+    "search": "Zoeken",
+    "notifications": "Notifications"
   },
   "setup": {
     "brand": "Agenda",
@@ -60,6 +62,7 @@
     "today": "Vandaag",
     "day": "Dag",
     "week": "Week",
+    "sevenDays": "7D",
     "threeDays": "3D",
     "month": "Maand",
     "schedule": "Agenda",
@@ -72,6 +75,7 @@
     "drawerDeck": "DECK",
     "drawerTasks": "TAKEN",
     "offlineBanner": "Offline — opgeslagen afspraken worden getoond",
+    "syncError": "Synchronisatie mislukt — tik om opnieuw te proberen",
     "noEvents": "Geen afspraken",
     "allDay": "Hele dag",
     "noTitle": "(Geen titel)",
@@ -82,8 +86,65 @@
     },
     "drawerNoCalendars": "Geen agenda",
     "calendarNotifications": "Meldingen van {{name}}",
-        "calendarVisibility": "{{name}} tonen",
-        "pendingSync": "{{count}} wijziging(en) in de wacht — tik om opnieuw te proberen"
+    "calendarVisibility": "{{name}} tonen",
+    "pendingSync": "{{count}} wijziging(en) in de wacht — tik om opnieuw te proberen",
+    "showCompletedTasks": "Voltooide taken weergeven"
+  },
+  "search": {
+    "title": "Zoeken",
+    "placeholder": "Afspraken zoeken…",
+    "filters": "FILTERS",
+    "filter": {
+      "calendar": "In een agenda",
+      "attendee": "Met een deelnemer",
+      "date": "Datum",
+      "title": "In titel",
+      "location": "In locatie",
+      "description": "In beschrijving"
+    },
+    "hint": {
+      "name": "naam",
+      "person": "persoon",
+      "text": "tekst"
+    },
+    "more": "Meer filters",
+    "moreHint": "titel, locatie, beschrijving",
+    "recent": "RECENT",
+    "removeRecent": "Verwijderen uit recent",
+    "removeFilter": "Filter {{filter}} verwijderen",
+    "use": "“{{value}}” gebruiken",
+    "filterHint": "Filteren:",
+    "short": {
+      "calendar": "Agenda",
+      "attendee": "Deelnemer",
+      "date": "Datum"
+    },
+    "date": {
+      "today": "Vandaag",
+      "tomorrow": "Morgen",
+      "week": "Binnen 7 dagen",
+      "month": "Binnen een maand",
+      "upcoming": "Komend",
+      "past": "Voorbij",
+      "before": "Voor een datum…",
+      "after": "Na een datum…"
+    },
+    "upcoming": "KOMEND",
+    "past": "VOORBIJ",
+    "truncated": "De eerste {{count}} worden getoond, voeg een filter toe om te verfijnen",
+    "fromServer": "MEER VAN DE SERVER",
+    "noResults": "Geen resultaten",
+    "noResultsHint": "Probeer minder filters of een eenvoudiger woord.",
+    "offlineNote": "Offline — alleen lokale resultaten",
+    "serverFailed": "Server niet bereikbaar — alleen lokale resultaten",
+    "openFailed": "Kan deze afspraak niet openen"
+  },
+  "task": {
+    "pending": "Taak",
+    "completed": "Voltooid",
+    "completedWithDate": "Voltooid op {{date}}",
+    "markCompleted": "Markeren als voltooid",
+    "markNotCompleted": "Markeren als niet voltooid"
   },
   "event": {
     "titleLabel": "Titel *",
@@ -94,6 +155,8 @@
     "allDay": "Hele dag",
     "start": "Begin",
     "end": "Einde",
+    "timezone": "Tijdzone",
+    "timezoneSearch": "Tijdzone zoeken",
     "location": "Locatie",
     "locationPlaceholder": "Ruimte of adres",
     "openInMaps": "Open in Maps",
@@ -102,6 +165,49 @@
     "attendees": "Deelnemers",
     "organizer": "Organisator",
     "attendeePlaceholder": "email@voorbeeld.com",
+    "myParticipation": "My participation",
+    "participationAccepted": "You are going",
+    "participationTentative": "You might go",
+    "participationDeclined": "You declined",
+    "participationNeedsAction": "No response yet",
+    "attachments": "Bijlagen",
+    "attachmentUntitled": "Bijlage",
+    "attachmentTypeDocument": "Word-document",
+    "attachmentTypeSpreadsheet": "Spreadsheet",
+    "attachmentTypePresentation": "Presentatie",
+    "attachmentTypePdf": "PDF",
+    "attachmentTypeImage": "Afbeelding",
+    "attachmentTypeAudio": "Audio",
+    "attachmentTypeVideo": "Video",
+    "attachmentTypeArchive": "Archief",
+    "attachmentTypeText": "Tekst",
+    "attachmentOpenError": "Kon deze bijlage niet openen",
+    "attachmentEdit": "Bijlage bewerken",
+    "attachmentEditError": "De editor kon niet worden geopend",
+    "attachmentTooLarge": "Deze bijlage is te groot om te openen",
+    "addAttachment": "Bijlage toevoegen",
+    "attachmentAddError": "Bijlage kon niet worden toegevoegd",
+    "attachmentRemove": "Bijlage verwijderen",
+    "attachmentRemoveConfirm": "Deze bijlage uit de afspraak verwijderen? Het bestand blijft in je Nextcloud-bestanden.",
+    "attachmentRemoveError": "Bijlage kon niet worden verwijderd",
+    "attachmentRemoveAndDelete": "Bijlage en bestand verwijderen",
+    "attachmentRemoveConfirmDeletable": "Deze bijlage uit de afspraak verwijderen? Je kunt het bestand ook uit Nextcloud verwijderen.",
+    "attachmentRemoveConfirmShare": "Deze bijlage uit de afspraak verwijderen? Je kunt ook de openbare link intrekken.",
+    "attachmentFileDeleteError": "Bijlage verwijderd, maar het bestand kon niet worden verwijderd",
+    "attachmentRemoveAndRevoke": "Verwijderen en link intrekken",
+    "attachmentShareRevokeError": "Bijlage verwijderd, maar de openbare link kon niet worden ingetrokken",
+    "attachmentPending": "Wordt geüpload bij opslaan",
+    "noAttachments": "Geen bijlagen",
+    "attachFromDevice": "Van dit apparaat",
+    "attachFromNextcloud": "Uit Nextcloud-bestanden",
+    "pickFromNextcloud": "Kies een bestand op Nextcloud",
+    "folderEmpty": "Deze map is leeg",
+    "filesLoadError": "Bestanden konden niet worden geladen",
+    "attachmentRemote": "Wordt gekoppeld bij opslaan",
+    "attachmentShareTitle": "Bijlage delen",
+    "attachmentSharePrompt": "Deze afspraak heeft deelnemers. Een openbare link maken zodat zij het bestand kunnen openen, of de link privé houden?",
+    "attachmentSharePublic": "Openbare link",
+    "attachmentSharePrivate": "Privé houden",
     "add": "Toevoegen",
     "saving": "Opslaan…",
     "saveEvent": "Afspraak opslaan",
@@ -115,6 +221,17 @@
     "freqWeekly": "Wekelijks",
     "freqMonthly": "Maandelijks",
     "freqYearly": "Jaarlijks",
+    "everyMasc": "Elke",
+    "everyFem": "Elke",
+    "intervalLabel": "Herhalingsinterval",
+    "unitDays_one": "dag",
+    "unitDays_other": "dagen",
+    "unitWeeks_one": "week",
+    "unitWeeks_other": "weken",
+    "unitMonths_one": "maand",
+    "unitMonths_other": "maanden",
+    "unitYears_one": "jaar",
+    "unitYears_other": "jaren",
     "daySu": "Zo",
     "dayMo": "Ma",
     "dayTu": "Di",
@@ -167,6 +284,7 @@
     "recurring": "Terugkerend",
     "joinTalkRoom": "Deelnemen aan Talk-ruimte",
     "deleteEvent": "Afspraak verwijderen",
+    "duplicateEvent": "Afspraak dupliceren",
     "delete": "Verwijderen",
     "allDayTime": "Hele dag",
     "recurrenceScopeMessage": "Welke afspraken wil je wijzigen?",
@@ -179,25 +297,48 @@
     "errorCreateFailed": "Aanmaken van afspraak mislukt",
     "errorUpdateFailed": "Bijwerken van afspraak mislukt",
     "errorDeleteFailed": "Verwijderen van afspraak mislukt",
-        "alerts": "Herinneringen",
-        "findTime": "Tijd vinden",
-        "findTimeTitle": "Tijd vinden",
-        "findTimeLoading": "Vrije tijden zoeken…",
-        "findTimeNone": "Geen vrije tijd die dag.",
-        "findTimeError": "Beschikbaarheid kon niet worden geladen.",
-        "createQueued": "Lokaal opgeslagen — wordt verzonden zodra de verbinding terug is.",
-        "deleteQueued": "Lokaal verwijderd — wordt verwijderd van de server zodra de verbinding terug is.",
-        "queueCreateDropped": "De aanmaak kon niet naar de server worden verzonden — de lokale gebeurtenis is verwijderd.",
-        "queueDeleteDropped": "Het verwijderen kon niet naar de server worden verzonden — de gebeurtenis verschijnt opnieuw bij de volgende synchronisatie.",
-        "queueUpdateDropped": "De wijziging kon niet naar de server worden verzonden — de gebeurtenis wordt opnieuw gesynchroniseerd.",
+    "errorDuplicateFailed": "Dupliceren van afspraak mislukt",
     "alerts": "Herinneringen",
+    "findTime": "Tijd vinden",
+    "findTimeTitle": "Tijd vinden",
+    "findTimeLoading": "Beschikbaarheid controleren…",
+    "findTimeNone": "Geen vrije tijd die dag.",
+    "findTimeError": "Kon beschikbaarheid niet ophalen. De server heeft mogelijk free/busy uitgeschakeld.",
+    "createQueued": "Lokaal opgeslagen — wordt verzonden zodra de verbinding terug is.",
+    "deleteQueued": "Lokaal verwijderd — wordt verwijderd van de server zodra de verbinding terug is.",
+    "queueCreateDropped": "De aanmaak kon niet naar de server worden verzonden — de lokale gebeurtenis is verwijderd.",
+    "queueDeleteDropped": "Het verwijderen kon niet naar de server worden verzonden — de gebeurtenis verschijnt opnieuw bij de volgende synchronisatie.",
+    "queueUpdateDropped": "De wijziging kon niet naar de server worden verzonden — de gebeurtenis wordt opnieuw gesynchroniseerd.",
     "availability": "Beschikbaarheid",
     "availabilityBusy": "Bezet",
     "availabilityFree": "Vrij",
     "status": "Status",
     "statusConfirmed": "Bevestigd",
     "statusTentative": "Voorlopig",
-    "statusCancelled": "Geannuleerd"
+    "statusCancelled": "Geannuleerd",
+    "editorLoadSlow": "De editor laadt langer dan verwacht…",
+    "attachNewDocumentHint": "Aanmaken en bewerken op Nextcloud",
+    "editorActionError": "De actie kon niet worden uitgevoerd",
+    "alert": "Melding",
+    "findTimeSuggested": "Voorgestelde tijden",
+    "findTimeNoSlots": "Geen vrije tijden gevonden in het venster van 15 dagen.",
+    "findTimeAttendees": "Beschikbaarheid deelnemers",
+    "findTimeAvailable": "Beschikbaar",
+    "findTimeUnknown": "Onbekend",
+    "findTimeApply": "Geselecteerde tijd toepassen",
+    "findTimeRetry": "Opnieuw proberen",
+    "findTimeEveryoneMustBeFree": "Iedereen moet vrij zijn",
+    "findTimeSlotAllFree": "Iedereen vrij",
+    "findTimeSlotBusyNames": "{{names}} bezet",
+    "findTimeCurrent": "Huidig",
+    "findTimeSomeUnknown": "De beschikbaarheid van sommige deelnemers is onbekend.",
+    "findTimeExplore": "Overzicht verkennen",
+    "findTimeEveryoneLane": "Iedereen",
+    "findTimeTapHint": "Tik op de bovenste rij om de gebeurtenis te plaatsen",
+    "findTimeZoomIn": "Inzoomen",
+    "findTimeZoomOut": "Uitzoomen",
+    "findTimeNoRequest": "Open deze weergave vanuit het gebeurtenisformulier.",
+    "findTimeWorkingHoursOnly": "Alleen werktijden"
   },
   "settings": {
     "title": "Instellingen",
@@ -259,13 +400,53 @@
       "liveActivityHint": "Toont een blijvende melding tijdens een lopende afspraak.",
       "permissionDenied": "Meldingen staan uit voor deze app.",
       "openSettings": "Systeeminstellingen openen",
-      "channelName": "Afspraakmeldingen"
+      "channelName": "Afspraakmeldingen",
+      "badgeChannelName": "App badge",
+      "push": "Push notifications",
+      "pushHint": "Receive real-time updates from the server."
     },
     "widgets": {
       "title": "Widgets",
       "calendars": "Agenda's op widgets",
       "calendarsHint": "Kies welke agenda's verschijnen op de startscherm-widgets en de live-activiteit.",
-      "calendarHidden": "Verborgen uit de agenda"
+      "calendarHidden": "Verborgen uit de agenda",
+      "month": {
+        "title": "Month widget",
+        "hint": "Controls the large month-grid widget on your home screen.",
+        "fontSizeLabel": "Font size",
+        "fontWeightLabel": "Font weight",
+        "themeLabel": "Theme",
+        "cardStyleLabel": "Card style",
+        "dayTapLabel": "Tap a day",
+        "fontSize": {
+          "small": "Small (85%)",
+          "normal": "Normal (100%)",
+          "large": "Large (125% - Recommended)",
+          "xlarge": "Extra Large (150%)",
+          "huge": "Huge (175%)"
+        },
+        "fontWeight": {
+          "light": "Light",
+          "normal": "Normal",
+          "medium": "Medium",
+          "bold": "Bold",
+          "black": "Black"
+        },
+        "theme": {
+          "system": "System",
+          "light": "Light",
+          "dark": "Dark"
+        },
+        "cardStyle": {
+          "card": "Rounded card",
+          "borderless": "Square",
+          "transparent": "Transparent"
+        },
+        "dayTap": {
+          "calendar": "Open that day in Calendar",
+          "newEvent": "Create an event on that day"
+        }
+      }
     },
     "alerts": {
       "timed": "Standaardmelding",
@@ -360,7 +541,8 @@
       "tierNote": "Lokale opdrachten blijven op het apparaat; vrije vragen gebruiken de Nextcloud-assistent wanneer de server die aanbiedt.",
       "availabilityTitle": "Agenda's die meetellen voor beschikbaarheid",
       "availabilityHint": "Slotzoekopdracht negeert uitgeschakelde agenda's."
-    }
+    },
+    "tasks": "Taken"
   },
   "widget": {
     "liveRemaining": "nog {{duration}}",
@@ -379,6 +561,18 @@
       "days": "over {{value}} dagen",
       "today": "Vandaag",
       "tomorrow": "Morgen"
+    },
+    "title": "Notifications",
+    "empty": "No notifications",
+    "badgeTitle": "{{count}} unread notification",
+    "badgeTitle_other": "{{count}} unread notifications",
+    "type": {
+      "created": "Created",
+      "updated": "Updated",
+      "deleted": "Deleted",
+      "invited": "Invited",
+      "response": "Response",
+      "unknown": "Update"
     }
   },
   "briefing": {
@@ -411,7 +605,7 @@
     "nothingFound": "Geen afspraak gevonden.",
     "chooseOne": "Welke?",
     "whichCalendar": "In welke agenda?",
-        "whichEvent": "Welke?",
+    "whichEvent": "Welke?",
     "calendarReadOnly": "alleen-lezen",
     "noWritableCalendar": "Geen beschrijfbare agenda gevonden.",
     "whichSlot": "Welk tijdslot op {{date}}?",
@@ -433,13 +627,13 @@
     "confirmDescription": "Beschrijving: {{value}}",
     "confirmMove": "„{{title}}” verplaatsen naar {{when}}?",
     "confirmDelete": "„{{title}}” verwijderen?",
-        "confirmAgent": "Dit verzoek naar de Nextcloud-agent sturen? Deze kan je agenda wijzigen.",
+    "confirmAgent": "Dit verzoek naar de Nextcloud-agent sturen? Deze kan je agenda wijzigen.",
     "untitled": "Zonder titel",
     "nothingOnDay": "Niets op {{date}}.",
-        "attendeesDropped": "genodigden niet herkend: {{names}}",
-        "attendeesBusy": "let op, bezet op dat tijdstip: {{names}}",
-        "pickAltSlot": "kies een vrij tijdstip:",
-        "withAttendees": "met {{names}}"
+    "attendeesDropped": "genodigden niet herkend: {{names}}",
+    "attendeesBusy": "let op, bezet op dat tijdstip: {{names}}",
+    "pickAltSlot": "kies een vrij tijdstip:",
+    "withAttendees": "met {{names}}"
   },
   "certTrust": {
     "title": "Niet-vertrouwd certificaat",
@@ -460,55 +654,6 @@
     "remedy": "Veiligere opties: de server bereiken via een VPN zoals Tailscale of WireGuard, of een gratis certificaat instellen met DuckDNS en Let's Encrypt.",
     "connect": "Toch verbinden",
     "cancel": "Annuleren"
-  },
-  "search": {
-    "title": "Zoeken",
-    "placeholder": "Afspraken zoeken…",
-    "filters": "FILTERS",
-    "filter": {
-      "calendar": "In een agenda",
-      "attendee": "Met een deelnemer",
-      "date": "Datum",
-      "title": "In titel",
-      "location": "In locatie",
-      "description": "In beschrijving"
-    },
-    "hint": {
-      "name": "naam",
-      "person": "persoon",
-      "text": "tekst"
-    },
-    "more": "Meer filters",
-    "moreHint": "titel, locatie, beschrijving",
-    "recent": "RECENT",
-    "removeRecent": "Verwijderen uit recent",
-    "removeFilter": "Filter {{filter}} verwijderen",
-    "use": "“{{value}}” gebruiken",
-    "filterHint": "Filteren:",
-    "short": {
-      "calendar": "Agenda",
-      "attendee": "Deelnemer",
-      "date": "Datum"
-    },
-    "date": {
-      "today": "Vandaag",
-      "tomorrow": "Morgen",
-      "week": "Binnen 7 dagen",
-      "month": "Binnen een maand",
-      "upcoming": "Komend",
-      "past": "Voorbij",
-      "before": "Voor een datum…",
-      "after": "Na een datum…"
-    },
-    "upcoming": "KOMEND",
-    "past": "VOORBIJ",
-    "truncated": "De eerste {{count}} worden getoond, voeg een filter toe om te verfijnen",
-    "fromServer": "MEER VAN DE SERVER",
-    "noResults": "Geen resultaten",
-    "noResultsHint": "Probeer minder filters of een eenvoudiger woord.",
-    "offlineNote": "Offline — alleen lokale resultaten",
-    "serverFailed": "Server niet bereikbaar — alleen lokale resultaten",
-    "openFailed": "Kan deze afspraak niet openen"
   },
   "ai": {
     "title": "AI-assistent",
@@ -536,5 +681,21 @@
       "next": "volgende:",
       "at": "om"
     }
+  },
+  "invitations": {
+    "title": "Invitations",
+    "noInvitations": "No pending invitations.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "tentative": "Maybe",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "organizer": "From",
+    "selectCalendar": "Add to calendar",
+    "loading": "Loading invitations…",
+    "error": "Could not load invitations.",
+    "calendar": "Calendar",
+    "from": "From {{name}}",
+    "responseFailed": "Could not respond to the invitation."
   }
 }

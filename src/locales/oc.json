@@ -12,12 +12,14 @@
     "errorServer": "Lo servidor es temporàriament indisponible. Tornatz ensajar mai tard.",
     "errorRateLimited": "Tròp de requèstas. Esperatz un moment e tornatz ensajar.",
     "errorRateLimitedRetry": "Tròp de requèstas. Tornatz ensajar qu’aquí {{seconds}}s.",
-    "back": "Tornar"
+    "back": "Tornar",
+    "retry": "Tornar ensajar"
   },
   "tabs": {
     "calendar": "Calendari",
     "settings": "Paramètres",
-    "search": "Recercar"
+    "search": "Recercar",
+    "notifications": "Notifications"
   },
   "setup": {
     "brand": "Calendari",
@@ -60,6 +62,7 @@
     "today": "Uèi",
     "day": "Jorn",
     "week": "Setmana",
+    "sevenDays": "7J",
     "threeDays": "3J",
     "month": "Mes",
     "schedule": "Agenda",
@@ -72,6 +75,7 @@
     "drawerDeck": "DECK",
     "drawerTasks": "TASCAS",
     "offlineBanner": "Fòra linha — afichatge dels eveniments salvats",
+    "syncError": "Fracàs de la sincronizacion — tocatz per tornar ensajar",
     "noEvents": "Pas d'eveniment",
     "allDay": "Jorn entièr",
     "noTitle": "(Sens títol)",
@@ -82,8 +86,65 @@
     },
     "drawerNoCalendars": "Pas de calendari",
     "calendarNotifications": "Notificacions per {{name}}",
-        "calendarVisibility": "Afichar {{name}}",
-        "pendingSync": "{{count}} modificacion(s) en espèra — tocar per tornar ensajar"
+    "calendarVisibility": "Afichar {{name}}",
+    "pendingSync": "{{count}} modificacion(s) en espèra — tocar per tornar ensajar",
+    "showCompletedTasks": "Mostrar los prètzfets acabats"
+  },
+  "search": {
+    "title": "Recercar",
+    "placeholder": "Recercar d'eveniments…",
+    "filters": "FILTRES",
+    "filter": {
+      "calendar": "Dins un calendari",
+      "attendee": "Amb un participant",
+      "date": "Data",
+      "title": "Dins lo títol",
+      "location": "Dins lo luòc",
+      "description": "Dins la descripcion"
+    },
+    "hint": {
+      "name": "nom",
+      "person": "persona",
+      "text": "tèxte"
+    },
+    "more": "Mai de filtres",
+    "moreHint": "títol, luòc, descripcion",
+    "recent": "RECENTAS",
+    "removeRecent": "Levar de las recentas",
+    "removeFilter": "Levar lo filtre {{filter}}",
+    "use": "Utilizar « {{value}} »",
+    "filterHint": "Filtrar :",
+    "short": {
+      "calendar": "Calendari",
+      "attendee": "Participant",
+      "date": "Data"
+    },
+    "date": {
+      "today": "Uèi",
+      "tomorrow": "Deman",
+      "week": "Dins los 7 jorns",
+      "month": "Dins lo mes",
+      "upcoming": "A venir",
+      "past": "Passats",
+      "before": "Abans una data…",
+      "after": "Aprèp una data…"
+    },
+    "upcoming": "A VENIR",
+    "past": "PASSATS",
+    "truncated": "Los {{count}} primièrs son afichats, apondètz un filtre per afinar",
+    "fromServer": "AUTRES RESULTATS DEL SERVIDOR",
+    "noResults": "Cap de resultat",
+    "noResultsHint": "Ensajatz mens de filtres o un mot mai simple.",
+    "offlineNote": "Fòra linha — resultats locals solament",
+    "serverFailed": "Servidor injonhible — resultats locals solament",
+    "openFailed": "Impossible de dobrir aqueste eveniment"
+  },
+  "task": {
+    "pending": "Prètzfet",
+    "completed": "Acabat",
+    "completedWithDate": "Acabat lo {{date}}",
+    "markCompleted": "Marcar coma acabat",
+    "markNotCompleted": "Marcar coma pas acabat"
   },
   "event": {
     "titleLabel": "Títol *",
@@ -94,6 +155,8 @@
     "allDay": "Jorn entièr",
     "start": "Debuta",
     "end": "Fin",
+    "timezone": "Fus orari",
+    "timezoneSearch": "Recercar un fus orari",
     "location": "Luòc",
     "locationPlaceholder": "Sala o adreça",
     "description": "Descripcion",
@@ -101,6 +164,44 @@
     "attendees": "Participants",
     "organizer": "Organizator",
     "attendeePlaceholder": "email@example.com",
+    "attachments": "Pèças juntas",
+    "attachmentUntitled": "Pèça junta",
+    "attachmentTypeDocument": "Document Word",
+    "attachmentTypeSpreadsheet": "Fèlha de calcul",
+    "attachmentTypePresentation": "Presentacion",
+    "attachmentTypePdf": "PDF",
+    "attachmentTypeImage": "Imatge",
+    "attachmentTypeAudio": "Àudio",
+    "attachmentTypeVideo": "Vidèo",
+    "attachmentTypeArchive": "Archiu",
+    "attachmentTypeText": "Tèxte",
+    "attachmentOpenError": "Impossible de dobrir aquesta pèça junta",
+    "attachmentEdit": "Modificar la pèça junta",
+    "attachmentEditError": "Impossible de dobrir l’editor",
+    "attachmentTooLarge": "Aquesta pèça junta es tròp voluminosa",
+    "addAttachment": "Apondre una pèça junta",
+    "attachmentAddError": "Impossible d’apondre la pèça junta",
+    "attachmentRemove": "Levar la pèça junta",
+    "attachmentRemoveConfirm": "Levar aquesta pèça junta de l’eveniment ? Lo fichièr demòra dins vòstres fichièrs Nextcloud.",
+    "attachmentRemoveError": "Impossible de levar la pèça junta",
+    "attachmentRemoveAndDelete": "Levar e suprimir lo fichièr",
+    "attachmentRemoveConfirmDeletable": "Levar aquesta pèça junta de l’eveniment ? Podètz tanben suprimir lo fichièr de Nextcloud.",
+    "attachmentRemoveConfirmShare": "Levar aquesta pèça junta de l’eveniment ? Podètz tanben revocar son ligam public.",
+    "attachmentFileDeleteError": "Pèça junta levada, mas lo fichièr a pas pogut èsser suprimit",
+    "attachmentRemoveAndRevoke": "Levar e revocar lo ligam",
+    "attachmentShareRevokeError": "Pèça junta levada, mas lo ligam public a pas pogut èsser revocat",
+    "attachmentPending": "Serà mandada a l’enregistrament",
+    "noAttachments": "Cap de pèça junta",
+    "attachFromDevice": "D’aquí l’aparelh",
+    "attachFromNextcloud": "Dels fichièrs Nextcloud",
+    "pickFromNextcloud": "Causir un fichièr sus Nextcloud",
+    "folderEmpty": "Aqueste dorsièr es void",
+    "filesLoadError": "Impossible de cargar los fichièrs",
+    "attachmentRemote": "Serà ligat a l’enregistrament",
+    "attachmentShareTitle": "Partejar la pèça junta",
+    "attachmentSharePrompt": "Aqueste eveniment a de participants. Crear un ligam public per que pòscan dobrir lo fichièr, o gardar lo ligam privat ?",
+    "attachmentSharePublic": "Ligam public",
+    "attachmentSharePrivate": "Gardar privat",
     "add": "Apondre",
     "saving": "Salvament…",
     "saveEvent": "Salvar l'eveniment",
@@ -114,6 +215,17 @@
     "freqWeekly": "Setmanièr",
     "freqMonthly": "Mesadièr",
     "freqYearly": "Annadièr",
+    "everyMasc": "Totes los",
+    "everyFem": "Totes las",
+    "intervalLabel": "Interval de repeticion",
+    "unitDays_one": "jorn",
+    "unitDays_other": "jorns",
+    "unitWeeks_one": "setmana",
+    "unitWeeks_other": "setmanas",
+    "unitMonths_one": "mes",
+    "unitMonths_other": "meses",
+    "unitYears_one": "annada",
+    "unitYears_other": "annadas",
     "daySu": "dg",
     "dayMo": "dl",
     "dayTu": "dm",
@@ -162,6 +274,7 @@
     "recurring": "Recurrent",
     "joinTalkRoom": "Rejónher la sala Talk",
     "deleteEvent": "Suprimir l'eveniment",
+    "duplicateEvent": "Duplicar l'eveniment",
     "delete": "Suprimir",
     "allDayTime": "Jorn entièr",
     "recurrenceScopeMessage": "Quins eveniments volètz modificar ?",
@@ -174,25 +287,48 @@
     "errorCreateFailed": "La creacion de l'eveniment a pas capitat",
     "errorUpdateFailed": "La mesa a jorn de l'eveniment a pas capitat",
     "errorDeleteFailed": "La supression de l'eveniment a pas capitat",
-        "alerts": "Alèrtas",
-        "findTime": "Trobar un crenech",
-        "findTimeTitle": "Trobar un crenech",
-        "findTimeLoading": "Recèrca dels crenechs liures…",
-        "findTimeNone": "Cap de crenech liure aquel jorn.",
-        "findTimeError": "Impossible de cargar las disponibilitats.",
-        "createQueued": "Enregistrat en local — serà mandat al servidor quora la retorna la connexion.",
-        "deleteQueued": "Suprimit en local — serà levat del servidor quora la retorna la connexion.",
-        "queueCreateDropped": "Impossible de mandar la creacion al servidor — l'eveniment local foguèt suprimit.",
-        "queueDeleteDropped": "Impossible de mandar la supression al servidor — l'eveniment tornarà aparéisser a la sincronizacion venenta.",
-        "queueUpdateDropped": "Impossible de mandar la modificacion al servidor — l'eveniment serà sincronizat de nòu.",
+    "errorDuplicateFailed": "La duplicacion de l'eveniment a pas capitat",
     "alerts": "Alèrtas",
+    "findTime": "Trobar un crenech",
+    "findTimeTitle": "Trobar un crenech",
+    "findTimeLoading": "Verificacion de la disponibilitat…",
+    "findTimeNone": "Cap de crenech liure aquel jorn.",
+    "findTimeError": "Impossible de recuperar la disponibilitat. Lo servidor a benlèu desactivat lo free/busy.",
+    "createQueued": "Enregistrat en local — serà mandat al servidor quora la retorna la connexion.",
+    "deleteQueued": "Suprimit en local — serà levat del servidor quora la retorna la connexion.",
+    "queueCreateDropped": "Impossible de mandar la creacion al servidor — l'eveniment local foguèt suprimit.",
+    "queueDeleteDropped": "Impossible de mandar la supression al servidor — l'eveniment tornarà aparéisser a la sincronizacion venenta.",
+    "queueUpdateDropped": "Impossible de mandar la modificacion al servidor — l'eveniment serà sincronizat de nòu.",
     "availability": "Disponibilitat",
     "availabilityBusy": "Ocupat",
     "availabilityFree": "Liure",
     "status": "Estat",
     "statusConfirmed": "Confirmat",
     "statusTentative": "Provisional",
-    "statusCancelled": "Anullat"
+    "statusCancelled": "Anullat",
+    "editorLoadSlow": "L'editor met mai de temps que previst…",
+    "attachNewDocumentHint": "Crear e modificar sus Nextcloud",
+    "editorActionError": "L'accion a pas pogut èsser realizada",
+    "alert": "Alèrta",
+    "findTimeSuggested": "Crenaus prepausats",
+    "findTimeNoSlots": "Cap de creneau liure pas trobat dins la fenèstra de 15 jorns.",
+    "findTimeAttendees": "Disponibilitat dels participants",
+    "findTimeAvailable": "Disponible",
+    "findTimeUnknown": "Desconegut",
+    "findTimeApply": "Aplicar lo creneau",
+    "findTimeRetry": "Tornar ensajar",
+    "findTimeEveryoneMustBeFree": "Tot lo monde deu èsser liure",
+    "findTimeSlotAllFree": "Tot lo monde es liure",
+    "findTimeSlotBusyNames": "{{names}} ocupat(s)",
+    "findTimeCurrent": "Actual",
+    "findTimeSomeUnknown": "La disponibilitat d'unes participants es desconeguda.",
+    "findTimeExplore": "Explorar lo calendièr",
+    "findTimeEveryoneLane": "Totes",
+    "findTimeTapHint": "Tocatz la linha de dessús per plaçar l’eveniment",
+    "findTimeZoomIn": "Zoom avant",
+    "findTimeZoomOut": "Zoom arrière",
+    "findTimeNoRequest": "Dobrissètz aquesta vista dempuèi lo formulari d’eveniment.",
+    "findTimeWorkingHoursOnly": "Oras de trabalh sonque"
   },
   "settings": {
     "title": "Paramètres",
@@ -254,13 +390,53 @@
       "liveActivityHint": "Afichar una notificacion continua pendent lo debanament d'un eveniment.",
       "permissionDenied": "Las notificacions son desactivadas per aquesta aplicacion.",
       "openSettings": "Dobrir los paramètres sistèma",
-      "channelName": "Alèrtas d'eveniment"
+      "channelName": "Alèrtas d'eveniment",
+      "badgeChannelName": "App badge",
+      "push": "Push notifications",
+      "pushHint": "Receive real-time updates from the server."
     },
     "widgets": {
       "title": "Widgets",
       "calendars": "Calendaris suls widgets",
       "calendarsHint": "Causissètz quins calendaris apareisson suls widgets de l'ecran d'acuèlh e l'activitat en dirècte.",
-      "calendarHidden": "Amagat de l'agenda"
+      "calendarHidden": "Amagat de l'agenda",
+      "month": {
+        "title": "Month widget",
+        "hint": "Controls the large month-grid widget on your home screen.",
+        "fontSizeLabel": "Font size",
+        "fontWeightLabel": "Font weight",
+        "themeLabel": "Theme",
+        "cardStyleLabel": "Card style",
+        "dayTapLabel": "Tap a day",
+        "fontSize": {
+          "small": "Small (85%)",
+          "normal": "Normal (100%)",
+          "large": "Large (125% - Recommended)",
+          "xlarge": "Extra Large (150%)",
+          "huge": "Huge (175%)"
+        },
+        "fontWeight": {
+          "light": "Light",
+          "normal": "Normal",
+          "medium": "Medium",
+          "bold": "Bold",
+          "black": "Black"
+        },
+        "theme": {
+          "system": "System",
+          "light": "Light",
+          "dark": "Dark"
+        },
+        "cardStyle": {
+          "card": "Rounded card",
+          "borderless": "Square",
+          "transparent": "Transparent"
+        },
+        "dayTap": {
+          "calendar": "Open that day in Calendar",
+          "newEvent": "Create an event on that day"
+        }
+      }
     },
     "alerts": {
       "timed": "Alèrta per defaut",
@@ -347,7 +523,8 @@
       "tierNote": "Las comandas localas demòran sus l'aparelh ; las questions liuras utilizan l'assistent Nextcloud quand lo servidor o prepausa.",
       "availabilityTitle": "Agendas comptant per la disponibilitat",
       "availabilityHint": "La recèrca de traucs ignora los agendas desactivats."
-    }
+    },
+    "tasks": "Tasques"
   },
   "widget": {
     "liveRemaining": "Demòra {{duration}}",
@@ -366,6 +543,18 @@
       "days": "d’aquí {{value}} jorns",
       "today": "Uèi",
       "tomorrow": "Deman"
+    },
+    "title": "Notifications",
+    "empty": "No notifications",
+    "badgeTitle": "{{count}} unread notification",
+    "badgeTitle_other": "{{count}} unread notifications",
+    "type": {
+      "created": "Created",
+      "updated": "Updated",
+      "deleted": "Deleted",
+      "invited": "Invited",
+      "response": "Response",
+      "unknown": "Update"
     }
   },
   "briefing": {
@@ -398,7 +587,7 @@
     "nothingFound": "Cap d’eveniment trobat.",
     "chooseOne": "Loquin ?",
     "whichCalendar": "Dins quin agenda ?",
-        "whichEvent": "Loqual ?",
+    "whichEvent": "Loqual ?",
     "calendarReadOnly": "lectura sola",
     "noWritableCalendar": "Cap d'agenda modificable.",
     "whichSlot": "Quin trauc lo {{date}} ?",
@@ -420,13 +609,13 @@
     "confirmDescription": "Descripcion : {{value}}",
     "confirmMove": "Desplaçar « {{title}} » al {{when}} ?",
     "confirmDelete": "Suprimir « {{title}} » ?",
-        "confirmAgent": "Mandar aquesta demanda a l'agent Nextcloud ? Pòt modificar vòstre agenda.",
+    "confirmAgent": "Mandar aquesta demanda a l'agent Nextcloud ? Pòt modificar vòstre agenda.",
     "untitled": "Sens títol",
     "nothingOnDay": "Res lo {{date}}.",
-        "attendeesDropped": "convidats pas reconeguts : {{names}}",
-        "attendeesBusy": "atencion, indisponible a aquesta ora : {{names}}",
-        "pickAltSlot": "causissètz un orari liure :",
-        "withAttendees": "amb {{names}}"
+    "attendeesDropped": "convidats pas reconeguts : {{names}}",
+    "attendeesBusy": "atencion, indisponible a aquesta ora : {{names}}",
+    "pickAltSlot": "causissètz un orari liure :",
+    "withAttendees": "amb {{names}}"
   },
   "certTrust": {
     "title": "Certificat pas de fisança",
@@ -439,55 +628,6 @@
     "validTo": "Valid fins a",
     "trust": "Far fisança e se connectar",
     "cancel": "Anullar"
-  },
-  "search": {
-    "title": "Recercar",
-    "placeholder": "Recercar d'eveniments…",
-    "filters": "FILTRES",
-    "filter": {
-      "calendar": "Dins un calendari",
-      "attendee": "Amb un participant",
-      "date": "Data",
-      "title": "Dins lo títol",
-      "location": "Dins lo luòc",
-      "description": "Dins la descripcion"
-    },
-    "hint": {
-      "name": "nom",
-      "person": "persona",
-      "text": "tèxte"
-    },
-    "more": "Mai de filtres",
-    "moreHint": "títol, luòc, descripcion",
-    "recent": "RECENTAS",
-    "removeRecent": "Levar de las recentas",
-    "removeFilter": "Levar lo filtre {{filter}}",
-    "use": "Utilizar « {{value}} »",
-    "filterHint": "Filtrar :",
-    "short": {
-      "calendar": "Calendari",
-      "attendee": "Participant",
-      "date": "Data"
-    },
-    "date": {
-      "today": "Uèi",
-      "tomorrow": "Deman",
-      "week": "Dins los 7 jorns",
-      "month": "Dins lo mes",
-      "upcoming": "A venir",
-      "past": "Passats",
-      "before": "Abans una data…",
-      "after": "Aprèp una data…"
-    },
-    "upcoming": "A VENIR",
-    "past": "PASSATS",
-    "truncated": "Los {{count}} primièrs son afichats, apondètz un filtre per afinar",
-    "fromServer": "AUTRES RESULTATS DEL SERVIDOR",
-    "noResults": "Cap de resultat",
-    "noResultsHint": "Ensajatz mens de filtres o un mot mai simple.",
-    "offlineNote": "Fòra linha — resultats locals solament",
-    "serverFailed": "Servidor injonhible — resultats locals solament",
-    "openFailed": "Impossible de dobrir aqueste eveniment"
   },
   "ai": {
     "title": "Assistent IA",
@@ -515,5 +655,21 @@
       "next": "seguent :",
       "at": "a"
     }
+  },
+  "invitations": {
+    "title": "Convits",
+    "noInvitations": "Cap de convit en espèra.",
+    "accept": "Acceptar",
+    "decline": "Refusar",
+    "tentative": "Benlèu",
+    "accepted": "Acceptat",
+    "declined": "Refusat",
+    "organizer": "De",
+    "selectCalendar": "Apondre a l'agenda",
+    "loading": "Cargament dels convits…",
+    "error": "Impossible de cargar los convits.",
+    "calendar": "Agenda",
+    "from": "De {{name}}",
+    "responseFailed": "Impossible de respondre al convit."
   }
 }

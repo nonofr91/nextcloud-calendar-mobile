@@ -13,6 +13,7 @@ import { CalendarDrawer } from '@/features/calendar/components/CalendarDrawer';
 import { OfflineBanner } from '@/features/calendar/components/OfflineBanner';
 import { useIsOnline } from '@/services/shared/network';
 import { drainPending } from '@/services/pendingMutations';
+import { SyncErrorBanner } from '@/features/calendar/components/SyncErrorBanner';
 import { MonthDayView } from '@/features/calendar/components/MonthDayView';
 import { AgendaView } from '@/features/calendar/components/AgendaView';
 import { createNavigationGuard } from '@/utils/navigationGuard';
@@ -33,6 +34,7 @@ import { eventToInput } from '@/features/calendar/utils/eventToInput';
 import { decideMoveEventScope } from '@/features/calendar/utils/moveEventScope';
 import { isCalMode, type CalMode } from '@/features/calendar/constants';
 import { CalendarUnavailable } from '@/features/calendar/components/CalendarUnavailable';
+import { useInvitations } from '@/features/invitations/hooks/useInvitations';
 import { useUpdateEvent } from '@/features/event/hooks/useMutateEvent';
 import { askRecurrenceScope } from '@/features/event/recurrenceScope';
 import { useBriefing } from '@/features/briefing/useBriefing';
@@ -44,6 +46,7 @@ dayjs.extend(isoWeek);
 
 export default function CalendarScreen() {
   const router = useRouter();
+  const { date: dateParam } = useLocalSearchParams<{ date?: string }>();
   const { t } = useTranslation();
 
   const calendarApp = useAccountStore((s) => s.capabilities.calendarApp);
@@ -60,6 +63,23 @@ export default function CalendarScreen() {
   const { viewMode, date, fetchDate, agendaVisibleDate } = nav;
   const displayedDay = viewMode === 'schedule' ? agendaVisibleDate : date;
   const { openDay } = useMonthReturn(viewMode, nav.switchMode);
+  const setViewMode = useCalendarStore((s) => s.setViewMode);
+
+  const applySelectedDate = useCallback((dateStr: string) => {
+    const raw = dateStr.split('T')[0];
+    const parts = raw.split('-').map(Number);
+    if (parts.length === 3 && !parts.some(Number.isNaN)) {
+      const targetDate = new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+      nav.setDate(targetDate);
+      setViewMode('month');
+    }
+  }, [nav.setDate, setViewMode]);
+
+  useEffect(() => {
+    if (dateParam && !Array.isArray(dateParam)) {
+      applySelectedDate(dateParam);
+    }
+  }, [dateParam, applySelectedDate]);
 
   const deferredViewMode = useDeferredValue(viewMode);
   const deferredDate = useDeferredValue(date);
@@ -73,10 +93,13 @@ export default function CalendarScreen() {
   const { hourRowHeight, cellHeight, commitZoom } = useZoom();
   const {
     activeAccount, calendars, allEvents, agendaEvents, showFullOverlay, showSmallLoader,
+    syncFailed, retrySync,
   } = useCalendarData(fetchDate, viewMode === 'schedule');
   const voiceAssistantEnabled = activeAccount
     ? (voiceAssistantByAccount[activeAccount.id] ?? false)
     : false;
+  const { data: invitations } = useInvitations(activeAccount);
+  const pendingInvitationsCount = invitations.length;
   const insets = useSafeAreaInsets();
   const drawer = useCalendarDrawer();
   const voice = useVoiceAssistant(activeAccount, calendars);
@@ -110,7 +133,7 @@ export default function CalendarScreen() {
     if (online && activeAccount) void drainPending(activeAccount);
   }, [online, activeAccount]);
 
-  const calendarEvents = useMemo(() => toGridEvents(allEvents), [allEvents]);
+  const calendarEvents = useMemo(() => toGridEvents(allEvents, activeAccount), [allEvents, activeAccount]);
 
   const allDayEvents = useMemo(() => allEvents.filter((e) => e.allDay), [allEvents]);
   const nowHour = useMemo(() => Math.max(0, new Date().getHours() - 1), []);
@@ -176,13 +199,34 @@ export default function CalendarScreen() {
   const isToday = dayjs(displayedDay).isSame(dayjs(), 'day');
 
   const headerTitle = useMemo(() => {
-    const d = dayjs(displayedDay);
-    const monthYear = d.locale(language).format('MMMM YYYY');
+    const d = dayjs(displayedDay).locale(language);
+    if (viewMode === '7days') {
+      return `${d.format('D MMM')} – ${d.add(6, 'day').format('D MMM YYYY')}`;
+    }
+    const monthYear = d.format('MMMM YYYY');
     if (viewMode === 'week' || viewMode === '3days' || viewMode === 'day') {
       return `${monthYear}  ·  ${t('calendar.weekAbbr')}${d.isoWeek()}`;
     }
     return monthYear;
   }, [displayedDay, viewMode, language, t]);
+
+  const handleMonthPageChange = useCallback(
+    (firstOfMonth: Date) => {
+      if (useCalendarStore.getState().viewMode === 'month') {
+        nav.onPageChange(firstOfMonth);
+      }
+    },
+    [nav.onPageChange]
+  );
+
+  const handleGridPageChange = useCallback(
+    (focusDate: Date) => {
+      if (isCalMode(useCalendarStore.getState().viewMode)) {
+        nav.onPageChange(focusDate);
+      }
+    },
+    [nav.onPageChange]
+  );
 
   if (calendarApp === 'unconfigured') {
     return <CalendarUnavailable />;
@@ -194,7 +238,9 @@ export default function CalendarScreen() {
         headerTitle={headerTitle}
         isToday={isToday}
         viewMode={viewMode}
+        pendingInvitationsCount={pendingInvitationsCount}
         onOpenDrawer={drawer.openDrawer}
+        onOpenSearch={() => navGuard(() => router.push('/search'))}
         onToday={nav.goToday}
         onSwitchMode={nav.switchMode}
         onListen={voiceAssistantEnabled ? undefined : handleListen}
@@ -203,6 +249,7 @@ export default function CalendarScreen() {
       />
 
       <OfflineBanner account={activeAccount ?? null} />
+      {syncFailed && <SyncErrorBanner onRetry={retrySync} />}
 
       <View style={styles.viewArea}>
         <ViewLayer visible={deferredViewMode === 'month'}>
@@ -212,7 +259,7 @@ export default function CalendarScreen() {
             weekStartsOn={deferredWeekStartsOn}
             jump={nav.jump}
             onSelectDate={nav.setDate}
-            onMonthChange={nav.onPageChange}
+            onMonthChange={handleMonthPageChange}
             onPressEvent={handlePressEventFromMonth}
             onPressCell={handlePressCell}
             variant={monthViewStyle}
@@ -247,7 +294,7 @@ export default function CalendarScreen() {
             jump={nav.jump}
             commitZoom={commitZoom}
             initialScrollHour={nowHour}
-            onPageChange={nav.onPageChange}
+            onPageChange={handleGridPageChange}
             onPressSlot={handlePressCell}
             onPressEvent={handlePressGridEvent}
             onPressAllDayEvent={handlePressEventFromMonth}
@@ -308,12 +355,17 @@ export default function CalendarScreen() {
         calendars={calendars}
         hiddenCalendarIds={hiddenCalendarIds}
         notifDisabledCalendarIds={notifDisabledCalendarIds}
+        pendingInvitationsCount={pendingInvitationsCount}
         toggleCalendarVisibility={toggleCalendarVisibility}
         toggleCalendarNotifications={toggleCalendarNotifications}
         onClose={drawer.closeDrawer}
         onNavigateSettings={() => {
           drawer.closeDrawer();
           router.push('/(tabs)/settings');
+        }}
+        onNavigateInvitations={() => {
+          drawer.closeDrawer();
+          router.push('/invitations');
         }}
       />
     </ViewContainer>
