@@ -90,7 +90,8 @@
     "pendingSync": "{{count}} modifica/he in attesa — tocca per riprovare",
     "syncError": "Sincronizzazione non riuscita — tocca per riprovare",
     "sevenDays": "7G",
-    "showCompletedTasks": "Mostra attività completate"
+    "showCompletedTasks": "Mostra attività completate",
+    "drawerTrash": "Eliminati di recente"
   },
   "event": {
     "titleLabel": "Titolo *",
@@ -750,5 +751,22 @@
     "completedWithDate": "Completata il {{date}}",
     "markCompleted": "Segna come completata",
     "markNotCompleted": "Segna come non completata"
+  },
+  "trashbin": {
+    "title": "Eliminati di recente",
+    "sectionTitle": "Eventi e attività eliminati",
+    "empty": "Il cestino è vuoto",
+    "unavailable": "Il cestino non è disponibile su questo server",
+    "errorLoad": "Impossibile caricare il cestino",
+    "errorRestore": "Impossibile ripristinare questo elemento",
+    "errorDelete": "Impossibile eliminare questo elemento",
+    "restore": "Ripristina",
+    "deletePermanently": "Elimina definitivamente",
+    "confirmDeleteTitle": "Eliminare definitivamente?",
+    "confirmDeleteMsg": "«{{title}}» sarà eliminato definitivamente.",
+    "untitled": "Senza titolo",
+    "deletedAtLabel": "Eliminato il {{date}}",
+    "refresh": "Aggiorna",
+    "hint": "Gli elementi vengono ripristinati nel calendario originale."
   }
 }

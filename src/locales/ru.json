@@ -90,7 +90,8 @@
     "pendingSync": "{{count}} изменение(й) ожидает — нажмите, чтобы повторить",
     "syncError": "Ошибка синхронизации — нажмите, чтобы повторить",
     "sevenDays": "7д",
-    "showCompletedTasks": "Показывать завершённые задачи"
+    "showCompletedTasks": "Показывать завершённые задачи",
+    "drawerTrash": "Недавно удалённые"
   },
   "event": {
     "titleLabel": "Название *",
@@ -750,5 +751,22 @@
     "completedWithDate": "Завершена {{date}}",
     "markCompleted": "Отметить как завершённую",
     "markNotCompleted": "Отметить как незавершённую"
+  },
+  "trashbin": {
+    "title": "Недавно удалённые",
+    "sectionTitle": "Удалённые события и задачи",
+    "empty": "Корзина пуста",
+    "unavailable": "Корзина недоступна на этом сервере",
+    "errorLoad": "Не удалось загрузить корзину",
+    "errorRestore": "Не удалось восстановить элемент",
+    "errorDelete": "Не удалось удалить элемент",
+    "restore": "Восстановить",
+    "deletePermanently": "Удалить навсегда",
+    "confirmDeleteTitle": "Удалить навсегда?",
+    "confirmDeleteMsg": "«{{title}}» будет удалён навсегда.",
+    "untitled": "Без названия",
+    "deletedAtLabel": "Удалено {{date}}",
+    "refresh": "Обновить",
+    "hint": "Элементы восстанавливаются в исходный календарь."
   }
 }

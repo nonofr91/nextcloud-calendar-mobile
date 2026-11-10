@@ -90,7 +90,8 @@
     "pendingSync": "{{count}} modificacion(s) en espèra — tocar per tornar ensajar",
     "syncError": "Fracàs de la sincronizacion — tocatz per tornar ensajar",
     "sevenDays": "7J",
-    "showCompletedTasks": "Mostrar los prètzfets acabats"
+    "showCompletedTasks": "Mostrar los prètzfets acabats",
+    "drawerTrash": "Suprimits recentament"
   },
   "event": {
     "titleLabel": "Títol *",
@@ -711,5 +712,22 @@
     "calendar": "Agenda",
     "from": "De {{name}}",
     "responseFailed": "Impossible de respondre al convit."
+  },
+  "trashbin": {
+    "title": "Suprimits recentament",
+    "sectionTitle": "Eveniments e prèctefacas suprimits",
+    "empty": "L'escobilhièr es void",
+    "unavailable": "L'escobilhièr es pas disponible sus aqueste servidor",
+    "errorLoad": "Impossible de cargar l'escobilhièr",
+    "errorRestore": "Impossible de restablir aqueste element",
+    "errorDelete": "Impossible de suprimir aqueste element",
+    "restore": "Restablir",
+    "deletePermanently": "Suprimir definitivament",
+    "confirmDeleteTitle": "Suprimir definitivament ?",
+    "confirmDeleteMsg": "« {{title}} » serà suprimit definitivament.",
+    "untitled": "Sens títol",
+    "deletedAtLabel": "Suprimit lo {{date}}",
+    "refresh": "Actualizar",
+    "hint": "Los elements son restablits dins lor calendièr d'origina."
   }
 }

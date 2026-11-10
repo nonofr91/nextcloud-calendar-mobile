@@ -90,7 +90,8 @@
     "pendingSync": "{{count}} cambio(s) pendiente(s) — tocar para reintentar",
     "syncError": "Error de sincronización — toca para reintentar",
     "sevenDays": "7D",
-    "showCompletedTasks": "Mostrar tareas completadas"
+    "showCompletedTasks": "Mostrar tareas completadas",
+    "drawerTrash": "Eliminados recientemente"
   },
   "event": {
     "titleLabel": "Título *",
@@ -750,5 +751,22 @@
     "completedWithDate": "Completada el {{date}}",
     "markCompleted": "Marcar como completada",
     "markNotCompleted": "Marcar como no completada"
+  },
+  "trashbin": {
+    "title": "Eliminados recientemente",
+    "sectionTitle": "Eventos y tareas eliminados",
+    "empty": "La papelera está vacía",
+    "unavailable": "La papelera no está disponible en este servidor",
+    "errorLoad": "No se pudo cargar la papelera",
+    "errorRestore": "No se pudo restaurar este elemento",
+    "errorDelete": "No se pudo eliminar este elemento",
+    "restore": "Restaurar",
+    "deletePermanently": "Eliminar definitivamente",
+    "confirmDeleteTitle": "¿Eliminar definitivamente?",
+    "confirmDeleteMsg": "«{{title}}» se eliminará definitivamente.",
+    "untitled": "Sin título",
+    "deletedAtLabel": "Eliminado el {{date}}",
+    "refresh": "Actualizar",
+    "hint": "Los elementos se restauran en su calendario original."
   }
 }

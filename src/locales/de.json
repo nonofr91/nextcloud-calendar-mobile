@@ -90,7 +90,8 @@
     "pendingSync": "{{count}} Änderung(en) ausstehend — zum Wiederholen tippen",
     "syncError": "Synchronisierung fehlgeschlagen — zum Wiederholen tippen",
     "sevenDays": "7T",
-    "showCompletedTasks": "Erledigte Aufgaben anzeigen"
+    "showCompletedTasks": "Erledigte Aufgaben anzeigen",
+    "drawerTrash": "Zuletzt gelöscht"
   },
   "event": {
     "titleLabel": "Titel *",
@@ -750,5 +751,22 @@
     "completedWithDate": "Erledigt {{date}}",
     "markCompleted": "Als erledigt markieren",
     "markNotCompleted": "Als nicht erledigt markieren"
+  },
+  "trashbin": {
+    "title": "Zuletzt gelöscht",
+    "sectionTitle": "Gelöschte Termine & Aufgaben",
+    "empty": "Papierkorb ist leer",
+    "unavailable": "Papierkorb ist auf diesem Server nicht verfügbar",
+    "errorLoad": "Papierkorb konnte nicht geladen werden",
+    "errorRestore": "Element konnte nicht wiederhergestellt werden",
+    "errorDelete": "Element konnte nicht gelöscht werden",
+    "restore": "Wiederherstellen",
+    "deletePermanently": "Endgültig löschen",
+    "confirmDeleteTitle": "Endgültig löschen?",
+    "confirmDeleteMsg": "„{{title}}“ wird endgültig gelöscht.",
+    "untitled": "Ohne Titel",
+    "deletedAtLabel": "Gelöscht am {{date}}",
+    "refresh": "Aktualisieren",
+    "hint": "Elemente werden in ihren ursprünglichen Kalender wiederhergestellt."
   }
 }

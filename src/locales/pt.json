@@ -90,7 +90,8 @@
     "pendingSync": "{{count}} alteração(ões) pendente(s) — tocar para tentar de novo",
     "syncError": "Falha de sincronização — toque para tentar novamente",
     "sevenDays": "7D",
-    "showCompletedTasks": "Mostrar tarefas concluídas"
+    "showCompletedTasks": "Mostrar tarefas concluídas",
+    "drawerTrash": "Eliminados recentemente"
   },
   "event": {
     "titleLabel": "Título *",
@@ -735,5 +736,22 @@
     "completedWithDate": "Concluída em {{date}}",
     "markCompleted": "Marcar como concluída",
     "markNotCompleted": "Marcar como não concluída"
+  },
+  "trashbin": {
+    "title": "Eliminados recentemente",
+    "sectionTitle": "Eventos e tarefas eliminados",
+    "empty": "O lixo está vazio",
+    "unavailable": "O lixo não está disponível neste servidor",
+    "errorLoad": "Não foi possível carregar o lixo",
+    "errorRestore": "Não foi possível restaurar este item",
+    "errorDelete": "Não foi possível eliminar este item",
+    "restore": "Restaurar",
+    "deletePermanently": "Eliminar permanentemente",
+    "confirmDeleteTitle": "Eliminar permanentemente?",
+    "confirmDeleteMsg": "\"{{title}}\" será eliminado permanentemente.",
+    "untitled": "Sem título",
+    "deletedAtLabel": "Eliminado em {{date}}",
+    "refresh": "Atualizar",
+    "hint": "Os itens são restaurados no calendário original."
   }
 }

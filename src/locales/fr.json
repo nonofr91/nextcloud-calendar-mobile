@@ -90,7 +90,8 @@
     "pendingSync": "{{count}} modification(s) en attente — toucher pour réessayer",
     "syncError": "Échec de la synchronisation — appuyer pour réessayer",
     "sevenDays": "7J",
-    "showCompletedTasks": "Afficher les tâches terminées"
+    "showCompletedTasks": "Afficher les tâches terminées",
+    "drawerTrash": "Supprimés récemment"
   },
   "event": {
     "titleLabel": "Titre *",
@@ -750,5 +751,22 @@
     "completedWithDate": "Terminée le {{date}}",
     "markCompleted": "Marquer comme terminée",
     "markNotCompleted": "Marquer comme non terminée"
+  },
+  "trashbin": {
+    "title": "Supprimés récemment",
+    "sectionTitle": "Événements et tâches supprimés",
+    "empty": "La corbeille est vide",
+    "unavailable": "La corbeille n'est pas disponible sur ce serveur",
+    "errorLoad": "Impossible de charger la corbeille",
+    "errorRestore": "Impossible de restaurer cet élément",
+    "errorDelete": "Impossible de supprimer cet élément",
+    "restore": "Restaurer",
+    "deletePermanently": "Supprimer définitivement",
+    "confirmDeleteTitle": "Supprimer définitivement ?",
+    "confirmDeleteMsg": "« {{title}} » sera supprimé définitivement.",
+    "untitled": "Sans titre",
+    "deletedAtLabel": "Supprimé le {{date}}",
+    "refresh": "Actualiser",
+    "hint": "Les éléments sont restaurés dans leur calendrier d'origine."
   }
 }

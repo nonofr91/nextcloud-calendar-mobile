@@ -90,7 +90,8 @@
     "pendingSync": "{{count}} change(s) pending sync — tap to retry",
     "syncError": "Sync failed — tap to retry",
     "sevenDays": "7D",
-    "showCompletedTasks": "Show completed tasks"
+    "showCompletedTasks": "Show completed tasks",
+    "drawerTrash": "Recently deleted"
   },
   "event": {
     "titleLabel": "Title *",
@@ -750,5 +751,22 @@
     "completedWithDate": "Completed {{date}}",
     "markCompleted": "Mark as completed",
     "markNotCompleted": "Mark as not completed"
+  },
+  "trashbin": {
+    "title": "Recently deleted",
+    "sectionTitle": "Deleted events & tasks",
+    "empty": "Trash bin is empty",
+    "unavailable": "Trash bin is not available on this server",
+    "errorLoad": "Could not load the trash bin",
+    "errorRestore": "Could not restore this item",
+    "errorDelete": "Could not delete this item",
+    "restore": "Restore",
+    "deletePermanently": "Delete permanently",
+    "confirmDeleteTitle": "Delete permanently?",
+    "confirmDeleteMsg": "\"{{title}}\" will be deleted permanently.",
+    "untitled": "Untitled",
+    "deletedAtLabel": "Deleted {{date}}",
+    "refresh": "Refresh",
+    "hint": "Items are restored to their original calendar."
   }
 }

@@ -380,6 +380,10 @@ export default function CalendarScreen() {
           drawer.closeDrawer();
           router.push('/invitations');
         }}
+        onNavigateTrash={() => {
+          drawer.closeDrawer();
+          navGuard(() => router.push('/trashbin'));
+        }}
       />
     </ViewContainer>
   );

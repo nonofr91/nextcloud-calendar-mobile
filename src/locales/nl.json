@@ -90,7 +90,8 @@
     "pendingSync": "{{count}} wijziging(en) in de wacht — tik om opnieuw te proberen",
     "syncError": "Synchronisatie mislukt — tik om opnieuw te proberen",
     "sevenDays": "7D",
-    "showCompletedTasks": "Voltooide taken weergeven"
+    "showCompletedTasks": "Voltooide taken weergeven",
+    "drawerTrash": "Recent verwijderd"
   },
   "event": {
     "titleLabel": "Titel *",
@@ -735,5 +736,22 @@
     "completedWithDate": "Voltooid op {{date}}",
     "markCompleted": "Markeren als voltooid",
     "markNotCompleted": "Markeren als niet voltooid"
+  },
+  "trashbin": {
+    "title": "Recent verwijderd",
+    "sectionTitle": "Verwijderde afspraken & taken",
+    "empty": "Prullenbak is leeg",
+    "unavailable": "Prullenbak is niet beschikbaar op deze server",
+    "errorLoad": "Kon prullenbak niet laden",
+    "errorRestore": "Kon item niet herstellen",
+    "errorDelete": "Kon item niet verwijderen",
+    "restore": "Herstellen",
+    "deletePermanently": "Definitief verwijderen",
+    "confirmDeleteTitle": "Definitief verwijderen?",
+    "confirmDeleteMsg": "\"{{title}}\" wordt definitief verwijderd.",
+    "untitled": "Zonder titel",
+    "deletedAtLabel": "Verwijderd op {{date}}",
+    "refresh": "Vernieuwen",
+    "hint": "Items worden hersteld naar hun oorspronkelijke agenda."
   }
 }
