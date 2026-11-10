@@ -118,6 +118,15 @@ describe('FindTimeSuggestSheet', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it('renders an avatar-bearing chip per attendee', async () => {
+    mockResult();
+    const { getByText } = renderSheet();
+    // Chip label + initials avatar fallback (sharees lookup resolves photos
+    // only for same-instance contacts; mocked attendees have none).
+    await waitFor(() => expect(getByText('Jane')).toBeTruthy());
+    await waitFor(() => expect(getByText('J')).toBeTruthy());
+  });
+
   it('labels suggestions overlapping an attendee busy slot', async () => {
     mockResult({
       suggestions: [
