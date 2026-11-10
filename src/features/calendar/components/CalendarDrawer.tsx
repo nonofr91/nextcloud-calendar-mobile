@@ -11,6 +11,7 @@ import { Item, List, SectionHeader, Stack, Toggle, Typography } from '@/ui/compo
 import { useAccounts } from '@/hooks/useAccounts';
 import { useAccountStore } from '@/stores/accountStore';
 import { hostnameOf } from '@/features/account/utils/account';
+import { toggleAccountVisibilityAndPromote } from '@/features/account/utils/visibility';
 import type { Account, CalendarMeta } from '@/types';
 import { CALENDAR_GROUPS, calendarGroup, calendarKeyOf, hasCalendarFlag } from '@/utils/calendars';
 
@@ -61,7 +62,6 @@ export function CalendarDrawer({
   const safeInsets = useSafeAreaInsets();
   const allAccounts = useAccounts();
   const visibleAccountIds = useAccountStore((s) => s.visibleAccountIds);
-  const toggleAccountVisibility = useAccountStore((s) => s.toggleAccountVisibility);
   const allAccountIds = allAccounts.map((a) => a.id);
   const multiAccount = allAccounts.length > 1;
   const isAccountVisible = (id: string) => visibleAccountIds === null || visibleAccountIds.includes(id);
@@ -172,7 +172,7 @@ export function CalendarDrawer({
                       trailing={
                         <Toggle
                           value={visible}
-                          onValueChange={() => toggleAccountVisibility(account.id, allAccountIds)}
+                          onValueChange={() => void toggleAccountVisibilityAndPromote(account.id, allAccountIds)}
                           accessibilityLabel={`${account.displayName || account.username} — ${hostnameOf(account.baseUrl)}`}
                         />
                       }

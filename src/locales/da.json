@@ -490,13 +490,14 @@
         "accountMismatch": "QR-koden hører til en anden konto."
       },
       "connectionLost": "Forbindelsen til serveren er udløbet. Forbind igen for at fortsætte synkroniseringen.",
-      "use": "Brug",
+      "use": "Brug som standard",
+      "visible": "Synlig",
       "editOnNextcloud": "Redigér i Nextcloud",
       "defaultCalendar": "Standardkalender",
       "defaultCalendarHint": "Vælges på forhånd, når du opretter en begivenhed.",
       "defaultCalendarAuto": "Automatisk"
     },
-    "accountActive": "Aktiv",
+    "accountActive": "Standard",
     "talk": {
       "title": "Talk",
       "openWith": "Åbn Talk-links med",

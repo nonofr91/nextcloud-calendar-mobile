@@ -490,13 +490,14 @@
         "accountMismatch": "Dësen QR-Code gehéiert zu engem anere Kont."
       },
       "connectionLost": "D'Verbindung mat dësem Server ass ofgelaf. Verbann dech nei, fir weider ze synchroniséieren.",
-      "use": "Benotzen",
+      "use": "Als Standard",
+      "visible": "Visibel",
       "editOnNextcloud": "An Nextcloud änneren",
       "defaultCalendar": "Standardkalenner",
       "defaultCalendarHint": "Gëtt beim Erstelle vun engem Termin virausgewielt.",
       "defaultCalendarAuto": "Automatesch"
     },
-    "accountActive": "Aktiv",
+    "accountActive": "Standard",
     "talk": {
       "title": "Talk",
       "openWith": "Talk-Linken opmaache mat",
