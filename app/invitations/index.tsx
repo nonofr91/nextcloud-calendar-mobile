@@ -18,6 +18,7 @@ import { useMultiCalendars } from '@/hooks/useCalendars';
 import { useInvitations } from '@/features/invitations/hooks/useInvitations';
 import { hostnameOf } from '@/features/account/utils/account';
 import { calendarKeyOf } from '@/utils/calendars';
+import { AttendeeAvatar } from '@/features/event/components/AttendeeAvatar';
 import type { CalendarInvitation, CalendarMeta, InvitationResponse } from '@/types';
 import { goBackOrHome } from '@/utils/navigationGuard';
 import { Inbox } from 'lucide-react-native';
@@ -158,6 +159,14 @@ export default function InvitationsScreen() {
               {invitations.map((inv) => (
                 <View key={`${inv.accountId}|${inv.uid}`} style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
                   <Item
+                    leading={
+                      <AttendeeAvatar
+                        account={accounts.find((a) => a.id === inv.accountId) ?? null}
+                        email={inv.organizerEmail}
+                        displayName={inv.organizerName}
+                        size={36}
+                      />
+                    }
                     title={
                       <Typography variant="body1" numberOfLines={1} ellipsizeMode="tail">
                         {inv.summary || t('calendar.noTitle')}

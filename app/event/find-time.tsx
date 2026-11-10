@@ -12,6 +12,7 @@ import {
 import { useFreeBusy, type FindTimeMode } from '@/features/event/hooks/useFreeBusy';
 import { useFindTimeStore, type FindTimeRequest } from '@/features/event/stores/findTimeStore';
 import { AttendeeLane } from '@/features/event/components/AttendeeLane';
+import { AttendeeAvatar } from '@/features/event/components/AttendeeAvatar';
 import { DayStrip } from '@/features/event/components/DayStrip';
 import {
   DAY_MINUTES, FULL_DAY_RANGE, blocksForDay, hourMarks, minutesSinceMidnight, slotFromLaneTap,
@@ -263,7 +264,14 @@ function FindTimeView({ request }: { request: FindTimeRequest }) {
                 </View>
                 {availabilities.map((a) => (
                   <View key={a.email} style={[styles.railLabel, { height: LANE_HEIGHT }]}>
-                    <View style={[styles.dot, { backgroundColor: a.color }]} />
+                    <View style={[styles.railAvatar, { borderColor: a.color }]}>
+                      <AttendeeAvatar
+                        account={request.account}
+                        email={a.email}
+                        displayName={a.displayName}
+                        size={22}
+                      />
+                    </View>
                     <Typography variant="caption" numberOfLines={1} style={styles.railName}>
                       {a.displayName ?? a.email.split('@')[0]}
                     </Typography>
@@ -392,10 +400,10 @@ const styles = StyleSheet.create({
   railName: {
     flex: 1,
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  railAvatar: {
+    borderWidth: 2,
+    borderRadius: 13,
+    overflow: 'hidden',
   },
   axis: {
     position: 'relative',

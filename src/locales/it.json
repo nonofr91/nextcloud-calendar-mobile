@@ -190,9 +190,9 @@
     "alerts": "Avvisi",
     "findTime": "Trova un orario",
     "findTimeTitle": "Trova un orario",
-    "findTimeLoading": "Ricerca degli orari liberi…",
+    "findTimeLoading": "Verifica disponibilità…",
     "findTimeNone": "Nessun orario libero quel giorno.",
-    "findTimeError": "Impossibile caricare le disponibilità.",
+    "findTimeError": "Impossibile recuperare la disponibilità. Il server potrebbe avere free/busy disabilitato.",
     "createQueued": "Salvato in locale — sarà inviato al server quando torna la connessione.",
     "deleteQueued": "Eliminato in locale — sarà rimosso dal server quando torna la connessione.",
     "queueCreateDropped": "Impossibile inviare la creazione al server — l'evento locale è stato rimosso.",
@@ -303,7 +303,11 @@
     "attachmentTypeArchive": "Archivio",
     "attachmentTypeText": "Testo",
     "shareTalkLink": "Condividi link Talk",
-    "sendLinkToAttendees": "Invia ai partecipanti"
+    "sendLinkToAttendees": "Invia ai partecipanti",
+    "rsvpAccepted": "Accettato",
+    "rsvpTentative": "Forse",
+    "rsvpDeclined": "Rifiutato",
+    "rsvpNoResponse": "Nessuna risposta"
   },
   "settings": {
     "title": "Impostazioni",

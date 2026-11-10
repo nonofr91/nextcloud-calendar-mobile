@@ -190,9 +190,9 @@
     "alerts": "Erinnerungen",
     "findTime": "Zeit finden",
     "findTimeTitle": "Zeit finden",
-    "findTimeLoading": "Freie Zeiten werden gesucht…",
+    "findTimeLoading": "Verfügbarkeit wird geprüft…",
     "findTimeNone": "Kein freier Zeitraum an diesem Tag.",
-    "findTimeError": "Verfügbarkeit konnte nicht geladen werden.",
+    "findTimeError": "Verfügbarkeit konnte nicht abgerufen werden. Der Server hat möglicherweise Free/Busy deaktiviert.",
     "createQueued": "Lokal gespeichert — wird gesendet, sobald die Verbindung zurück ist.",
     "deleteQueued": "Lokal gelöscht — wird entfernt, sobald die Verbindung zurück ist.",
     "queueCreateDropped": "Die Erstellung konnte nicht an den Server gesendet werden — das lokale Ereignis wurde entfernt.",
@@ -303,7 +303,11 @@
     "attachmentTypeArchive": "Archiv",
     "attachmentTypeText": "Text",
     "shareTalkLink": "Talk-Link teilen",
-    "sendLinkToAttendees": "An Teilnehmer senden"
+    "sendLinkToAttendees": "An Teilnehmer senden",
+    "rsvpAccepted": "Angenommen",
+    "rsvpTentative": "Vielleicht",
+    "rsvpDeclined": "Abgelehnt",
+    "rsvpNoResponse": "Keine Antwort"
   },
   "settings": {
     "title": "Einstellungen",

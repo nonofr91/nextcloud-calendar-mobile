@@ -190,9 +190,9 @@
     "alerts": "Avisos",
     "findTime": "Buscar horario",
     "findTimeTitle": "Buscar horario",
-    "findTimeLoading": "Buscando huecos libres…",
+    "findTimeLoading": "Comprobando disponibilidad…",
     "findTimeNone": "No hay hueco libre ese día.",
-    "findTimeError": "No se pudo cargar la disponibilidad.",
+    "findTimeError": "No se pudo obtener la disponibilidad. El servidor puede tener free/busy desactivado.",
     "createQueued": "Guardado en local — se enviará cuando vuelva la conexión.",
     "deleteQueued": "Eliminado en local — se quitará del servidor cuando vuelva la conexión.",
     "queueCreateDropped": "No se pudo enviar la creación al servidor — el evento local se ha eliminado.",
@@ -303,7 +303,11 @@
     "attachmentTypeArchive": "Archivo",
     "attachmentTypeText": "Texto",
     "shareTalkLink": "Compartir enlace de Talk",
-    "sendLinkToAttendees": "Enviar a los asistentes"
+    "sendLinkToAttendees": "Enviar a los asistentes",
+    "rsvpAccepted": "Aceptado",
+    "rsvpTentative": "Quizás",
+    "rsvpDeclined": "Rechazado",
+    "rsvpNoResponse": "Sin respuesta"
   },
   "settings": {
     "title": "Ajustes",

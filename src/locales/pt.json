@@ -190,9 +190,9 @@
     "alerts": "Alertas",
     "findTime": "Encontrar horário",
     "findTimeTitle": "Encontrar horário",
-    "findTimeLoading": "A procurar horários livres…",
+    "findTimeLoading": "Verificando disponibilidade…",
     "findTimeNone": "Sem horário livre nesse dia.",
-    "findTimeError": "Não foi possível carregar as disponibilidades.",
+    "findTimeError": "Não foi possível obter a disponibilidade. O servidor pode ter free/busy desativado.",
     "createQueued": "Guardado localmente — será enviado quando a ligação voltar.",
     "deleteQueued": "Eliminado localmente — será removido do servidor quando a ligação voltar.",
     "queueCreateDropped": "Não foi possível enviar a criação ao servidor — o evento local foi removido.",
@@ -303,7 +303,11 @@
     "attachmentTypeArchive": "Arquivo",
     "attachmentTypeText": "Texto",
     "shareTalkLink": "Partilhar ligação do Talk",
-    "sendLinkToAttendees": "Enviar aos participantes"
+    "sendLinkToAttendees": "Enviar aos participantes",
+    "rsvpAccepted": "Aceite",
+    "rsvpTentative": "Talvez",
+    "rsvpDeclined": "Recusado",
+    "rsvpNoResponse": "Sem resposta"
   },
   "settings": {
     "title": "Definições",

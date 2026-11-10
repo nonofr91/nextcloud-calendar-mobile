@@ -9,6 +9,7 @@ import {
   AnimatedPressable, Sheet, Stack, Typography, Spinner, Button, Toggle, Chip,
 } from '@/ui/components';
 import { useFreeBusy } from '@/features/event/hooks/useFreeBusy';
+import { AttendeeAvatar } from './AttendeeAvatar';
 import { useFindTimeStore } from '@/features/event/stores/findTimeStore';
 import { isSlotFree } from '@/utils/freeBusy';
 import type { Account, Attendee, SuggestedSlot } from '@/types';
@@ -230,11 +231,11 @@ export function FindTimeSuggestSheet({
                       disabled={everyoneFree}
                       onPress={() => toggleRequired(a.email)}
                       icon={
-                        <View
-                          style={[
-                            styles.dot,
-                            { backgroundColor: a.available ? a.color : theme.colors.border },
-                          ]}
+                        <AttendeeAvatar
+                          account={account}
+                          email={a.email}
+                          displayName={a.displayName}
+                          size={18}
                         />
                       }
                     >

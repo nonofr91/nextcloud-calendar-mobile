@@ -190,9 +190,9 @@
     "alerts": "Напоминания",
     "findTime": "Найти время",
     "findTimeTitle": "Найти время",
-    "findTimeLoading": "Поиск свободного времени…",
+    "findTimeLoading": "Проверка доступности…",
     "findTimeNone": "В этот день нет свободного времени.",
-    "findTimeError": "Не удалось загрузить занятость.",
+    "findTimeError": "Не удалось получить данные о доступности. Сервер может отключить free/busy.",
     "createQueued": "Сохранено локально — будет отправлено при восстановлении связи.",
     "deleteQueued": "Удалено локально — будет удалено с сервера при восстановлении связи.",
     "queueCreateDropped": "Не удалось отправить создание на сервер — локальное событие удалено.",
@@ -303,7 +303,11 @@
     "attachmentTypeArchive": "Архив",
     "attachmentTypeText": "Текст",
     "shareTalkLink": "Поделиться ссылкой Talk",
-    "sendLinkToAttendees": "Отправить участникам"
+    "sendLinkToAttendees": "Отправить участникам",
+    "rsvpAccepted": "Accepted",
+    "rsvpTentative": "Maybe",
+    "rsvpDeclined": "Declined",
+    "rsvpNoResponse": "No response"
   },
   "settings": {
     "title": "Настройки",

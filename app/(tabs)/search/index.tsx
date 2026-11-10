@@ -147,6 +147,7 @@ export default function SearchScreen() {
         >
           {model.pending ? (
             <ValueSuggestions
+              account={account}
               pending={model.pending}
               typed={model.input}
               suggestions={buildValueSuggestions(model.pending, model.input, data)}

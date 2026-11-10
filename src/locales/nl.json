@@ -190,9 +190,9 @@
     "alerts": "Herinneringen",
     "findTime": "Tijd vinden",
     "findTimeTitle": "Tijd vinden",
-    "findTimeLoading": "Vrije tijden zoeken…",
+    "findTimeLoading": "Beschikbaarheid controleren…",
     "findTimeNone": "Geen vrije tijd die dag.",
-    "findTimeError": "Beschikbaarheid kon niet worden geladen.",
+    "findTimeError": "Kon beschikbaarheid niet ophalen. De server heeft mogelijk free/busy uitgeschakeld.",
     "createQueued": "Lokaal opgeslagen — wordt verzonden zodra de verbinding terug is.",
     "deleteQueued": "Lokaal verwijderd — wordt verwijderd van de server zodra de verbinding terug is.",
     "queueCreateDropped": "De aanmaak kon niet naar de server worden verzonden — de lokale gebeurtenis is verwijderd.",
@@ -303,7 +303,11 @@
     "attachmentTypeArchive": "Archief",
     "attachmentTypeText": "Tekst",
     "shareTalkLink": "Talk-link delen",
-    "sendLinkToAttendees": "Naar deelnemers sturen"
+    "sendLinkToAttendees": "Naar deelnemers sturen",
+    "rsvpAccepted": "Geaccepteerd",
+    "rsvpTentative": "Misschien",
+    "rsvpDeclined": "Afgewezen",
+    "rsvpNoResponse": "Geen antwoord"
   },
   "settings": {
     "title": "Instellingen",

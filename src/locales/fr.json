@@ -190,9 +190,9 @@
     "alerts": "Alertes",
     "findTime": "Trouver un créneau",
     "findTimeTitle": "Trouver un créneau",
-    "findTimeLoading": "Recherche des créneaux libres…",
+    "findTimeLoading": "Vérification de la disponibilité…",
     "findTimeNone": "Aucun créneau libre ce jour.",
-    "findTimeError": "Impossible de charger les disponibilités.",
+    "findTimeError": "Impossible de récupérer la disponibilité. Le serveur a peut-être désactivé le free/busy.",
     "createQueued": "Enregistré en local — sera envoyé au serveur dès le retour du réseau.",
     "deleteQueued": "Supprimé en local — sera retiré du serveur dès le retour du réseau.",
     "queueCreateDropped": "Impossible d'envoyer la création au serveur — l'événement local a été retiré.",
@@ -303,7 +303,11 @@
     "attachmentTypeArchive": "Archive",
     "attachmentTypeText": "Texte",
     "shareTalkLink": "Partager le lien Talk",
-    "sendLinkToAttendees": "Envoyer aux participants"
+    "sendLinkToAttendees": "Envoyer aux participants",
+    "rsvpAccepted": "Accepté",
+    "rsvpTentative": "Peut-être",
+    "rsvpDeclined": "Décliné",
+    "rsvpNoResponse": "Sans réponse"
   },
   "settings": {
     "title": "Paramètres",

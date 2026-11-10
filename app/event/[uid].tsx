@@ -29,9 +29,11 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useTimeFormat } from '@/hooks/useTimeFormat';
 import {
   ViewContainer, Stack, Typography, Button, Chip, Icon, List, Item,
-  SectionHeader, Avatar, Spinner, ScreenHeader,
+  SectionHeader, Spinner, ScreenHeader,
   IconButton, Sheet,
 } from '@/ui/components';
+import { AttendeeAvatar } from '@/features/event/components/AttendeeAvatar';
+import { PartstatChip } from '@/features/event/components/PartstatChip';
 import type { InvitationResponse, EventAttachment, RecurrenceEditScope } from '@/types';
 import { openTalkRoom, promptTalkRoomOpen } from '@/features/event/utils/openTalkRoom';
 import {
@@ -744,7 +746,7 @@ export default function EventDetailScreen() {
                 <List>
                   {event.organizerEmail && (
                     <Item
-                      leading={<Avatar name={event.organizerEmail} size={36} />}
+                      leading={<AttendeeAvatar account={eventAccount} email={event.organizerEmail} size={36} />}
                       title={event.organizerEmail}
                       description={t('event.organizer')}
                     />
@@ -755,9 +757,10 @@ export default function EventDetailScreen() {
                     .map((att, i) => (
                       <Item
                         key={att.email || `attendee-${i}`}
-                        leading={<Avatar name={att.displayName ?? att.email} size={36} />}
+                        leading={<AttendeeAvatar account={eventAccount} email={att.email} displayName={att.displayName} size={36} />}
                         title={att.displayName ?? att.email}
                         description={att.displayName ? att.email : undefined}
+                        trailing={<PartstatChip partstat={att.partstat} />}
                       />
                     ))}
                 </List>

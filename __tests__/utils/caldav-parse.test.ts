@@ -76,6 +76,16 @@ describe('parseIcsObjects', () => {
     expect(event.attendees[0].displayName).toBe('Alice');
   });
 
+  it('parses attendee PARTSTAT for RSVP chips', () => {
+    const ics = sampleIcs.replace(
+      'ATTENDEE;CN=Alice;RSVP=TRUE:mailto:alice@example.com',
+      'ATTENDEE;CN=Alice;RSVP=TRUE;PARTSTAT=TENTATIVE:mailto:alice@example.com',
+    );
+    const [event] = parseIcsObjects([{ ics, href: '/cal/event.ics' }], calMeta);
+    // Stored lowercase; PartstatChip normalises to uppercase for display.
+    expect(event.attendees[0].partstat).toBe('tentative');
+  });
+
   it('extracts Talk URL from location matching /call/ pattern', () => {
     const [event] = parseIcsObjects([{ ics: sampleIcs, href: '/cal/event.ics' }], calMeta);
     expect(event.talkUrl).toBe('https://cloud.example.com/call/tok1');
