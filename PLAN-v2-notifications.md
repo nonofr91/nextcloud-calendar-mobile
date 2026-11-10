@@ -222,7 +222,7 @@ Responsibilities:
 ## 8. Implementation phases
 
 ### Phase 1 — Feasibility & scoping
-- [x] Verify `notify_push` is installed and configured on target servers (Docker test instance done; `cloud.sipc-cgt.fr` pending).
+- [x] Verify `notify_push` is installed and configured on target servers (Docker test instance done; `xxxxxxxxxxxxx` pending).
 - [x] Verify `nextcloud/calendar` emits `calendar_sync` messages on the target Nextcloud version (verified on NC 34.0.3 + Calendar 6.5.4).
 - [ ] Verify `event_update_notification` availability or native calendar notification types.
 - [ ] Choose the final UX combination with maintainers.
@@ -324,7 +324,7 @@ Responsibilities:
 
 ## 11. Open questions
 
-1. Is `notify_push` installed on `cloud.sipc-cgt.fr` and the test Docker instance?
+1. Is `notify_push` installed on `xxxxxxxxxxxxx` and the test Docker instance?
 2. What is the target minimum Nextcloud version for this app? `calendar_sync` support starts at Nextcloud 28.
 3. Is `event_update_notification` installed on production, or do we rely on native calendar notifications?
 4. Do we support devices without Google Play Services? If so, do we need a UnifiedPush fallback?

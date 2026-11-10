@@ -6,7 +6,7 @@ event — both directions: **writing** them through a create command, and
 
 Setup: Android emulator, release APK from `feat/voice-per-account`, two
 accounts — Test User on `http://10.0.2.2:8080` (no Context Agent) and
-ARASABruno on `https://cloud.sipc-cgt.fr` (agent available). Typed input
+ARASABruno on `https://xxxxxxxxxxxxx` (agent available). Typed input
 everywhere: the intent path is what matters. Reference events are injected
 directly over CalDAV so the read tests are deterministic.
 

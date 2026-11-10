@@ -1,7 +1,7 @@
 # PR fork #8 — assistant vocal par compte : preuves
 
 Émulateur Android API 36, release APK. Deux comptes : `ARASABruno` sur le
-Nextcloud de test (cloud.sipc-cgt.fr) et `test` sur le Nextcloud local Docker
+Nextcloud de test (xxxxxxxxxxxxx) et `test` sur le Nextcloud local Docker
 (`nextcloud-test`, joint via `http://10.0.2.2:8080`).
 
 | # | Fichier | Prouve |

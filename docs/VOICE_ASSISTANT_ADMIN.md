@@ -2,7 +2,7 @@
 
 Guide complet de déploiement : prérequis serveur, apps à installer, réglages IA
 (fournisseurs, modèles, prompts), contraintes par utilisateur et vérifications.
-Écrit et validé contre `https://cloud.sipc-cgt.fr` (NC 35.0.2, context_agent
+Écrit et validé contre `https://xxxxxxxxxxxxx` (NC 35.0.2, context_agent
 2.11.0, fournisseur Mistral).
 
 ## 0. Architecture — qui fait quoi
@@ -53,7 +53,7 @@ dans l'admin IA. Toutes les options :
 | Fournisseur | Comment | Cas prod |
 |---|---|---|
 | **OpenAI** | `integration_openai`, URL `https://api.openai.com/v1`, clé API | — |
-| **Mistral AI** | `integration_openai`, URL `https://api.mistral.ai/v1` | ✅ cloud.sipc-cgt.fr (`ministral-14b-2512`) |
+| **Mistral AI** | `integration_openai`, URL `https://api.mistral.ai/v1` | ✅ xxxxxxxxxxxxx (`ministral-14b-2512`) |
 | **Ollama / LocalAI** | `integration_openai` avec URL custom (`http://ollama:11434/v1`) — ou app dédiée | self-hosted |
 | **llm2 (local)** | app `llm2`, aucun service externe | vie privée / hors-ligne |
 | Tout endpoint OpenAI-compatible | Groq, Together, Azure OpenAI, LiteLLM… via `integration_openai` | — |
