@@ -584,7 +584,7 @@
     "meetingWith": "Reünion amb {{names}}",
     "meetingTitle": "Reünion",
     "enabled": "Assistent vocal",
-    "enabledHint": "Aficha lo boton micrò per pilotar l'agenda a la votz o al clavièr — per compte.",
+    "enabledHint": "Aficha lo boton micrò per pilotar l'agenda a la votz o al clavièr — l'assistent agís amb l'identitat del compte per defaut.",
     "onDevice": "Reconéissença sul periferic",
     "onDeviceHint": "L’àudio vocal demora sus aqueste periferic quand es possible.",
     "onDeviceUnsupported": "Pas pres en carga sus aqueste periferic — l’àudio es enviat per la ret.",

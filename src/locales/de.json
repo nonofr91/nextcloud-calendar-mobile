@@ -600,7 +600,7 @@
     "meetingWith": "Besprechung mit {{names}}",
     "meetingTitle": "Besprechung",
     "enabled": "Sprachassistent",
-    "enabledHint": "Zeigt die Mikrofontaste zum Steuern des Kalenders per Sprache oder Text — pro Konto.",
+    "enabledHint": "Zeigt die Mikrofontaste zum Steuern des Kalenders per Sprache oder Text — der Assistent agiert mit der Identität des Standardkontos.",
     "onDevice": "Erkennung auf dem Gerät",
     "onDeviceHint": "Sprachaudio bleibt nach Möglichkeit auf diesem Gerät.",
     "onDeviceUnsupported": "Auf diesem Gerät nicht unterstützt — Audio wird über das Netz gesendet.",

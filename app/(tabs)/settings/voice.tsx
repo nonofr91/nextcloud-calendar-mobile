@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next';
+import { useTheme } from 'expo-router';
+import { CircleCheck } from 'lucide-react-native';
 
 import { useAccountStore } from '@/stores/accountStore';
 import { useAccounts } from '@/hooks/useAccounts';
@@ -8,12 +10,13 @@ import { hostnameOf } from '@/features/account/utils/account';
 import { AvailabilityCalendarSettings } from '@/features/settings/components/AvailabilityCalendarSettings';
 import { SettingsPage } from '@/features/settings/components/SettingsPage';
 import { supportsOnDeviceRecognition } from '@/services/voice/stt';
-import { Divider, Stack, Toggle, Typography } from '@/ui/components';
+import { Divider, Icon, Stack, Toggle, Typography } from '@/ui/components';
 
 const cardOuter = { marginHorizontal: 16, marginBottom: 12 };
 
 export default function VoiceSettingsScreen() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const accounts = useAccounts();
   const activeAccountId = useAccountStore((s) => s.activeAccountId);
   const enabledByAccount = useSettingsStore((s) => s.voiceAssistantByAccount);
@@ -36,9 +39,19 @@ export default function VoiceSettingsScreen() {
             <Stack direction="horizontal" vAlign="center" gap={12}>
               <AvatarImage account={account} size={32} />
               <Stack gap={2} style={{ flex: 1 }}>
-                <Typography variant="body1" numberOfLines={1}>
-                  {account.displayName || account.username}
-                </Typography>
+                <Stack direction="horizontal" vAlign="center" gap={6}>
+                  <Typography variant="body1" numberOfLines={1}>
+                    {account.displayName || account.username}
+                  </Typography>
+                  {account.id === activeAccountId && (
+                    <Stack direction="horizontal" vAlign="center" gap={4} inline>
+                      <Icon size={14}><CircleCheck color={colors.primary} /></Icon>
+                      <Typography variant="caption" color="primary" nowrap>
+                        {t('settings.accountActive')}
+                      </Typography>
+                    </Stack>
+                  )}
+                </Stack>
                 <Typography variant="caption" color="secondary" numberOfLines={1}>
                   {hostnameOf(account.baseUrl)}
                 </Typography>
