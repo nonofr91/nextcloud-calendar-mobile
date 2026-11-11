@@ -257,7 +257,7 @@ export default function CalendarScreen() {
         onSwitchMode={nav.switchMode}
         onListen={voiceAssistantEnabled ? undefined : handleListen}
         onOpenVoice={voiceAssistantEnabled ? voice.open : undefined}
-        onOpenSummary={openSummary}
+        onOpenSummary={voiceAssistantEnabled ? undefined : openSummary}
       />
 
       <OfflineBanner account={activeAccount ?? null} />
