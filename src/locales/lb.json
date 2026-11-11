@@ -683,6 +683,7 @@
   },
   "voice": {
     "open": "Voice assistant",
+    "summaryPrompt": "Mäin Agenda haut",
     "listening": "Listening…",
     "hint": "Try: \"dentist appointment tomorrow at 2 pm\"",
     "inputPlaceholder": "Type a command…",

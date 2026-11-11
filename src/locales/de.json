@@ -575,6 +575,7 @@
   },
   "voice": {
     "open": "Sprachassistent",
+    "summaryPrompt": "Meine Agenda heute",
     "listening": "Ich höre zu…",
     "hint": "Versuchen Sie: „Zahnarzttermin morgen um 14 Uhr“",
     "inputPlaceholder": "Befehl eingeben…",

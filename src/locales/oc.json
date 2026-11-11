@@ -559,6 +559,7 @@
   },
   "voice": {
     "open": "Assistent vocal",
+    "summaryPrompt": "Mon agenda del jorn",
     "listening": "Vos escoti…",
     "hint": "Ensajatz : « rendètz-vos dentista deman a 14 oras »",
     "inputPlaceholder": "Picatz una comanda…",

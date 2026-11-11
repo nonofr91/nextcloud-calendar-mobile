@@ -575,6 +575,7 @@
   },
   "voice": {
     "open": "Assistente de voz",
+    "summaryPrompt": "A minha agenda de hoje",
     "listening": "Estou a ouvir…",
     "hint": "Experimente: «consulta no dentista amanhã às 14 h»",
     "inputPlaceholder": "Escreva um comando…",

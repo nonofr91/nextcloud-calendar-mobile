@@ -575,6 +575,7 @@
   },
   "voice": {
     "open": "Voice assistant",
+    "summaryPrompt": "My agenda for today",
     "listening": "Listening…",
     "hint": "Try: \"dentist appointment tomorrow at 2 pm\"",
     "inputPlaceholder": "Type a command…",

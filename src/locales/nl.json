@@ -575,6 +575,7 @@
   },
   "voice": {
     "open": "Spraakassistent",
+    "summaryPrompt": "Mijn agenda vandaag",
     "listening": "Ik luister…",
     "hint": "Probeer: „tandartsafspraak morgen om 14 uur”",
     "inputPlaceholder": "Typ een opdracht…",

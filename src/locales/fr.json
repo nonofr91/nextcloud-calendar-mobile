@@ -575,6 +575,7 @@
   },
   "voice": {
     "open": "Assistant vocal",
+    "summaryPrompt": "Mon agenda du jour",
     "listening": "Je vous écoute…",
     "hint": "Essayez : « rendez-vous dentiste demain à 14 h »",
     "inputPlaceholder": "Saisissez une commande…",
