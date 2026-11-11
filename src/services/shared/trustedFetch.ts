@@ -124,11 +124,14 @@ function buildResponse(result: Extract<NativeResult, { type: 'response' }>): Tru
     };
 }
 
+let requestCounter = 0;
+
 async function doRequest(
     url: string,
     init: Init,
 ): Promise<NativeResult> {
     const timeoutMs = init.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    const requestId = `r${Date.now()}-${requestCounter++}`;
     let watchdog: ReturnType<typeof setTimeout> | undefined;
     try {
         return await Promise.race([
@@ -139,12 +142,17 @@ async function doRequest(
                 bodyBase64: init.bodyBase64 ?? (init.body != null ? utf8ToBase64(init.body) : undefined),
                 timeoutMs,
                 maxBodyBytes: init.maxBodyBytes,
+                requestId,
             }),
             new Promise<never>((_, reject) => {
-                watchdog = setTimeout(
-                    () => reject(new Error('native request timeout (watchdog)')),
-                    timeoutMs + NATIVE_WATCHDOG_GRACE_MS,
-                );
+                watchdog = setTimeout(() => {
+                    try {
+                        TlsTrust.cancel(requestId);
+                    } catch {
+                        // Native cancel is best-effort — the request may already be gone.
+                    }
+                    reject(new Error('native request timeout (watchdog)'));
+                }, timeoutMs + NATIVE_WATCHDOG_GRACE_MS);
             }),
         ]);
     } finally {

@@ -8,6 +8,8 @@ export type NativeRequest = {
   timeoutMs: number;
   /** Abort the response once the decoded body exceeds this many bytes. */
   maxBodyBytes?: number;
+  /** Lets JS cancel an in-flight request (watchdog timeouts). */
+  requestId?: string;
 };
 
 export type NativeResult =
@@ -30,6 +32,7 @@ export type NativeResult =
 export interface TlsTrustNative {
   setPins(pins: Record<string, string[]>): void;
   request(params: NativeRequest): Promise<NativeResult>;
+  cancel(requestId: string): void;
 }
 
 export const TlsTrust: TlsTrustNative = requireNativeModule<TlsTrustNative>('TlsTrust');

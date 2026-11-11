@@ -35,6 +35,13 @@ internal fun shouldSkipHostnameVerification(pinned: Set<String>, leafSha256: Str
 class TlsTrustModule : Module() {
   private val pins = ConcurrentHashMap<String, Set<String>>()
 
+  // One client (and one ConnectionPool) per host — creating a fresh
+  // OkHttpClient per request orphaned its pool and leaked keep-alive sockets.
+  private val clientCache = ConcurrentHashMap<String, OkHttpClient>()
+
+  // Calls currently in flight, so JS can cancel a request it timed out on.
+  private val inFlight = ConcurrentHashMap<String, okhttp3.Call>()
+
   private val defaultTrust: X509TrustManager by lazy {
     val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
     tmf.init(null as java.security.KeyStore?)
@@ -57,7 +64,10 @@ class TlsTrustModule : Module() {
     return fmt.format(date)
   }
 
-  private fun clientFor(hostKey: String): OkHttpClient {
+  private fun clientFor(hostKey: String): OkHttpClient =
+    clientCache.getOrPut(hostKey) { buildClient(hostKey) }
+
+  private fun buildClient(hostKey: String): OkHttpClient {
     val pinned = pins[hostKey] ?: emptySet()
     val trustManager = object : X509TrustManager {
       override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
@@ -96,61 +106,17 @@ class TlsTrustModule : Module() {
     Function("setPins") { map: Map<String, List<String>> ->
       pins.clear()
       map.forEach { (host, list) -> pins[host] = list.map { it.uppercase() }.toSet() }
+      // Clients embed their pin set — drop them so the next request rebuilds.
+      clientCache.values.forEach { it.connectionPool.evictAll(); it.dispatcher.executorService.shutdown() }
+      clientCache.clear()
+    }
+
+    Function("cancel") { requestId: String ->
+      inFlight.remove(requestId)?.cancel()
     }
 
     AsyncFunction("request") { params: Map<String, Any?>, promise: Promise ->
-      try {
-        val urlStr = params["url"] as String
-        val method = params["method"] as? String ?: "GET"
-        @Suppress("UNCHECKED_CAST")
-        val headers = (params["headers"] as? Map<String, String>) ?: emptyMap()
-        val bodyB64 = params["bodyBase64"] as? String
-        val timeoutMs = (params["timeoutMs"] as? Number)?.toLong() ?: 20000L
-        val maxBodyBytes = (params["maxBodyBytes"] as? Number)?.toLong() ?: -1L
-
-        val httpUrl = urlStr.toHttpUrl()
-        val hostKey = hostKey(httpUrl)
-        val client = clientFor(hostKey).newBuilder()
-          .callTimeout(timeoutMs, TimeUnit.MILLISECONDS)
-          .build()
-
-        val body = bodyB64?.let { Base64.decode(it, Base64.DEFAULT).toRequestBody(null) }
-        val builder = Request.Builder().url(httpUrl).method(method, body)
-        headers.forEach { (k, v) -> builder.addHeader(k, v) }
-
-        client.newCall(builder.build()).execute().use { resp ->
-          val respBody = resp.body
-          val bytes = if (respBody == null) {
-            ByteArray(0)
-          } else {
-            if (maxBodyBytes >= 0 && respBody.contentLength() > maxBodyBytes) {
-              throw BodyTooLargeException()
-            }
-            val stream = respBody.byteStream()
-            val out = ByteArrayOutputStream()
-            val buf = ByteArray(16 * 1024)
-            var total = 0L
-            while (true) {
-              val n = stream.read(buf)
-              if (n < 0) break
-              total += n
-              if (maxBodyBytes >= 0 && total > maxBodyBytes) throw BodyTooLargeException()
-              out.write(buf, 0, n)
-            }
-            out.toByteArray()
-          }
-          val responseHeaders = HashMap<String, String>()
-          resp.headers.forEach { responseHeaders[it.first] = it.second }
-          promise.resolve(
-            mapOf(
-              "type" to "response",
-              "status" to resp.code,
-              "headers" to responseHeaders,
-              "bodyBase64" to Base64.encodeToString(bytes, Base64.NO_WRAP),
-            )
-          )
-        }
-      } catch (e: Exception) {
+      fun fail(e: Exception) {
         val untrusted = generateSequence(e as Throwable?) { it.cause }
           .firstOrNull { it is UntrustedCertException } as? UntrustedCertException
         if (untrusted != null) {
@@ -172,6 +138,88 @@ class TlsTrustModule : Module() {
         } else {
           promise.reject("REQUEST_FAILED", e.message ?: "request failed", e)
         }
+      }
+
+      try {
+        val urlStr = params["url"] as String
+        val method = params["method"] as? String ?: "GET"
+        @Suppress("UNCHECKED_CAST")
+        val headers = (params["headers"] as? Map<String, String>) ?: emptyMap()
+        val bodyB64 = params["bodyBase64"] as? String
+        val timeoutMs = (params["timeoutMs"] as? Number)?.toLong() ?: 20000L
+        val maxBodyBytes = (params["maxBodyBytes"] as? Number)?.toLong() ?: -1L
+        val requestId = params["requestId"] as? String ?: java.util.UUID.randomUUID().toString()
+
+        val httpUrl = urlStr.toHttpUrl()
+        val hostKey = hostKey(httpUrl)
+        val client = clientFor(hostKey).newBuilder()
+          .callTimeout(timeoutMs, TimeUnit.MILLISECONDS)
+          .build()
+
+        val body = bodyB64?.let { Base64.decode(it, Base64.DEFAULT).toRequestBody(null) }
+        val builder = Request.Builder().url(httpUrl).method(method, body)
+        headers.forEach { (k, v) -> builder.addHeader(k, v) }
+
+        val call = client.newCall(builder.build())
+        inFlight[requestId] = call
+        // enqueue, not execute: no module thread stays blocked, and the JS
+        // watchdog can cancel() us through the inFlight map.
+        call.enqueue(object : okhttp3.Callback {
+          override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
+            inFlight.remove(requestId)
+            if (call.isCanceled()) {
+              promise.reject("CANCELED", "request canceled", e)
+              return
+            }
+            // A pooled keep-alive socket can outlive its NAT route and then
+            // silently swallow writes — drop every pooled connection so the
+            // next request starts on a fresh socket.
+            client.connectionPool.evictAll()
+            fail(e)
+          }
+
+          override fun onResponse(call: okhttp3.Call, resp: okhttp3.Response) {
+            inFlight.remove(requestId)
+            try {
+              resp.use {
+                val respBody = resp.body
+                val bytes = if (respBody == null) {
+                  ByteArray(0)
+                } else {
+                  if (maxBodyBytes >= 0 && respBody.contentLength() > maxBodyBytes) {
+                    throw BodyTooLargeException()
+                  }
+                  val stream = respBody.byteStream()
+                  val out = ByteArrayOutputStream()
+                  val buf = ByteArray(16 * 1024)
+                  var total = 0L
+                  while (true) {
+                    val n = stream.read(buf)
+                    if (n < 0) break
+                    total += n
+                    if (maxBodyBytes >= 0 && total > maxBodyBytes) throw BodyTooLargeException()
+                    out.write(buf, 0, n)
+                  }
+                  out.toByteArray()
+                }
+                val responseHeaders = HashMap<String, String>()
+                resp.headers.forEach { responseHeaders[it.first] = it.second }
+                promise.resolve(
+                  mapOf(
+                    "type" to "response",
+                    "status" to resp.code,
+                    "headers" to responseHeaders,
+                    "bodyBase64" to Base64.encodeToString(bytes, Base64.NO_WRAP),
+                  )
+                )
+              }
+            } catch (e: Exception) {
+              fail(e)
+            }
+          }
+        })
+      } catch (e: Exception) {
+        fail(e)
       }
     }
   }

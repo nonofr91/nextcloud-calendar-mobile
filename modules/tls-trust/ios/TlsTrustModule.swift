@@ -12,6 +12,8 @@ struct UntrustedInfo {
 public class TlsTrustModule: Module {
   private var pins: [String: Set<String>] = [:]
   private let pinsQueue = DispatchQueue(label: "tls-trust.pins")
+  private var inFlight: [String: URLSessionTask] = [:]
+  private let inFlightQueue = DispatchQueue(label: "tls-trust.inflight")
 
   public func definition() -> ModuleDefinition {
     Name("TlsTrust")
@@ -20,6 +22,11 @@ public class TlsTrustModule: Module {
       self.pinsQueue.sync {
         self.pins = map.mapValues { Set($0.map { $0.uppercased() }) }
       }
+    }
+
+    Function("cancel") { (requestId: String) in
+      let task = self.inFlightQueue.sync { self.inFlight.removeValue(forKey: requestId) }
+      task?.cancel()
     }
 
     AsyncFunction("request") { (params: [String: Any], promise: Promise) in
@@ -39,6 +46,7 @@ public class TlsTrustModule: Module {
       for (key, value) in headers { req.setValue(value, forHTTPHeaderField: key) }
       if let b = bodyB64, let data = Data(base64Encoded: b) { req.httpBody = data }
 
+      let requestId = (params["requestId"] as? String) ?? UUID().uuidString
       let hostKey = self.hostKey(url)
       let pinned = self.pinsQueue.sync { self.pins[hostKey] ?? [] }
       let delegate = TrustDelegate(
@@ -46,9 +54,13 @@ public class TlsTrustModule: Module {
         hostKey: hostKey,
         maxBodyBytes: maxBodyBytes,
         promise: promise
-      )
+      ) { [weak self] in
+        self?.inFlightQueue.sync { self?.inFlight.removeValue(forKey: requestId) }
+      }
       let session = URLSession(configuration: .ephemeral, delegate: delegate, delegateQueue: nil)
-      session.dataTask(with: req).resume()
+      let task = session.dataTask(with: req)
+      self.inFlightQueue.sync { self.inFlight[requestId] = task }
+      task.resume()
     }
   }
 
@@ -64,15 +76,17 @@ final class TrustDelegate: NSObject, URLSessionDataDelegate {
   private let hostKey: String
   private let maxBodyBytes: Int
   private let promise: Promise
+  private let onFinish: () -> Void
   private var buffer = Data()
   private var tooLarge = false
   private var untrusted: UntrustedInfo?
 
-  init(pinned: Set<String>, hostKey: String, maxBodyBytes: Int, promise: Promise) {
+  init(pinned: Set<String>, hostKey: String, maxBodyBytes: Int, promise: Promise, onFinish: @escaping () -> Void) {
     self.pinned = pinned
     self.hostKey = hostKey
     self.maxBodyBytes = maxBodyBytes
     self.promise = promise
+    self.onFinish = onFinish
   }
 
   func urlSession(
@@ -93,7 +107,10 @@ final class TrustDelegate: NSObject, URLSessionDataDelegate {
     task: URLSessionTask,
     didCompleteWithError error: Error?
   ) {
-    defer { session.finishTasksAndInvalidate() }
+    defer {
+      onFinish()
+      session.finishTasksAndInvalidate()
+    }
 
     if let untrusted = untrusted {
       promise.resolve([
