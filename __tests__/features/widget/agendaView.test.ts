@@ -5,6 +5,7 @@ import type { AgendaDaySection, AgendaEventItem, AgendaSnapshot } from '@/featur
 function item(uid: string): AgendaEventItem {
   return {
     uid,
+    accountId: 'a1',
     title: uid,
     startIso: '2026-08-01T12:00:00Z',
     endIso: '2026-08-01T13:00:00Z',

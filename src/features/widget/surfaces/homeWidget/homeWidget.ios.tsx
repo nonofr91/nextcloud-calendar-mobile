@@ -6,7 +6,7 @@ import { createWidget } from 'expo-widgets';
 
 import i18n from '@/utils/i18n';
 
-import type { AgendaEventItem, AgendaSnapshot, AgendaTimelineEntry, WidgetSurface } from '../../core/types';
+import type { AccountTagSnapshot, AgendaEventItem, AgendaSnapshot, AgendaTimelineEntry, WidgetSurface } from '../../core/types';
 import { openAppLink } from '../../core/types';
 
 const WIDGET_NAME = 'NextcloudCalendarWidget';
@@ -67,14 +67,19 @@ function CalendarWidget(props: { snapshot: AgendaSnapshot | null }, env: WidgetE
     return groups;
   }
 
-  function EventRow({ event }: { event: AgendaEventItem }) {
+  function EventRow({ event, tag }: { event: AgendaEventItem; tag?: AccountTagSnapshot }) {
     return (
       <Link destination={event.deepLink}>
         <HStack alignment="center" modifiers={[frame({ maxWidth: Infinity, alignment: 'leading' })]}>
           <RoundedRectangle cornerRadius={2} modifiers={[foregroundStyle(event.color), frame({ width: 4, height: 30 })]} />
           <VStack alignment="leading" modifiers={[frame({ maxWidth: Infinity, alignment: 'leading' }), padding({ leading: 8 })]}>
             <Text modifiers={[font({ weight: 'medium', size: WIDGET_TYPE.body }), foregroundStyle(palette.text), lineLimit(1)]}>{event.title}</Text>
-            <Text modifiers={[font({ size: WIDGET_TYPE.time }), foregroundStyle(palette.textSecondary), lineLimit(1)]}>{event.timeLabel}</Text>
+            <HStack alignment="center" spacing={4}>
+              <Text modifiers={[font({ size: WIDGET_TYPE.time }), foregroundStyle(palette.textSecondary), lineLimit(1)]}>{event.timeLabel}</Text>
+              {tag ? (
+                <RoundedRectangle cornerRadius={2} modifiers={[foregroundStyle(tag.color), frame({ width: 7, height: 7 })]} />
+              ) : null}
+            </HStack>
           </VStack>
         </HStack>
       </Link>
@@ -93,7 +98,7 @@ function CalendarWidget(props: { snapshot: AgendaSnapshot | null }, env: WidgetE
         <Text key={`h-${group.key}`} modifiers={[font({ weight: 'semibold', size: WIDGET_TYPE.caption }), foregroundStyle(group.isToday ? palette.primary : palette.textSecondary)]}>{group.header}</Text>
       );
       for (const event of group.items) {
-        cells.push(<EventRow key={`${group.key}-${event.uid}-${event.startIso}`} event={event} />);
+        cells.push(<EventRow key={`${group.key}-${event.uid}-${event.startIso}`} event={event} tag={snapshot?.accountTags?.[event.accountId]} />);
       }
     }
     return (
@@ -142,7 +147,7 @@ function CalendarWidget(props: { snapshot: AgendaSnapshot | null }, env: WidgetE
       cells.push(<EmptyState key="empty" snapshot={snapshot} palette={palette} />);
     } else {
       for (const event of events) {
-        cells.push(<EventRow key={`${event.uid}-${event.startIso}`} event={event} />);
+        cells.push(<EventRow key={`${event.uid}-${event.startIso}`} event={event} tag={snapshot?.accountTags?.[event.accountId]} />);
       }
     }
     return (
@@ -165,7 +170,7 @@ function CalendarWidget(props: { snapshot: AgendaSnapshot | null }, env: WidgetE
           {events.length === 0 ? (
             <EmptyState snapshot={snapshot} palette={palette} />
           ) : (
-            events.map((event) => <EventRow key={`${event.uid}-${event.startIso}`} event={event} />)
+            events.map((event) => <EventRow key={`${event.uid}-${event.startIso}`} event={event} tag={snapshot?.accountTags?.[event.accountId]} />)
           )}
         </VStack>
       </HStack>

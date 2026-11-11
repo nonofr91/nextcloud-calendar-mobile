@@ -4,11 +4,13 @@ import {
   requestWidgetUpdate,
   type WidgetTaskHandlerProps,
   FlexWidget,
+  ImageWidget,
   ListWidget,
+  SvgWidget,
   TextWidget,
 } from 'react-native-android-widget';
 
-import type { AgendaEventItem, AgendaSnapshot, AgendaTimelineEntry, MonthWidgetSnapshot, WidgetSurface } from '../../core/types';
+import type { AccountTagSnapshot, AgendaEventItem, AgendaSnapshot, AgendaTimelineEntry, MonthWidgetSnapshot, WidgetSurface } from '../../core/types';
 import { listenDeepLink } from '../../core/types';
 import { type AgendaGroup, agendaGroups, agendaHeader, agendaPalette, compactEvents, emptyLabel } from '../../core/agendaView';
 import i18n from '@/utils/i18n';
@@ -54,7 +56,30 @@ function dayOfWeekOf(day: { dateIso: string; dayOfWeek?: number }): number {
   return day.dayOfWeek ?? localDate(day.dateIso)?.getDay() ?? 0;
 }
 
-function EventRow({ event }: { event: AgendaEventItem }) {
+const TAG_SIZE = 14;
+
+function AccountTag({ tag }: { tag: AccountTagSnapshot }) {
+  if (tag.svg) {
+    return <SvgWidget svg={tag.svg} style={{ width: TAG_SIZE, height: TAG_SIZE }} />;
+  }
+  if (tag.image) {
+    return (
+      <ImageWidget
+        image={tag.image as `data:image${string}`}
+        imageWidth={TAG_SIZE}
+        imageHeight={TAG_SIZE}
+        radius={4}
+      />
+    );
+  }
+  return (
+    <FlexWidget
+      style={{ width: TAG_SIZE, height: TAG_SIZE, borderRadius: 4, backgroundColor: tag.color as `#${string}` }}
+    />
+  );
+}
+
+function EventRow({ event, tag }: { event: AgendaEventItem; tag?: AccountTagSnapshot }) {
   const fg = onEventColor(event.color);
   return (
     <FlexWidget style={{ width: 'match_parent', flexDirection: 'column', paddingTop: widgetSpacing.sm }}>
@@ -70,7 +95,10 @@ function EventRow({ event }: { event: AgendaEventItem }) {
         clickActionData={{ uri: event.deepLink }}
       >
         <TextWidget text={event.title} maxLines={1} style={{ fontSize: widgetType.body, fontWeight: '500', color: fg }} />
-        <TextWidget text={event.timeLabel} maxLines={1} style={{ fontSize: widgetType.time, color: fg, marginTop: 2 }} />
+        <FlexWidget style={{ width: 'match_parent', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+          <TextWidget text={event.timeLabel} maxLines={1} style={{ fontSize: widgetType.time, color: fg }} />
+          {tag ? <AccountTag tag={tag} /> : null}
+        </FlexWidget>
       </FlexWidget>
     </FlexWidget>
   );
@@ -118,7 +146,7 @@ function LargeAndroidWidget({ snapshot }: { snapshot: AgendaSnapshot | null }) {
   for (const group of groups) {
     cells.push(<DayHeaderCell key={`h-${group.key}`} group={group} palette={palette} />);
     for (const event of group.items) {
-      cells.push(<EventRow key={`${group.key}-${event.uid}-${event.startIso}`} event={event} />);
+      cells.push(<EventRow key={`${group.key}-${event.uid}-${event.startIso}`} event={event} tag={snapshot?.accountTags?.[event.accountId]} />);
     }
   }
 
@@ -173,7 +201,7 @@ function CompactAndroidWidget({ snapshot, limit }: { snapshot: AgendaSnapshot | 
         {events.length === 0 ? (
           <EmptyState snapshot={snapshot} palette={palette} />
         ) : (
-          events.map((event) => <EventRow key={`${event.uid}-${event.startIso}`} event={event} />)
+          events.map((event) => <EventRow key={`${event.uid}-${event.startIso}`} event={event} tag={snapshot?.accountTags?.[event.accountId]} />)
         )}
       </FlexWidget>
     </FlexWidget>

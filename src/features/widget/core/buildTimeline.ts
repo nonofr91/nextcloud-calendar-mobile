@@ -8,6 +8,7 @@ import { useCalendarStore } from '@/stores/calendarStore';
 import { hasCalendarFlag } from '@/utils/calendars';
 import { readUpcomingEvents, visibleAccountIdsToRead } from './readEvents';
 import { buildAgendaTimeline, type BuildAgendaOptions } from './agendaSnapshot';
+import { buildAccountTags } from './accountTags';
 import type { AgendaTimelineEntry } from './types';
 
 export const AGENDA_DAYS = 7;
@@ -25,6 +26,6 @@ export async function buildFreshTimeline(now: Date = new Date()): Promise<Agenda
   const use24h = resolveUse24h(timeFormat, locale);
   const scheme = Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
 
-  const options: BuildAgendaOptions = { now, locale, scheme, use24h, days: AGENDA_DAYS, maxPerSection: 10 };
+  const options: BuildAgendaOptions = { now, locale, scheme, use24h, days: AGENDA_DAYS, maxPerSection: 10, accountTags: buildAccountTags(events) };
   return buildAgendaTimeline(events, options);
 }

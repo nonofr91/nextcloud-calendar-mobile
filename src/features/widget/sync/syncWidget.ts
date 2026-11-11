@@ -9,6 +9,7 @@ import {useCalendarStore} from '@/stores/calendarStore';
 import {hasCalendarFlag} from '@/utils/calendars';
 import {buildAgendaTimeline} from '../core/agendaSnapshot';
 import {AGENDA_DAYS} from '../core/buildTimeline';
+import {buildAccountTags} from '../core/accountTags';
 import {readUpcomingEvents, visibleAccountIdsToRead} from '../core/readEvents';
 import {selectOngoingEvent, shouldClearLiveEvent} from '../core/liveEvent';
 import {readLiveEvent} from '../storage/widgetStore';
@@ -52,7 +53,8 @@ async function runSync(now: Date): Promise<void> {
                 scheme,
                 use24h,
                 days: AGENDA_DAYS,
-                maxPerSection: 10
+                maxPerSection: 10,
+                accountTags: buildAccountTags(events),
             });
             await homeWidget.update(timeline);
 

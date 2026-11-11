@@ -90,6 +90,7 @@ describe('homeWidget (ios)', () => {
 function makeItem(uid: string): AgendaEventItem {
   return {
     uid,
+    accountId: 'a1',
     title: `Event ${uid}`,
     startIso: '2026-07-29T10:00:00.000Z',
     endIso: '2026-07-29T11:00:00.000Z',

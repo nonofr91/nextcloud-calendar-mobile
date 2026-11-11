@@ -1,7 +1,7 @@
 import type { CalendarEvent } from '@/types';
 import i18n from '@/utils/i18n';
 import { zonedWallTimeToUtc } from '@/utils/timezone';
-import { type AgendaDaySection, type AgendaEventItem, type AgendaSnapshot, type AgendaTimelineEntry, eventDeepLink } from './types';
+import { type AccountTagSnapshot, type AgendaDaySection, type AgendaEventItem, type AgendaSnapshot, type AgendaTimelineEntry, eventDeepLink } from './types';
 
 export interface BuildAgendaOptions {
   now?: Date;
@@ -12,6 +12,7 @@ export interface BuildAgendaOptions {
   maxPerSection?: number;
   scheme?: 'light' | 'dark';
   use24h?: boolean;
+  accountTags?: Record<string, AccountTagSnapshot>;
 }
 
 const DAY_MS = 86_400_000;
@@ -86,6 +87,7 @@ function indexEvents(events: CalendarEvent[], tz: string): EventIndex {
 function toItem(event: CalendarEvent, locale: string | undefined, tz: string, use24h?: boolean): AgendaEventItem {
   return {
     uid: event.uid,
+    accountId: event.accountId,
     title: event.summary || i18n.t('calendar.noTitle', { lng: locale }),
     startIso: event.dtstart.toISOString(),
     endIso: event.dtend.toISOString(),
@@ -100,7 +102,7 @@ export function buildAgendaSnapshot(
   events: CalendarEvent[],
   {
     now = new Date(), locale, timeZone,
-    maxEvents = 3, days = 0, maxPerSection = 3, scheme = 'light', use24h,
+    maxEvents = 3, days = 0, maxPerSection = 3, scheme = 'light', use24h, accountTags,
   }: BuildAgendaOptions = {},
   index?: EventIndex,
 ): AgendaSnapshot {
@@ -149,6 +151,7 @@ export function buildAgendaSnapshot(
     events: todays.slice(0, maxEvents).map((e) => toItem(e, locale, tz, use24h)),
     sections,
     ...(nextEvent ? { nextEvent } : {}),
+    ...(accountTags ? { accountTags } : {}),
   };
 }
 

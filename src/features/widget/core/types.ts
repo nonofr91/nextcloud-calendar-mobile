@@ -2,6 +2,7 @@ export const APP_SCHEME = 'nextcloud-calendar';
 
 export interface AgendaEventItem {
   uid: string;
+  accountId: string;
   title: string;
   startIso: string;
   endIso: string;
@@ -9,6 +10,19 @@ export interface AgendaEventItem {
   color: string;
   timeLabel: string;
   deepLink: string;
+}
+
+/**
+ * Per-account badge embedded in the snapshot — the widget renderer cannot
+ * call hooks, so icon pixels are snapshotted at build time from the MMKV
+ * caches (`serverIcon:`/`avatar:`). `svg` holds raw SVG XML, `image` a
+ * `data:` URI. Absent for single-account views (same rule as the agenda).
+ */
+export interface AccountTagSnapshot {
+  label: string;
+  color: string;
+  svg?: string;
+  image?: string;
 }
 
 export interface AgendaDaySection {
@@ -32,6 +46,8 @@ export interface AgendaSnapshot {
   events: AgendaEventItem[];
   sections: AgendaDaySection[];
   nextEvent?: AgendaEventItem;
+  /** accountId → badge data, only when events span more than one account. */
+  accountTags?: Record<string, AccountTagSnapshot>;
 }
 
 export interface AgendaTimelineEntry {
