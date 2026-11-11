@@ -28,6 +28,17 @@ describe('agenda', () => {
     // verb usage without a possessive stays a create
     expect(U('programme un rdv dentiste demain 14h').kind).toBe('create');
   });
+
+  it('«je fais quoi demain» and other natural schedule questions', () => {
+    expect(U('je fais quoi demain')).toEqual({ kind: 'agenda', day: day(13) });
+    expect(U("qu'est-ce que je fais vendredi")).toEqual({ kind: 'agenda', day: day(14) });
+    expect(U('quoi de prévu lundi')).toEqual({ kind: 'agenda', day: day(17) });
+    expect(U("qu'y a-t-il demain")).toEqual({ kind: 'agenda', day: day(13) });
+    expect(U('on fait quoi demain')).toEqual({ kind: 'agenda', day: day(13) });
+    expect(U('what am i doing tomorrow', 'en')).toEqual({ kind: 'agenda', day: day(13) });
+    expect(U("what's planned for friday", 'en')).toEqual({ kind: 'agenda', day: day(14) });
+    expect(U('anything scheduled monday', 'en')).toEqual({ kind: 'agenda', day: day(17) });
+  });
 });
 
 describe('next', () => {
