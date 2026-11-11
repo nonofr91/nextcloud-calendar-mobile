@@ -247,7 +247,6 @@ function geoOf(vevent: ICAL.Component): { lat: number; lon: number } | undefined
 
 type OverridableFields = Pick<
   CalendarEvent,
-  'summary' | 'description' | 'location' | 'talkUrl' | 'attendees' | 'organizerEmail' | 'alarms' | 'geo'
   | 'summary'
   | 'description'
   | 'location'
@@ -255,6 +254,7 @@ type OverridableFields = Pick<
   | 'attendees'
   | 'organizerEmail'
   | 'alarms'
+  | 'geo'
   | 'attachments'
   | 'transp'
   | 'status'
@@ -310,7 +310,8 @@ function exceptionFields(vevent: ICAL.Component): Partial<OverridableFields> {
   if (alarms !== undefined) fields.alarms = alarms;
 
   const attachProps = vevent.getAllProperties('attach');
-  if (attachProps.length) fields.attachments = readAttachments(attachProps); const transp = enumProp(vevent, 'transp', EVENT_TRANSP_VALUES);
+  if (attachProps.length) fields.attachments = readAttachments(attachProps);
+  const transp = enumProp(vevent, 'transp', EVENT_TRANSP_VALUES);
   if (transp) fields.transp = transp;
 
   const status = enumProp(vevent, 'status', EVENT_STATUS_VALUES);
@@ -540,7 +541,8 @@ export function parseIcsItem(
         rrule: rruleStr,
         alarms,
         attachments,
-        timezone: tzid,       transp: enumProp(vevent, 'transp', EVENT_TRANSP_VALUES),
+        timezone: tzid,
+        transp: enumProp(vevent, 'transp', EVENT_TRANSP_VALUES),
         status: enumProp(vevent, 'status', EVENT_STATUS_VALUES),
       };
 

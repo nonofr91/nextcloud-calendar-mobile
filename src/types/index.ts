@@ -173,7 +173,8 @@ export type CalendarEvent = {
     taskPercent?: number;
     taskCompleted?: boolean;
     readOnly?: boolean;
-    attachments?: EventAttachment[];   transp?: EventTransp;
+    attachments?: EventAttachment[];
+    transp?: EventTransp;
     status?: EventStatus;
 };
 
@@ -217,7 +218,8 @@ export type CreateEventInput = {
     /** Write new attachments as public `/s/<token>` links (for events with attendees). */
     shareAttachments?: boolean;
     /** Existing ATTACH properties to strip on save (edit only). */
-    removedAttachments?: EventAttachment[];   transp?: EventTransp;
+    removedAttachments?: EventAttachment[];
+    transp?: EventTransp;
     status?: EventStatus;
 };
 

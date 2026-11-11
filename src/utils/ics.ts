@@ -233,8 +233,8 @@ export function buildIcs(params: BuildIcsParams): string {
         `SEQUENCE:${sequence}`,
         `DTSTART;TZID=${timezone}:${localStamp(dtstart, timezone)}`,
         `DTEND;TZID=${timezone}:${localStamp(dtend, timezone)}`,
-        ...textLines(summary, description, location),
-        ...geoLine(geo),       ...textLines(summary, description, location, status, transp),
+        ...textLines(summary, description, location, status, transp),
+        ...geoLine(geo),
         ...(rrule ? [rruleLine(rrule)] : []),
         ...schedulingLines(organizerName, organizerEmail, attendees),
         ...extraLines,
@@ -272,8 +272,8 @@ export function buildAllDayIcs(params: BuildAllDayIcsParams): string {
         `SEQUENCE:${sequence}`,
         `DTSTART;VALUE=DATE:${dateStamp(dtstart)}`,
         `DTEND;VALUE=DATE:${dateStamp(endExclusive)}`,
-        ...textLines(summary, description, location),
-        ...geoLine(geo),       ...textLines(summary, description, location, status, transp),
+        ...textLines(summary, description, location, status, transp),
+        ...geoLine(geo),
         ...(rrule ? [rruleLine(rrule, true)] : []),
         ...schedulingLines(organizerName, organizerEmail, attendees),
         ...extraLines,
@@ -328,7 +328,8 @@ export function buildExceptionIcs(
         `SEQUENCE:${sequence}`,
         ...dates,
         ...textLines(summary, description, location),
-        ...geoLine(geo),       // Absent properties inherit the master in our parser, so an exception must
+        ...geoLine(geo),
+        // Absent properties inherit the master in our parser, so an exception must
         // state STATUS/TRANSP explicitly — even at their RFC defaults — to override.
         ...(status ? [`STATUS:${status.toUpperCase()}`] : []),
         ...(transp ? [`TRANSP:${transp.toUpperCase()}`] : []),

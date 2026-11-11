@@ -91,7 +91,8 @@ export function writeEvent(row: Event, ev: CalendarEvent): void {
     row.taskCompletedAt = ev.taskCompletedAt?.getTime() ?? undefined;
     row.taskPercent = ev.taskPercent ?? undefined;
     row.attachments = serializeAttachments(ev.attachments);
-    row.timezone = ev.timezone ?? undefined;   row.transp = ev.transp;
+    row.timezone = ev.timezone ?? undefined;
+    row.transp = ev.transp;
     row.status = ev.status;
 }
 
