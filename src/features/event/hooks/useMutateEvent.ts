@@ -700,8 +700,8 @@ export function useUpdateEvent(accounts: readonly Account[], calendars: Calendar
 }
 
 export function useDeleteEvent(accounts: readonly Account[]) {
-  return useAction<{ event: CalendarEvent; scope?: RecurrenceEditScope }, MutationResult>(
-    useCallback(async ({ event, scope = 'all' }): Promise<MutationResult> => {
+  return useAction<{ event: CalendarEvent; scope?: RecurrenceEditScope; suppressScheduling?: boolean }, MutationResult>(
+    useCallback(async ({ event, scope = 'all', suppressScheduling }): Promise<MutationResult> => {
       const account = accounts.find((a) => a.id === event.accountId);
       if (!account) return 'failed';
       const base = seriesBaseUid(event.uid);
@@ -721,23 +721,24 @@ export function useDeleteEvent(accounts: readonly Account[]) {
         }
         marked = removed.map((e) => eventKey(e.accountId, e.calendarId, e.uid));
 
+        const schedOpts = suppressScheduling ? { suppressScheduling } : undefined;
         if (!event.isRecurring || scope === 'all') {
-          await deleteEvent(account, event.href);
+          await deleteEvent(account, event.href, schedOpts);
           return 'ok';
         }
         const { ics: masterIcs, etag } = await fetchEventIcsWithEtag(account, event.href);
         const timezone = masterTzid(masterIcs) ?? resolveTimezone(account);
         if (scope === 'this') {
-          await updateEvent(account, event.href, injectExdate(masterIcs, occurrenceSlot(event), timezone), etag);
+          await updateEvent(account, event.href, injectExdate(masterIcs, occurrenceSlot(event), timezone), etag, schedOpts);
         } else if (scope === 'thisAndFollowing') {
           const oneDayBefore = dayjs(occurrenceSlot(event)).subtract(1, 'day').endOf('day').toDate();
-          await updateEvent(account, event.href, truncateRruleUntil(masterIcs, oneDayBefore), etag);
+          await updateEvent(account, event.href, truncateRruleUntil(masterIcs, oneDayBefore), etag, schedOpts);
         }
         return 'ok';
       } catch (error) {
         if (isNetworkFailure(error) && (!event.isRecurring || scope === 'all')) {
           // Offline: rows stay removed locally; the DELETE is replayed later.
-          enqueue({ kind: 'delete', accountId: account.id, href: event.href });
+          enqueue({ kind: 'delete', accountId: account.id, href: event.href, suppressScheduling });
           Alert.alert(i18n.t('event.deleteQueued'), describeMutationError(error));
           return 'queued';
         }

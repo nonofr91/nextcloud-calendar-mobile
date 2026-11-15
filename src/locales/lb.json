@@ -184,6 +184,8 @@
     "deleteAllMsg": "All d'Virkomme vun dësem widderhuelenden Evenement läschen?",
     "deleteThisAndFollowingMsg": "Dëst an all déi folgend Virkomme läschen?",
     "deleteConfirmMsg": "Wëlls du dëst Evenement wierklech läschen?",
+    "notifyAttendees": "Participanten informéieren",
+    "notifyAttendeesHint": "Ofsaagungs-E-Mail schécken",
     "errorCreateFailed": "Evenement konnt net erstallt ginn",
     "errorUpdateFailed": "Evenement konnt net aktualiséiert ginn",
     "errorDeleteFailed": "Evenement konnt net geläscht ginn",

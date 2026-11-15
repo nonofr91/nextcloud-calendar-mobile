@@ -185,6 +185,8 @@
     "deleteAllMsg": "Удалить все повторения этого события?",
     "deleteThisAndFollowingMsg": "Удалить это и все последующие повторения?",
     "deleteConfirmMsg": "Вы уверены, что хотите удалить это событие?",
+    "notifyAttendees": "Уведомить участников",
+    "notifyAttendeesHint": "Отправить письмо об отмене",
     "errorCreateFailed": "Не удалось создать событие",
     "errorUpdateFailed": "Не удалось обновить событие",
     "errorDeleteFailed": "Не удалось удалить событие",

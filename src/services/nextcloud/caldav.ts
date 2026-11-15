@@ -465,17 +465,24 @@ export async function putEvent(
   }
 }
 
+export interface SchedulingOptions {
+  /** Send `x-nc-scheduling: false` to suppress iTIP/iMIP attendee mail (NC31+). */
+  suppressScheduling?: boolean;
+}
+
 export async function updateEvent(
   account: Account,
   href: string,
   ics: string,
-  etag?: string
+  etag?: string,
+  opts?: SchedulingOptions
 ): Promise<void> {
   const res = await davFetch(href, account, {
     method: 'PUT',
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',
       ...(etag ? { 'If-Match': etag } : {}),
+      ...(opts?.suppressScheduling ? { 'x-nc-scheduling': 'false' } : {}),
     },
     body: ics,
   });
@@ -506,9 +513,13 @@ export async function moveEvent(
 
 export async function deleteEvent(
   account: Account,
-  href: string
+  href: string,
+  opts?: SchedulingOptions
 ): Promise<void> {
-  const res = await davFetch(href, account, { method: 'DELETE' });
+  const res = await davFetch(href, account, {
+    method: 'DELETE',
+    headers: opts?.suppressScheduling ? { 'x-nc-scheduling': 'false' } : undefined,
+  });
   if (res.status === 404) console.warn('[deleteEvent] 404, nothing deleted at', href);
   if (!res.ok && res.status !== 404) throw httpErrorFrom(res, 'deleteEvent');
 }

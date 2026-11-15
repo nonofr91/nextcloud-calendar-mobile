@@ -180,6 +180,8 @@
     "deleteAllMsg": "Suprimir totas las ocurréncias d'aqueste eveniment recurrent ?",
     "deleteThisAndFollowingMsg": "Suprimir aquesta ocurréncia e totas las seguentas ?",
     "deleteConfirmMsg": "Volètz vertadièrament suprimir aqueste eveniment ?",
+    "notifyAttendees": "Avertir los participants",
+    "notifyAttendeesHint": "Enviar un corrièl d'anullacion",
     "errorCreateFailed": "La creacion de l'eveniment a pas capitat",
     "errorUpdateFailed": "La mesa a jorn de l'eveniment a pas capitat",
     "errorDeleteFailed": "La supression de l'eveniment a pas capitat",

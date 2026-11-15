@@ -14,7 +14,7 @@ const MAX_TRIES = 10;
 export type PendingOp =
     | { id: string; kind: 'create'; accountId: string; calendar: CalendarMeta; uid: string; ics: string; tries: number; createdAt: number }
     | { id: string; kind: 'update'; accountId: string; href: string; ics: string; tries: number; createdAt: number }
-    | { id: string; kind: 'delete'; accountId: string; href: string; tries: number; createdAt: number }
+    | { id: string; kind: 'delete'; accountId: string; href: string; suppressScheduling?: boolean; tries: number; createdAt: number }
     | { id: string; kind: 'move'; accountId: string; fromHref: string; targetCalendar: CalendarMeta; uid: string; tries: number; createdAt: number };
 
 function readQueue(): PendingOp[] {
@@ -82,7 +82,7 @@ export async function drainPending(account: Account): Promise<number> {
             try {
                 if (op.kind === 'create') await putEvent(account, op.calendar, op.uid, op.ics);
                 else if (op.kind === 'update') await updateEvent(account, op.href, op.ics);
-                else if (op.kind === 'delete') await deleteEvent(account, op.href);
+                else if (op.kind === 'delete') await deleteEvent(account, op.href, { suppressScheduling: op.suppressScheduling });
                 else await moveEvent(account, op.fromHref, op.targetCalendar, op.uid);
                 writeQueue(queue.filter((o) => o.id !== op.id));
                 flushed++;

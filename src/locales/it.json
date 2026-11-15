@@ -185,6 +185,8 @@
     "deleteAllMsg": "Eliminare tutte le occorrenze di questo evento ricorrente?",
     "deleteThisAndFollowingMsg": "Eliminare questa e tutte le occorrenze successive?",
     "deleteConfirmMsg": "Sei sicuro di voler eliminare questo evento?",
+    "notifyAttendees": "Notifica i partecipanti",
+    "notifyAttendeesHint": "Invia un'e-mail di annullamento",
     "errorCreateFailed": "Creazione dell'evento non riuscita",
     "errorUpdateFailed": "Aggiornamento dell'evento non riuscito",
     "errorDeleteFailed": "Eliminazione dell'evento non riuscita",

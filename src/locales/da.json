@@ -184,6 +184,8 @@
     "deleteAllMsg": "Vil du slette alle forekomster af denne gentagne begivenhed?",
     "deleteThisAndFollowingMsg": "Vil du slette denne og alle følgende forekomster?",
     "deleteConfirmMsg": "Er du sikker på, at du vil slette denne begivenhed?",
+    "notifyAttendees": "Giv deltagerne besked",
+    "notifyAttendeesHint": "Send en annulleringsmail",
     "errorCreateFailed": "Begivenheden kunne ikke oprettes",
     "errorUpdateFailed": "Begivenheden kunne ikke opdateres",
     "errorDeleteFailed": "Begivenheden kunne ikke slettes",
