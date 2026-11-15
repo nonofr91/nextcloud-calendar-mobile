@@ -143,9 +143,13 @@ export default function CalendarScreen() {
   const calendarEvents = useMemo(() => toGridEvents(allEvents, accounts), [allEvents, accounts]);
 
   // Push the upcoming agenda to the car surface (Android Auto CarAppService).
+  const accountNameById = useMemo(
+    () => new Map(accounts.map((a) => [a.id, a.displayName] as const)),
+    [accounts],
+  );
   useEffect(() => {
-    pushCarAgenda(allEvents, calendars);
-  }, [allEvents, calendars]);
+    pushCarAgenda(allEvents, calendars, accountNameById);
+  }, [allEvents, calendars, accountNameById]);
 
   const allDayEvents = useMemo(() => allEvents.filter((e) => e.allDay), [allEvents]);
   const nowHour = useMemo(() => Math.max(0, new Date().getHours() - 1), []);

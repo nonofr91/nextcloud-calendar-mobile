@@ -4,7 +4,19 @@ import org.json.JSONArray
 
 /** In-memory agenda snapshot pushed from JS; the car screen reads it on invalidate(). */
 object CarAgendaStore {
-  data class Item(val title: String, val subtitle: String, val meta: String)
+  data class Item(
+    val title: String,
+    val dayKey: String,
+    val dayLabel: String,
+    val timeText: String,
+    val calName: String,
+    val accountName: String,
+    val location: String,
+    val description: String,
+    val geoLat: Double?,
+    val geoLon: Double?,
+    val talkUrl: String,
+  )
 
   @Volatile var items: List<Item> = emptyList()
     private set
@@ -19,8 +31,16 @@ object CarAgendaStore {
       out.add(
         Item(
           title = o.optString("title"),
-          subtitle = o.optString("subtitle"),
-          meta = o.optString("meta"),
+          dayKey = o.optString("dayKey"),
+          dayLabel = o.optString("dayLabel"),
+          timeText = o.optString("timeText"),
+          calName = o.optString("calName"),
+          accountName = o.optString("accountName"),
+          location = o.optString("location"),
+          description = o.optString("description"),
+          geoLat = if (o.isNull("geoLat")) null else o.optDouble("geoLat"),
+          geoLon = if (o.isNull("geoLon")) null else o.optDouble("geoLon"),
+          talkUrl = o.optString("talkUrl"),
         )
       )
     }

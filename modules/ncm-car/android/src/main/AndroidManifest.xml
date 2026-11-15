@@ -25,5 +25,12 @@
     </intent-filter>
     <meta-data android:name="distractionOptimized" android:value="true" />
   </activity>
+  <receiver
+    android:name="expo.modules.ncmcar.CarActionReceiver"
+    android:exported="false">
+    <intent-filter>
+      <action android:name="expo.modules.ncmcar.action.SPEAK" />
+    </intent-filter>
+  </receiver>
 </application>
 </manifest>

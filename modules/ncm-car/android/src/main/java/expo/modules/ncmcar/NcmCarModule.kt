@@ -15,5 +15,13 @@ class NcmCarModule : Module() {
         false
       }
     }
+
+    Function("notifyUpcoming") { json: String ->
+      try {
+        appContext.reactContext?.let { CarNotificationHelper.notify(it, json) } != null
+      } catch (e: Exception) {
+        false
+      }
+    }
   }
 }
