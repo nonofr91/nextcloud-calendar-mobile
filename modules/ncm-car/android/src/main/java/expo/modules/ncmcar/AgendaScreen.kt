@@ -60,7 +60,8 @@ class AgendaScreen(carContext: CarContext) : Screen(carContext) {
       .getContentLimit(ConstraintManager.CONTENT_LIMIT_TYPE_LIST)
     var budget = listLimit
 
-    // Voice summary as a FAB when the API level allows it, else a normal row.
+    // Voice actions as header FABs when the API level allows it, else rows.
+    // Mic = voice query ("qu'est-ce que j'ai demain ?"), speaker = read agenda.
     if (carContext.carAppApiLevel >= CarAppApiLevels.LEVEL_6) {
       builder.addAction(
         Action.Builder()
@@ -71,8 +72,21 @@ class AgendaScreen(carContext: CarContext) : Screen(carContext) {
               )
             ).build()
           )
-          .setOnClickListener { speakAgenda() }
+          .setOnClickListener { VoiceQueryHelper.ask(carContext) }
           .setBackgroundColor(CarColor.BLUE)
+          .build()
+      )
+      builder.addAction(
+        Action.Builder()
+          .setIcon(
+            CarIcon.Builder(
+              androidx.core.graphics.drawable.IconCompat.createWithResource(
+                carContext, R.drawable.ic_volume_up_24
+              )
+            ).build()
+          )
+          .setOnClickListener { speakAgenda() }
+          .setBackgroundColor(CarColor.SECONDARY)
           .build()
       )
     }

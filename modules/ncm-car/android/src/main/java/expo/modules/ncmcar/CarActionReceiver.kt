@@ -13,13 +13,18 @@ class CarActionReceiver : BroadcastReceiver() {
       ACTION_SPEAK -> {
         intent.getStringExtra(EXTRA_SPEAK_TEXT)?.let { AgendaSpeaker.speak(context, it) }
       }
+      ACTION_QUERY -> {
+        intent.getStringExtra(EXTRA_QUERY)?.let { VoiceQueryHelper.answer(context, it) }
+      }
     }
     NotificationManagerCompat.from(context).cancel(intent.getIntExtra(EXTRA_NOTIF_ID, 0))
   }
 
   companion object {
     const val ACTION_SPEAK = "expo.modules.ncmcar.action.SPEAK"
+    const val ACTION_QUERY = "expo.modules.ncmcar.action.QUERY"
     const val EXTRA_SPEAK_TEXT = "speakText"
+    const val EXTRA_QUERY = "query"
     const val EXTRA_NOTIF_ID = "notifId"
   }
 }
