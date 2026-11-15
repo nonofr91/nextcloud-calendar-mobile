@@ -21,6 +21,7 @@ import { createNavigationGuard } from '@/utils/navigationGuard';
 import type { CalendarEvent, RecurrenceEditScope } from '@/types';
 import { useCalendarNavigation } from '@/features/calendar/hooks/useCalendarNavigation';
 import { useCalendarData } from '@/features/calendar/hooks/useCalendarData';
+import { pushCarAgenda } from '@/features/car/pushCarAgenda';
 import { useCalendarDrawer } from '@/features/calendar/hooks/useCalendarDrawer';
 import { useZoom } from '@/features/calendar/hooks/useZoom';
 import { useMonthReturn } from '@/features/calendar/hooks/useMonthReturn';
@@ -140,6 +141,11 @@ export default function CalendarScreen() {
 
 
   const calendarEvents = useMemo(() => toGridEvents(allEvents, accounts), [allEvents, accounts]);
+
+  // Push the upcoming agenda to the car surface (Android Auto CarAppService).
+  useEffect(() => {
+    pushCarAgenda(allEvents, calendars);
+  }, [allEvents, calendars]);
 
   const allDayEvents = useMemo(() => allEvents.filter((e) => e.allDay), [allEvents]);
   const nowHour = useMemo(() => Math.max(0, new Date().getHours() - 1), []);

@@ -123,6 +123,7 @@ const config: ExpoConfig = {
     plugins: [
         './plugins/withAndroidNetworkSecurityConfig',
         './plugins/withAndroidMultiDisplay',
+        './plugins/withAndroidCar',
         './plugins/withAppIntents',
         [
             'expo-build-properties',

@@ -1,0 +1,7 @@
+{
+  "name": "ncm-car",
+  "version": "0.1.0",
+  "description": "Android Auto / car surface for the calendar agenda (androidx.car.app)",
+  "main": "",
+  "private": true
+}
