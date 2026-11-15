@@ -540,7 +540,9 @@
       "minimal": "Conteúdo mínimo",
       "minimalHint": "Apenas título e hora — o local não aparece no ecrã partilhado.",
       "window": "Janela de lembrete",
-      "windowValue": "{{count}} min antes"
+      "windowValue": "{{count}} min antes",
+      "depart": "Margem de partida",
+      "departHint": "Hora de partida sugerida no detalhe do evento (início menos esta margem)."
     }
   },
   "widget": {

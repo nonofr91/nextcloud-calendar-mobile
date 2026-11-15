@@ -540,7 +540,9 @@
       "minimal": "Contenu minimal",
       "minimalHint": "Titre et heure uniquement — le lieu n’apparaît pas sur l’écran partagé.",
       "window": "Fenêtre de rappel",
-      "windowValue": "{{count}} min avant"
+      "windowValue": "{{count}} min avant",
+      "depart": "Marge de départ",
+      "departHint": "Heure de départ suggérée sur la fiche événement (début moins cette marge)."
     }
   },
   "widget": {

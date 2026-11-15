@@ -31,6 +31,11 @@ class EventDetailScreen(carContext: CarContext, private val index: Int) : Screen
     if (item.location.isNotEmpty()) {
       rows += Row.Builder().setTitle("Où").addText(item.location).build()
     }
+    if (item.departTs > 0) {
+      val depart = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+        .format(java.util.Date(item.departTs))
+      rows += Row.Builder().setTitle("Départ").addText(depart).build()
+    }
     val cal = listOf(item.calName, item.accountName).filter { it.isNotEmpty() }
       .joinToString("  ·  ")
     if (cal.isNotEmpty()) {

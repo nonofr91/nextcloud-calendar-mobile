@@ -540,7 +540,9 @@
       "minimal": "Minimale inhoud",
       "minimalHint": "Alleen titel en tijd — de locatie wordt niet op het gedeelde scherm getoond.",
       "window": "Herinneringsvenster",
-      "windowValue": "{{count}} min vooraf"
+      "windowValue": "{{count}} min vooraf",
+      "depart": "Vertrekmarge",
+      "departHint": "Voorgestelde vertrektijd in de afspraakdetails (start min deze marge)."
     }
   },
   "widget": {

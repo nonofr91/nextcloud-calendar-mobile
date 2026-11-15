@@ -33,6 +33,7 @@ export interface SettingsState {
   carNotificationsEnabled: boolean;
   carNotifyMinimal: boolean;
   carNotifyWindowMin: number;
+  carDepartMarginMin: number;
   setThemePreference: (pref: ThemePreference) => void;
   setLanguage: (lang: AppLanguage) => void;
   setWeekStartsOn: (v: 0 | 1) => void;
@@ -53,6 +54,7 @@ export interface SettingsState {
   setCarNotificationsEnabled: (v: boolean) => void;
   setCarNotifyMinimal: (v: boolean) => void;
   setCarNotifyWindowMin: (v: number) => void;
+  setCarDepartMarginMin: (v: number) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -78,6 +80,7 @@ export const useSettingsStore = create<SettingsState>()(
       carNotificationsEnabled: true,
       carNotifyMinimal: false,
       carNotifyWindowMin: 45,
+      carDepartMarginMin: 15,
       setTimedAlerts: (v) => set({ timedAlerts: v }),
       setAllDayAlerts: (v) => set({ allDayAlerts: v }),
       setThemePreference: (pref) => set({ themePreference: pref }),
@@ -113,6 +116,7 @@ export const useSettingsStore = create<SettingsState>()(
       setCarNotificationsEnabled: (v) => set({ carNotificationsEnabled: v }),
       setCarNotifyMinimal: (v) => set({ carNotifyMinimal: v }),
       setCarNotifyWindowMin: (v) => set({ carNotifyWindowMin: v }),
+      setCarDepartMarginMin: (v) => set({ carDepartMarginMin: v }),
     }),
     {
       name: 'settings-store',
@@ -170,6 +174,7 @@ export const useSettingsStore = create<SettingsState>()(
         carNotificationsEnabled: state.carNotificationsEnabled,
         carNotifyMinimal: state.carNotifyMinimal,
         carNotifyWindowMin: state.carNotifyWindowMin,
+        carDepartMarginMin: state.carDepartMarginMin,
       }),
     }
   )

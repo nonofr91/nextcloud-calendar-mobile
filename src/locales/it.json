@@ -540,7 +540,9 @@
       "minimal": "Contenuto minimo",
       "minimalHint": "Solo titolo e ora — il luogo non viene mostrato sullo schermo condiviso.",
       "window": "Finestra di promemoria",
-      "windowValue": "{{count}} min prima"
+      "windowValue": "{{count}} min prima",
+      "depart": "Margine di partenza",
+      "departHint": "Orario di partenza suggerito nel dettaglio evento (inizio meno questo margine)."
     }
   },
   "widget": {

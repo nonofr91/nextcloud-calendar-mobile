@@ -540,7 +540,9 @@
       "minimal": "Minimaler Inhalt",
       "minimalHint": "Nur Titel und Uhrzeit — der Ort wird nicht auf dem geteilten Bildschirm angezeigt.",
       "window": "Erinnerungsfenster",
-      "windowValue": "{{count}} Min. vorher"
+      "windowValue": "{{count}} Min. vorher",
+      "depart": "Abfahrtspuffer",
+      "departHint": "Vorgeschlagene Abfahrtszeit im Termindetail (Beginn minus dieser Puffer)."
     }
   },
   "widget": {

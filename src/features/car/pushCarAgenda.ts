@@ -31,6 +31,8 @@ interface CarAgendaItem {
   talkUrl: string;
   startTs: number;
   endTs: number;
+  /** Suggested departure instant (start − configured margin), only when a location exists. */
+  departTs: number | null;
   allDay: boolean;
 }
 
@@ -54,12 +56,14 @@ export function pushCarAgenda(
   try {
     const nameById = new Map(calendars.map((c) => [c.id, c.displayName] as const));
     const now = dayjs();
+    const departMarginMin = useSettingsStore.getState().carDepartMarginMin || 15;
     const upcoming: CarAgendaItem[] = events
       .filter((e) => !e.isTask && dayjs(e.dtend).valueOf() >= now.valueOf())
       .sort((a, b) => dayjs(a.dtstart).valueOf() - dayjs(b.dtstart).valueOf())
       .slice(0, MAX_ITEMS)
       .map((e) => {
         const start = dayjs(e.dtstart);
+        const hasPlace = !!(e.location || e.geo);
         return {
           title: e.summary || '(sans titre)',
           dayKey: start.format('YYYY-MM-DD'),
@@ -74,6 +78,7 @@ export function pushCarAgenda(
           talkUrl: e.talkUrl ?? '',
           startTs: dayjs(e.dtstart).valueOf(),
           endTs: dayjs(e.dtend).valueOf(),
+          departTs: hasPlace && !e.allDay ? start.valueOf() - departMarginMin * 60000 : null,
           allDay: e.allDay,
         };
       });

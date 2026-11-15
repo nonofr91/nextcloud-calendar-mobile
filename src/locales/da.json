@@ -540,7 +540,9 @@
       "minimal": "Minimalt indhold",
       "minimalHint": "Kun titel og tidspunkt — stedet vises ikke på den delte skærm.",
       "window": "Påmindelsesvindue",
-      "windowValue": "{{count}} min før"
+      "windowValue": "{{count}} min før",
+      "depart": "Afgangsmargin",
+      "departHint": "Foreslået afgangstid på begivenhedsdetaljen (start minus denne margin)."
     }
   },
   "widget": {

@@ -15,6 +15,7 @@ import { Button, Divider, Select, Stack, Toggle, Typography, type SelectOption }
 
 const cardOuter = { marginHorizontal: 16, marginBottom: 4 };
 const CAR_WINDOW_OPTIONS = [15, 30, 45, 60];
+const CAR_DEPART_OPTIONS = [5, 10, 15, 20, 30];
 
 export function NotificationSettings() {
   const { t } = useTranslation();
@@ -32,6 +33,8 @@ export function NotificationSettings() {
   const setCarMinimal = useSettingsStore((s) => s.setCarNotifyMinimal);
   const carWindow = useSettingsStore((s) => s.carNotifyWindowMin);
   const setCarWindow = useSettingsStore((s) => s.setCarNotifyWindowMin);
+  const carDepart = useSettingsStore((s) => s.carDepartMarginMin);
+  const setCarDepart = useSettingsStore((s) => s.setCarDepartMarginMin);
 
   const activeAccountId = useAccountStore((s) => s.activeAccountId);
   const account = useActiveAccount(activeAccountId);
@@ -186,6 +189,22 @@ export function NotificationSettings() {
             </Stack>
           </>
         )}
+        <Divider />
+        <Stack gap={8}>
+          <Typography variant="body1">{t('settings.car.depart')}</Typography>
+          <Typography variant="caption" color="secondary">
+            {t('settings.car.departHint')}
+          </Typography>
+          <Select<number>
+            value={carDepart}
+            options={CAR_DEPART_OPTIONS.map((v): SelectOption<number> => ({
+              value: v,
+              label: t('settings.car.windowValue', { count: v }),
+            }))}
+            accessibilityLabel={t('settings.car.depart')}
+            onChange={setCarDepart}
+          />
+        </Stack>
       </Stack>
     );
 

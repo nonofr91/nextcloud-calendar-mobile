@@ -524,7 +524,9 @@
       "minimal": "Contengut minimal",
       "minimalHint": "Títol e ora solament — lo luòc apareis pas sus l’ecran partejat.",
       "window": "Fenèstra de rècord",
-      "windowValue": "{{count}} min abans"
+      "windowValue": "{{count}} min abans",
+      "depart": "Marge de partença",
+      "departHint": "Ora de partença suggerida sul detalh de l’eveniment (començament mens aqueste marge)."
     }
   },
   "widget": {

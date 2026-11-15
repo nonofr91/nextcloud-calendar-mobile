@@ -23,6 +23,7 @@ object CarAgendaStore {
     val talkUrl: String,
     val startTs: Long,
     val endTs: Long,
+    val departTs: Long,   // 0 when no suggested departure (no location / all-day)
     val allDay: Boolean,
   )
 
@@ -71,6 +72,7 @@ object CarAgendaStore {
           talkUrl = o.optString("talkUrl"),
           startTs = o.optLong("startTs"),
           endTs = o.optLong("endTs"),
+          departTs = if (o.isNull("departTs")) 0L else o.optLong("departTs"),
           allDay = o.optBoolean("allDay"),
         )
       )

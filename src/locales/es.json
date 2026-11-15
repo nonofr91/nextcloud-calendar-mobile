@@ -540,7 +540,9 @@
       "minimal": "Contenido mínimo",
       "minimalHint": "Solo título y hora — la ubicación no aparece en la pantalla compartida.",
       "window": "Ventana de recordatorio",
-      "windowValue": "{{count}} min antes"
+      "windowValue": "{{count}} min antes",
+      "depart": "Margen de salida",
+      "departHint": "Hora de salida sugerida en el detalle del evento (inicio menos este margen)."
     }
   },
   "widget": {

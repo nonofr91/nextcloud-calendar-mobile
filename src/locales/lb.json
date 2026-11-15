@@ -540,7 +540,9 @@
       "minimal": "Minimalt Inhalt",
       "minimalHint": "Nëmmen Titel an Auerzäit — d’Plaz gëtt net um gedeelten Ecran gewisen.",
       "window": "Erënnerungsfenster",
-      "windowValue": "{{count}} min virdrun"
+      "windowValue": "{{count}} min virdrun",
+      "depart": "Oforespuer",
+      "departHint": "Virgeschloen Oforzäit am Evenementdetail (Ufank minus dëse Puffer)."
     }
   },
   "widget": {

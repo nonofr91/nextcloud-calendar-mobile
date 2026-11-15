@@ -540,7 +540,9 @@
       "minimal": "Minimal content",
       "minimalHint": "Title and time only — the location is not shown on the shared screen.",
       "window": "Reminder window",
-      "windowValue": "{{count}} min before"
+      "windowValue": "{{count}} min before",
+      "depart": "Departure margin",
+      "departHint": "Suggested departure time on the event detail (start minus this margin)."
     }
   },
   "widget": {
