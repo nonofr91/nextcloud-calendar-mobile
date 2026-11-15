@@ -13,11 +13,32 @@ import androidx.car.app.model.Template
 class AgendaScreen(carContext: CarContext) : Screen(carContext) {
 
   init {
+    CarAgendaStore.load(carContext)
     CarAgendaStore.onChanged = { invalidate() }
   }
 
   override fun onGetTemplate(): Template {
     val builder = ListTemplate.Builder().setTitle("Agenda")
+
+    val items = CarAgendaStore.items
+    if (items.isEmpty()) {
+      val empty = ItemList.Builder().setNoItemsMessage("Aucun événement à venir").build()
+      return builder.setSingleList(empty).build()
+    }
+
+    // "Next up" card — the one glance that matters while driving.
+    val next = items.first()
+    val nextRow = Row.Builder()
+      .setTitle(next.title)
+      .addText(listOf(startsInText(next), next.location).filter { it.isNotEmpty() }.joinToString("  ·  "))
+      .setBrowsable(true)
+      .setOnClickListener(ParkedOnlyOnClickListener.create {
+        screenManager.push(EventDetailScreen(carContext, 0))
+      })
+      .build()
+    builder.addSectionedList(
+      SectionedItemList.create(ItemList.Builder().addItem(nextRow).build(), "Prochain rendez-vous")
+    )
 
     // Header actions can't hold a custom click listener — the voice trigger
     // lives as a normal browsable row instead.
@@ -36,12 +57,6 @@ class AgendaScreen(carContext: CarContext) : Screen(carContext) {
     builder.addSectionedList(
       SectionedItemList.create(ItemList.Builder().addItem(speakRow).build(), "Assistant")
     )
-
-    val items = CarAgendaStore.items
-    if (items.isEmpty()) {
-      val empty = ItemList.Builder().setNoItemsMessage("Aucun événement à venir").build()
-      return builder.addSectionedList(SectionedItemList.create(empty, "Prochains")).build()
-    }
 
     // Group consecutive items by day — items arrive sorted by start time.
     var sectionItems = ItemList.Builder()
@@ -78,6 +93,15 @@ class AgendaScreen(carContext: CarContext) : Screen(carContext) {
         }
       )
       .build()
+  }
+
+  /** "En cours" / "Dans 25 min" / "Dans 3 h" for the next-up card. */
+  private fun startsInText(item: CarAgendaStore.Item): String {
+    if (item.allDay) return item.dayLabel
+    val now = System.currentTimeMillis()
+    if (now >= item.startTs) return "En cours"
+    val min = (item.startTs - now) / 60_000
+    return if (min >= 90) "Dans ${min / 60} h ${min % 60} min" else "Dans $min min"
   }
 
   /** Speaks the next few events — eyes-free summary, safe while driving. */

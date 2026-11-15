@@ -28,6 +28,9 @@ interface CarAgendaItem {
   geoLat: number | null;
   geoLon: number | null;
   talkUrl: string;
+  startTs: number;
+  endTs: number;
+  allDay: boolean;
 }
 
 function fmtTime(ev: CalendarEvent): string {
@@ -68,6 +71,9 @@ export function pushCarAgenda(
           geoLat: e.geo?.lat ?? null,
           geoLon: e.geo?.lon ?? null,
           talkUrl: e.talkUrl ?? '',
+          startTs: dayjs(e.dtstart).valueOf(),
+          endTs: dayjs(e.dtend).valueOf(),
+          allDay: e.allDay,
         };
       });
     NcmCar.setAgenda(JSON.stringify(upcoming));

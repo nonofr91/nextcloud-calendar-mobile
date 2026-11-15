@@ -9,8 +9,7 @@ class NcmCarModule : Module() {
 
     Function("setAgenda") { json: String ->
       try {
-        CarAgendaStore.setJson(json)
-        true
+        appContext.reactContext?.let { CarAgendaStore.setJson(it, json) } != null
       } catch (e: Exception) {
         false
       }

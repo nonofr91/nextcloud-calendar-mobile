@@ -1,8 +1,13 @@
 package expo.modules.ncmcar
 
+import android.content.Context
 import org.json.JSONArray
 
-/** In-memory agenda snapshot pushed from JS; the car screen reads it on invalidate(). */
+/**
+ * Agenda snapshot pushed from JS; the car screen reads it on invalidate().
+ * Also persisted to SharedPreferences so the car surface still shows the last
+ * known agenda when the RN app has not run since boot (offline/parked).
+ */
 object CarAgendaStore {
   data class Item(
     val title: String,
@@ -16,6 +21,9 @@ object CarAgendaStore {
     val geoLat: Double?,
     val geoLon: Double?,
     val talkUrl: String,
+    val startTs: Long,
+    val endTs: Long,
+    val allDay: Boolean,
   )
 
   @Volatile var items: List<Item> = emptyList()
@@ -23,7 +31,22 @@ object CarAgendaStore {
 
   @Volatile var onChanged: (() -> Unit)? = null
 
-  fun setJson(json: String) {
+  fun setJson(context: Context, json: String) {
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+      .edit().putString(KEY_JSON, json).apply()
+    items = parse(json)
+    onChanged?.invoke()
+  }
+
+  /** Loads the last pushed agenda, dropping events that already ended. */
+  fun load(context: Context) {
+    if (items.isNotEmpty()) return
+    val json = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+      .getString(KEY_JSON, null) ?: return
+    items = parse(json).filter { it.endTs >= System.currentTimeMillis() }
+  }
+
+  private fun parse(json: String): List<Item> {
     val arr = JSONArray(json)
     val out = ArrayList<Item>(arr.length())
     for (i in 0 until arr.length()) {
@@ -41,10 +64,15 @@ object CarAgendaStore {
           geoLat = if (o.isNull("geoLat")) null else o.optDouble("geoLat"),
           geoLon = if (o.isNull("geoLon")) null else o.optDouble("geoLon"),
           talkUrl = o.optString("talkUrl"),
+          startTs = o.optLong("startTs"),
+          endTs = o.optLong("endTs"),
+          allDay = o.optBoolean("allDay"),
         )
       )
     }
-    items = out
-    onChanged?.invoke()
+    return out
   }
+
+  private const val PREFS = "ncm_car"
+  private const val KEY_JSON = "agenda_json"
 }
