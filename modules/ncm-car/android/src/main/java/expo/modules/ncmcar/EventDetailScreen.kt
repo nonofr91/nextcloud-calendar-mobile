@@ -49,12 +49,22 @@ class EventDetailScreen(carContext: CarContext, private val index: Int) : Screen
     } else if (item.location.isNotEmpty()) {
       actions += navAction("geo:0,0?q=${Uri.encode(item.location)}")
     }
+    // The strip allows a single custom-titled action — "Rejoindre" is icon-only.
     if (item.talkUrl.isNotEmpty()) {
       actions += Action.Builder()
-        .setTitle("Rejoindre")
+        .setIcon(
+          androidx.car.app.model.CarIcon.Builder(
+            androidx.core.graphics.drawable.IconCompat.createWithResource(
+              carContext, R.drawable.ic_videocam_24
+            )
+          ).build()
+        )
         .setOnClickListener(
           ParkedOnlyOnClickListener.create {
-            carContext.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.talkUrl)))
+            carContext.startActivity(
+              Intent(Intent.ACTION_VIEW, Uri.parse(item.talkUrl))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
           }
         )
         .build()
