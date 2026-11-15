@@ -1,6 +1,7 @@
 import type { Account, CalendarMeta, CalendarEvent } from '@/types';
 import { parseIcsObjectsAsync } from '@/utils/caldav-parse';
 import { settleAll } from '@/utils/settle';
+import { isDeckCalendar } from '@/utils/calendars';
 import { httpErrorFrom } from '../shared/errors';
 import { trustedFetch, type TrustedResponse } from '../shared/trustedFetch';
 
@@ -236,7 +237,7 @@ export async function fetchCalendars(account: Account): Promise<CalendarMeta[]> 
       /<\w+:supported-calendar-component-set[^>]*>([\s\S]*?)<\/\w+:supported-calendar-component-set>/,
     );
 
-    const isDeckBoard = /app-generated--deck/i.test(path);
+    const isDeckBoard = isDeckCalendar({ url: calFullUrl });
     const supportsEvents = isDeckBoard
       ? false
       : compSetMatch
@@ -252,7 +253,8 @@ export async function fetchCalendars(account: Account): Promise<CalendarMeta[]> 
       url: calFullUrl,
       slug,
       isSubscribed: isSubscribed && !isCalendar,
-      isReadOnly,
+      // Deck boards are read-only by nature — don't trust privilege-set alone.
+      isReadOnly: isReadOnly || isDeckBoard,
       sourceUrl,
       supportsEvents,
       order,
@@ -377,8 +379,9 @@ export async function fetchEvents(
             'VEVENT',
             start,
             end,
-            true,
-            calendar.slug !== BIRTHDAY_CALENDAR_SLUG,
+            // VTODO-only collections (Deck, task lists) may 403 the VEVENT report.
+            calendar.supportsEvents !== false,
+            calendar.slug !== BIRTHDAY_CALENDAR_SLUG && calendar.supportsEvents !== false,
         ),
         reportCalendarObjects(account, calendar, 'VTODO', start, end, false),
     ]);

@@ -1,11 +1,12 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Bell, BellOff, Cake } from 'lucide-react-native';
+import { Bell, BellOff, Cake, KanbanSquare } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'expo-router';
 
 import { IconButton, Item, Toggle, Typography } from '@/ui/components';
 import { BIRTHDAY_CALENDAR_SLUG } from '@/services/nextcloud/caldav';
+import { isDeckCalendar } from '@/utils/calendars';
 import type { CalendarMeta } from '@/types';
 
 interface Props {
@@ -29,12 +30,15 @@ function CalendarDrawerRowImpl({
       : colors.textSecondary;
 
   const isBirthday = calendar.slug === BIRTHDAY_CALENDAR_SLUG;
+  const isDeck = isDeckCalendar(calendar);
 
   return (
     <Item
       leading={
         isBirthday ? (
           <Cake size={16} color={calendar.color} style={styles.cake} />
+        ) : isDeck ? (
+          <KanbanSquare size={16} color={calendar.color} style={styles.cake} />
         ) : (
           <View style={[styles.dot, { backgroundColor: calendar.color }]} />
         )

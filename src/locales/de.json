@@ -81,7 +81,8 @@
     },
     "drawerNoCalendars": "Kein Kalender",
     "calendarNotifications": "Benachrichtigungen für {{name}}",
-    "calendarVisibility": "{{name}} anzeigen"
+    "calendarVisibility": "{{name}} anzeigen",
+    "showDeckCards": "Deck-Karten anzeigen"
   },
   "event": {
     "titleLabel": "Titel *",
@@ -176,7 +177,8 @@
     "errorCreateFailed": "Ereignis konnte nicht erstellt werden",
     "errorUpdateFailed": "Ereignis konnte nicht aktualisiert werden",
     "errorDeleteFailed": "Ereignis konnte nicht gelöscht werden",
-    "alerts": "Erinnerungen"
+    "alerts": "Erinnerungen",
+    "deckBadge": "Deck"
   },
   "settings": {
     "title": "Einstellungen",

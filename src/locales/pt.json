@@ -81,7 +81,8 @@
     },
     "drawerNoCalendars": "Nenhum calendário",
     "calendarNotifications": "Notificações de {{name}}",
-    "calendarVisibility": "Mostrar {{name}}"
+    "calendarVisibility": "Mostrar {{name}}",
+    "showDeckCards": "Mostrar cartões do Deck"
   },
   "event": {
     "titleLabel": "Título *",
@@ -176,7 +177,8 @@
     "errorCreateFailed": "Falha ao criar o evento",
     "errorUpdateFailed": "Falha ao atualizar o evento",
     "errorDeleteFailed": "Falha ao eliminar o evento",
-    "alerts": "Alertas"
+    "alerts": "Alertas",
+    "deckBadge": "Deck"
   },
   "settings": {
     "title": "Definições",

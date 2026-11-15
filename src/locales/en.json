@@ -81,7 +81,8 @@
     },
     "drawerNoCalendars": "No calendar",
     "calendarNotifications": "Notifications for {{name}}",
-    "calendarVisibility": "Show {{name}}"
+    "calendarVisibility": "Show {{name}}",
+    "showDeckCards": "Show Deck cards"
   },
   "event": {
     "titleLabel": "Title *",
@@ -176,7 +177,8 @@
     "errorCreateFailed": "Failed to create event",
     "errorUpdateFailed": "Failed to update event",
     "errorDeleteFailed": "Failed to delete event",
-    "alerts": "Alerts"
+    "alerts": "Alerts",
+    "deckBadge": "Deck"
   },
   "settings": {
     "title": "Settings",

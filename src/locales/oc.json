@@ -81,7 +81,8 @@
     },
     "drawerNoCalendars": "Pas de calendari",
     "calendarNotifications": "Notificacions per {{name}}",
-    "calendarVisibility": "Afichar {{name}}"
+    "calendarVisibility": "Afichar {{name}}",
+    "showDeckCards": "Afichar las cartas Deck"
   },
   "event": {
     "titleLabel": "Títol *",
@@ -171,7 +172,8 @@
     "errorCreateFailed": "La creacion de l'eveniment a pas capitat",
     "errorUpdateFailed": "La mesa a jorn de l'eveniment a pas capitat",
     "errorDeleteFailed": "La supression de l'eveniment a pas capitat",
-    "alerts": "Alèrtas"
+    "alerts": "Alèrtas",
+    "deckBadge": "Deck"
   },
   "settings": {
     "title": "Paramètres",

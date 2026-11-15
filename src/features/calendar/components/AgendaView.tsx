@@ -6,6 +6,7 @@ import {
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { useTranslation } from 'react-i18next';
+import { KanbanSquare } from 'lucide-react-native';
 import { useTheme } from 'expo-router';
 import type { Theme } from '@/theme';
 import type { CalendarEvent } from '@/types';
@@ -94,6 +95,11 @@ const EventRow = memo(({ event, theme, onPress }: EventRowProps) => {
       activeOpacity={0.75}
     >
       <View style={[styles.colorBar, { backgroundColor: event.color }]} />
+      {event.isDeck && (
+        <View style={styles.deckIcon} accessibilityRole="image" accessibilityLabel="Deck">
+          <KanbanSquare size={20} color={event.color} />
+        </View>
+      )}
       <View style={styles.eventContent}>
         <Text style={[styles.eventTitle, { color: theme.colors.text }]} numberOfLines={1}>
           {event.summary || t('calendar.noTitle')}
@@ -349,6 +355,7 @@ const styles = StyleSheet.create({
     height: EVENT_ROW_HEIGHT - 6,
   },
   colorBar: { width: 4 },
+  deckIcon: { justifyContent: 'center', paddingLeft: 8, flexShrink: 0 },
   eventContent: { flex: 1, padding: 10, justifyContent: 'center' },
   eventTitle: { fontSize: 14, fontWeight: '600', marginBottom: 3 },
   eventMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },

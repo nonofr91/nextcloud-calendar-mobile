@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { SettingsPage } from '@/features/settings/components/SettingsPage';
-import { Button, Chip, IconButton, Stack, Typography } from '@/ui/components';
+import { Button, Chip, IconButton, Stack, Toggle, Typography } from '@/ui/components';
 
 const cardOuter = { marginHorizontal: 16, marginBottom: 12 };
 
@@ -39,6 +39,8 @@ export default function CalendarSettingsScreen() {
   const setTimeFormat = useSettingsStore((s) => s.setTimeFormat);
   const monthViewStyle = useSettingsStore((state) => state.monthViewStyle);
   const setMonthViewStyle = useSettingsStore((state) => state.setMonthViewStyle);
+  const showDeckCards = useCalendarStore((s) => s.showDeckCards);
+  const toggleShowDeckCards = useCalendarStore((s) => s.toggleShowDeckCards);
 
   const [pendingWeek, setPendingWeek] = useState(weekStartsOn);
   useEffect(() => { setPendingWeek(weekStartsOn); }, [weekStartsOn]);
@@ -97,6 +99,21 @@ export default function CalendarSettingsScreen() {
               {t(opt.labelKey)}
             </Chip>
           ))}
+        </Stack>
+      </Stack>
+
+      <Stack card gap={12} padding={16} hAlign="stretch" style={cardOuter}>
+        <Typography variant="body1">Deck</Typography>
+        <Stack direction="horizontal" vAlign="center" gap={12}>
+          <Typography variant="body2" style={{ flex: 1 }}>
+            {t('calendar.showDeckCards')}
+          </Typography>
+          <Toggle
+            testID="settings-show-deck-cards"
+            value={showDeckCards}
+            onValueChange={toggleShowDeckCards}
+            accessibilityLabel={t('calendar.showDeckCards')}
+          />
         </Stack>
       </Stack>
 

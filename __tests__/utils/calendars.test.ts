@@ -1,4 +1,4 @@
-import { byServerOrder, calendarGroup } from '../../src/utils/calendars';
+import { byServerOrder, calendarGroup, isDeckCalendar, isWritableCalendar } from '../../src/utils/calendars';
 import type { CalendarMeta } from '../../src/types';
 
 const cal = (id: string, extra: Partial<CalendarMeta> = {}): CalendarMeta => ({
@@ -19,6 +19,23 @@ describe('calendarGroup', () => {
     expect(calendarGroup(cal('team_shared_by_jane', { isShared: true }))).toBe('shared');
     expect(calendarGroup(cal('app-generated--deck--board-1', { supportsEvents: false }))).toBe('deck');
     expect(calendarGroup(cal('todo', { supportsEvents: false }))).toBe('tasks');
+  });
+});
+
+describe('isDeckCalendar', () => {
+  it('detects Deck board calendars by their generated URL', () => {
+    expect(isDeckCalendar(cal('app-generated--deck--board-1'))).toBe(true);
+    expect(isDeckCalendar(cal('personal'))).toBe(false);
+    expect(isDeckCalendar(cal('tasks'))).toBe(false);
+  });
+});
+
+describe('isWritableCalendar', () => {
+  it('rejects read-only, subscribed and non-event calendars', () => {
+    expect(isWritableCalendar(cal('personal'))).toBe(true);
+    expect(isWritableCalendar(cal('ro', { isReadOnly: true }))).toBe(false);
+    expect(isWritableCalendar(cal('feed', { isSubscribed: true }))).toBe(false);
+    expect(isWritableCalendar(cal('app-generated--deck--board-1', { supportsEvents: false }))).toBe(false);
   });
 });
 

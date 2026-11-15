@@ -81,7 +81,8 @@
     },
     "drawerNoCalendars": "Geen agenda",
     "calendarNotifications": "Meldingen van {{name}}",
-    "calendarVisibility": "{{name}} tonen"
+    "calendarVisibility": "{{name}} tonen",
+    "showDeckCards": "Deck-kaarten tonen"
   },
   "event": {
     "titleLabel": "Titel *",
@@ -176,7 +177,8 @@
     "errorCreateFailed": "Aanmaken van afspraak mislukt",
     "errorUpdateFailed": "Bijwerken van afspraak mislukt",
     "errorDeleteFailed": "Verwijderen van afspraak mislukt",
-    "alerts": "Herinneringen"
+    "alerts": "Herinneringen",
+    "deckBadge": "Deck"
   },
   "settings": {
     "title": "Instellingen",

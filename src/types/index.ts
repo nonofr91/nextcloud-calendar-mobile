@@ -69,6 +69,8 @@ export type CalendarEvent = {
     alarms?: number[];
     isTask?: boolean;
     readOnly?: boolean;
+    /** Deck board card (VTODO) — derived from the calendar, never written. */
+    isDeck?: boolean;
 };
 
 export type CreateEventInput = {

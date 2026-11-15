@@ -7,9 +7,14 @@ export function isWritableCalendar(c: CalendarMeta): boolean {
 export const CALENDAR_GROUPS = ['personal', 'shared', 'deck', 'tasks'] as const;
 export type CalendarGroup = (typeof CALENDAR_GROUPS)[number];
 
+/** Deck exposes one read-only CalDAV calendar per board — VTODO cards. */
+export function isDeckCalendar(c: Pick<CalendarMeta, 'url'>): boolean {
+  return /app-generated--deck/i.test(c.url);
+}
+
 export function calendarGroup(c: CalendarMeta): CalendarGroup {
   if (c.isShared) return 'shared';
-  if (/app-generated--deck/i.test(c.url)) return 'deck';
+  if (isDeckCalendar(c)) return 'deck';
   if (c.supportsEvents === false) return 'tasks';
   return 'personal';
 }

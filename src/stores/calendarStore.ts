@@ -10,12 +10,15 @@ interface CalendarState {
   notifDisabledCalendarIds: string[];
   widgetDisabledCalendarIds: string[];
   hourRowHeight: number;
+  /** Opt-in: Deck board cards (VTODOs) merged into calendar views. */
+  showDeckCards: boolean;
   setViewMode: (mode: ViewMode) => void;
   setSelectedDate: (date: Date | null) => void;
   toggleCalendarVisibility: (calendarId: string) => void;
   toggleCalendarNotifications: (calendarId: string) => void;
   toggleCalendarWidget: (calendarId: string) => void;
   setHourRowHeight: (h: number) => void;
+  toggleShowDeckCards: () => void;
 }
 
 function toggleIn(list: string[], id: string): string[] {
@@ -31,6 +34,7 @@ export const useCalendarStore = create<CalendarState>()(
       notifDisabledCalendarIds: [],
       widgetDisabledCalendarIds: [],
       hourRowHeight: 60,
+      showDeckCards: false,
       setViewMode: (mode) => set({ viewMode: mode }),
       setSelectedDate: (date) => set({ selectedDate: date }),
       toggleCalendarVisibility: (calendarId) =>
@@ -40,11 +44,13 @@ export const useCalendarStore = create<CalendarState>()(
       toggleCalendarWidget: (calendarId) =>
         set({ widgetDisabledCalendarIds: toggleIn(get().widgetDisabledCalendarIds, calendarId) }),
       setHourRowHeight: (h) => set({ hourRowHeight: h }),
+      toggleShowDeckCards: () =>
+        set({ showDeckCards: !get().showDeckCards }),
     }),
     {
       name: 'calendar-store',
       storage: createJSONStorage(() =>
-        legacyBackedStorage(['viewMode', 'hiddenCalendarIds', 'notifDisabledCalendarIds', 'widgetDisabledCalendarIds', 'hourRowHeight'])
+        legacyBackedStorage(['viewMode', 'hiddenCalendarIds', 'notifDisabledCalendarIds', 'widgetDisabledCalendarIds', 'hourRowHeight', 'showDeckCards'])
       ),
       partialize: (state) => ({
         viewMode: state.viewMode,
@@ -52,6 +58,7 @@ export const useCalendarStore = create<CalendarState>()(
         notifDisabledCalendarIds: state.notifDisabledCalendarIds,
         widgetDisabledCalendarIds: state.widgetDisabledCalendarIds,
         hourRowHeight: state.hourRowHeight,
+        showDeckCards: state.showDeckCards,
       }),
     }
   )

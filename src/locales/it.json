@@ -81,7 +81,8 @@
     },
     "drawerNoCalendars": "Nessun calendario",
     "calendarNotifications": "Notifiche di {{name}}",
-    "calendarVisibility": "Mostra {{name}}"
+    "calendarVisibility": "Mostra {{name}}",
+    "showDeckCards": "Mostra schede Deck"
   },
   "event": {
     "titleLabel": "Titolo *",
@@ -176,7 +177,8 @@
     "errorCreateFailed": "Creazione dell'evento non riuscita",
     "errorUpdateFailed": "Aggiornamento dell'evento non riuscito",
     "errorDeleteFailed": "Eliminazione dell'evento non riuscita",
-    "alerts": "Avvisi"
+    "alerts": "Avvisi",
+    "deckBadge": "Deck"
   },
   "settings": {
     "title": "Impostazioni",

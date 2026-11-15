@@ -38,6 +38,7 @@ import {
   type TimedAlert, type AllDayAlert,
 } from '@/features/notifications/alerts';
 import { goBackOrHome } from '@/utils/navigationGuard';
+import { isDeckCalendar } from '@/utils/calendars';
 import { linkify } from '@/utils/linkify';
 
 dayjs.extend(localizedFormat);
@@ -73,7 +74,8 @@ export default function EventDetailScreen() {
   const calendar = calendars.find((c) => c.id === event?.calendarId);
   const deleteMutation = useDeleteEvent(activeAccount!);
 
-  const canEdit = !calendar?.isReadOnly && !calendar?.isSubscribed && !event?.isTask;
+  const isDeck = !!event?.isDeck || (!!calendar && isDeckCalendar(calendar));
+  const canEdit = !isDeck && !calendar?.isReadOnly && !calendar?.isSubscribed && !event?.isTask;
   const eventsLoading = event === undefined;
 
   const [copied, setCopied] = useState(false);
@@ -264,6 +266,13 @@ export default function EventDetailScreen() {
                 <Item
                   leading={<Icon size={20}><CalendarDays color={calendar.color} /></Icon>}
                   title={calendar.displayName}
+                  trailing={
+                    isDeck ? (
+                      <Chip small rounded testID="event-deck-badge" disabled>
+                        {t('event.deckBadge')}
+                      </Chip>
+                    ) : undefined
+                  }
                 />
               )}
               {event.location && (

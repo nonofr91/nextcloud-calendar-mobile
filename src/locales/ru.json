@@ -81,7 +81,8 @@
     },
     "drawerNoCalendars": "Нет календарей",
     "calendarNotifications": "Уведомления календаря «{{name}}»",
-    "calendarVisibility": "Показывать «{{name}}»"
+    "calendarVisibility": "Показывать «{{name}}»",
+    "showDeckCards": "Показывать карточки Deck"
   },
   "event": {
     "titleLabel": "Название *",
@@ -176,7 +177,8 @@
     "errorCreateFailed": "Не удалось создать событие",
     "errorUpdateFailed": "Не удалось обновить событие",
     "errorDeleteFailed": "Не удалось удалить событие",
-    "alerts": "Напоминания"
+    "alerts": "Напоминания",
+    "deckBadge": "Deck"
   },
   "settings": {
     "title": "Настройки",
