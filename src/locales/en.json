@@ -92,7 +92,8 @@
     "syncError": "Sync failed — tap to retry",
     "sevenDays": "7D",
     "showCompletedTasks": "Show completed tasks",
-    "drawerTrash": "Recently deleted"
+    "drawerTrash": "Recently deleted",
+    "showDeckCards": "Show Deck cards"
   },
   "event": {
     "titleLabel": "Title *",
@@ -310,7 +311,8 @@
     "rsvpAccepted": "Accepted",
     "rsvpTentative": "Maybe",
     "rsvpDeclined": "Declined",
-    "rsvpNoResponse": "No response"
+    "rsvpNoResponse": "No response",
+    "deckBadge": "Deck"
   },
   "settings": {
     "title": "Settings",

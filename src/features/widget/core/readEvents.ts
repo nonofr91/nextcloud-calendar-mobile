@@ -37,17 +37,38 @@ function eventsInRangeQuery(accountIds: readonly string[], rangeStart: number, r
     );
 }
 
+export async function readDeckCalendarIds(): Promise<Set<string>> {
+  const accountIds = visibleAccountIdsToRead();
+  if (accountIds.length === 0) return new Set();
+
+  const rows = await database
+    .get<Calendar>('calendars')
+    .query(Q.where('account_id', Q.oneOf(accountIds)))
+    .fetch();
+
+  return new Set(
+    rows
+      .filter((calendar) => /app-generated--deck/i.test(calendar.url ?? ''))
+      .map((calendar) => calendarKey(calendar.accountId, calendar.remoteId)),
+  );
+}
+
 export async function readUpcomingEvents(days: number, now: Date = new Date()): Promise<CalendarEvent[]> {
   const accountIds = visibleAccountIdsToRead();
   if (accountIds.length === 0) return [];
 
-  const hidden = useCalendarStore.getState().hiddenCalendarIds;
+  const { hiddenCalendarIds: hidden, showDeckCards } = useCalendarStore.getState();
+  const deckIds = showDeckCards ? null : await readDeckCalendarIds();
   const rows = await eventsInRangeQuery(accountIds, startOfDay(now), endOfDayAfter(now, days)).fetch();
 
   return normalizeEvents(
     rows
       .map(mapEventToShared)
-      .filter((e) => !hasCalendarFlag(hidden, e.accountId, e.calendarId)),
+      .filter(
+        (e) =>
+          !hasCalendarFlag(hidden, e.accountId, e.calendarId) &&
+          (!deckIds || !deckIds.has(calendarKey(e.accountId, e.calendarId))),
+      ),
   );
 }
 
@@ -55,8 +76,12 @@ export async function readWidgetEvents(rangeStart: Date, rangeEnd: Date): Promis
   const accountIds = visibleAccountIdsToRead();
   if (accountIds.length === 0) return [];
 
-  const hidden = useCalendarStore.getState().hiddenCalendarIds;
-  const disabled = useCalendarStore.getState().widgetDisabledCalendarIds;
+  const {
+    hiddenCalendarIds: hidden,
+    widgetDisabledCalendarIds: disabled,
+    showDeckCards,
+  } = useCalendarStore.getState();
+  const deckIds = showDeckCards ? null : await readDeckCalendarIds();
   const rows = await eventsInRangeQuery(accountIds, rangeStart.getTime(), rangeEnd.getTime()).fetch();
 
   return normalizeEvents(
@@ -65,7 +90,8 @@ export async function readWidgetEvents(rangeStart: Date, rangeEnd: Date): Promis
       .filter(
         (event) =>
           !hasCalendarFlag(hidden, event.accountId, event.calendarId) &&
-          !hasCalendarFlag(disabled, event.accountId, event.calendarId),
+          !hasCalendarFlag(disabled, event.accountId, event.calendarId) &&
+          (!deckIds || !deckIds.has(calendarKey(event.accountId, event.calendarId))),
       ),
   );
 }

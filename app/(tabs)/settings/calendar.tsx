@@ -41,6 +41,8 @@ export default function CalendarSettingsScreen() {
   const setMonthViewStyle = useSettingsStore((state) => state.setMonthViewStyle);
   const showCompletedTasks = useCalendarStore((s) => s.showCompletedTasks);
   const toggleShowCompletedTasks = useCalendarStore((s) => s.toggleShowCompletedTasks);
+  const showDeckCards = useCalendarStore((s) => s.showDeckCards);
+  const toggleShowDeckCards = useCalendarStore((s) => s.toggleShowDeckCards);
 
   const [pendingWeek, setPendingWeek] = useState(weekStartsOn);
   useEffect(() => { setPendingWeek(weekStartsOn); }, [weekStartsOn]);
@@ -139,6 +141,17 @@ export default function CalendarSettingsScreen() {
             value={showCompletedTasks}
             onValueChange={toggleShowCompletedTasks}
             accessibilityLabel={t('calendar.showCompletedTasks')}
+          />
+        </Stack>
+        <Stack direction="horizontal" vAlign="center" gap={12}>
+          <Typography variant="body2" style={{ flex: 1 }}>
+            {t('calendar.showDeckCards')}
+          </Typography>
+          <Toggle
+            testID="settings-show-deck-cards"
+            value={showDeckCards}
+            onValueChange={toggleShowDeckCards}
+            accessibilityLabel={t('calendar.showDeckCards')}
           />
         </Stack>
       </Stack>

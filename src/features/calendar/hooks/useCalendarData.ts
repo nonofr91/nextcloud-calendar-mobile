@@ -9,7 +9,7 @@ import { useActiveAccount, useVisibleAccounts } from '@/hooks/useAccounts';
 import { useMultiCalendars } from '@/hooks/useCalendars';
 import { useIsOnline } from '@/services/shared/network';
 import { normalizeEvents } from '@/utils/normalizeEvent';
-import { calendarKey, calendarKeyOf, hasCalendarFlag } from '@/utils/calendars';
+import { calendarKey, calendarKeyOf, hasCalendarFlag, isDeckCalendar } from '@/utils/calendars';
 import { monthRange } from '../utils/range';
 import { AGENDA_FUTURE_DAYS, AGENDA_PAST_DAYS } from '../utils/agendaSections';
 import type { CalendarEvent } from '@/types';
@@ -20,6 +20,7 @@ export function useCalendarData(date: Date, agendaEnabled = false) {
   const activeAccountId = useAccountStore((s) => s.activeAccountId);
   const hiddenCalendarIds = useCalendarStore((s) => s.hiddenCalendarIds);
   const showCompletedTasks = useCalendarStore((s) => s.showCompletedTasks);
+  const showDeckCards = useCalendarStore((s) => s.showDeckCards);
   const activeAccount = useActiveAccount(activeAccountId);
   const visibleAccounts = useVisibleAccounts();
   const online = useIsOnline();
@@ -130,18 +131,24 @@ export function useCalendarData(date: Date, agendaEnabled = false) {
 
   const prepare = useMemo(() => {
     const nonEditableCalendarIds = new Set(
-      calendars.filter((c) => c.isReadOnly || c.isSubscribed).map(calendarKeyOf),
+      calendars.filter((c) => c.isReadOnly || c.isSubscribed || c.supportsEvents === false).map(calendarKeyOf),
+    );
+    const deckCalendarIds = new Set(
+      calendars.filter(isDeckCalendar).map(calendarKeyOf),
     );
     return (events: CalendarEvent[]) => normalizeEvents(
       events.filter(
         (e) =>
           !hasCalendarFlag(hiddenCalendarIds, e.accountId, e.calendarId) &&
-          (showCompletedTasks || !e.isTask || !e.taskCompleted),
+          (showCompletedTasks || !e.isTask || !e.taskCompleted) &&
+          (showDeckCards || !deckCalendarIds.has(calendarKey(e.accountId, e.calendarId))),
       ),
-    ).map((e) =>
-      nonEditableCalendarIds.has(calendarKey(e.accountId, e.calendarId)) ? { ...e, readOnly: true } : e,
-    );
-  }, [hiddenCalendarIds, showCompletedTasks, calendars]);
+    ).map((e) => {
+      const key = calendarKey(e.accountId, e.calendarId);
+      if (deckCalendarIds.has(key)) return { ...e, isDeck: true, readOnly: true };
+      return nonEditableCalendarIds.has(key) ? { ...e, readOnly: true } : e;
+    });
+  }, [hiddenCalendarIds, showCompletedTasks, showDeckCards, calendars]);
   const allEvents = useMemo(() => prepare(dbEvents), [prepare, dbEvents]);
   const agendaEvents = useMemo(() => prepare(agendaDbEvents), [prepare, agendaDbEvents]);
 

@@ -92,7 +92,8 @@
     "syncError": "Error de sincronización — toca para reintentar",
     "sevenDays": "7D",
     "showCompletedTasks": "Mostrar tareas completadas",
-    "drawerTrash": "Eliminados recientemente"
+    "drawerTrash": "Eliminados recientemente",
+    "showDeckCards": "Mostrar tarjetas de Deck"
   },
   "event": {
     "titleLabel": "Título *",
@@ -310,7 +311,8 @@
     "rsvpAccepted": "Aceptado",
     "rsvpTentative": "Quizás",
     "rsvpDeclined": "Rechazado",
-    "rsvpNoResponse": "Sin respuesta"
+    "rsvpNoResponse": "Sin respuesta",
+    "deckBadge": "Deck"
   },
   "settings": {
     "title": "Ajustes",

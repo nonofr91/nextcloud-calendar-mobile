@@ -6,7 +6,8 @@ import { useEventsForRange } from '@/database/useEvents';
 import { useMultiCalendars } from '@/hooks/useCalendars';
 import { setAccounts } from '@/hooks/useAccounts';
 import { useAccountStore } from '@/stores/accountStore';
-import type { Account, CalendarMeta } from '@/types';
+import { useCalendarStore } from '@/stores/calendarStore';
+import type { Account, CalendarEvent, CalendarMeta } from '@/types';
 
 jest.mock('@/database/sync', () => ({ syncVisibleRange: jest.fn() }));
 jest.mock('@/database/useEvents', () => ({ useEventsForRange: jest.fn(() => []) }));
@@ -30,6 +31,22 @@ const cal = {
   url: 'https://cloud.example.com/remote.php/dav/calendars/u/personal/',
   slug: 'personal',
 } as CalendarMeta;
+
+function ev(uid: string, calendarId: string): CalendarEvent {
+  return {
+    uid,
+    href: `/cal/${uid}.ics`,
+    calendarId,
+    accountId: 'a1',
+    summary: uid,
+    dtstart: new Date(2026, 10, 16, 14),
+    dtend: new Date(2026, 10, 16, 15),
+    allDay: false,
+    color: '#000',
+    attendees: [],
+    isRecurring: false,
+  };
+}
 
 function deferred<T = void>() {
   let resolve!: (v: T | PromiseLike<T>) => void;
@@ -127,5 +144,34 @@ describe('useCalendarData loading overlay', () => {
     const { result } = renderHook(() => useCalendarData(new Date()));
     expect(result.current.showFullOverlay).toBe(false);
     expect(syncVisibleRange).not.toHaveBeenCalled();
+  });
+});
+
+describe('useCalendarData Deck cards', () => {
+  const deckCal = {
+    ...cal,
+    id: 'app-generated--deck--board-1',
+    url: 'https://cloud.example.com/remote.php/dav/calendars/u/app-generated--deck--board-1/',
+    slug: 'app-generated--deck--board-1',
+    supportsEvents: false,
+  } as CalendarMeta;
+
+  beforeEach(() => {
+    useCalendarStore.setState({ showDeckCards: false, hiddenCalendarIds: [] });
+    mockCalendars([cal, deckCal]);
+    (useEventsForRange as jest.Mock).mockReturnValue([ev('e1', 'personal'), ev('card-1', 'app-generated--deck--board-1')]);
+  });
+
+  it('hides Deck cards by default', () => {
+    const { result } = renderHook(() => useCalendarData(new Date()));
+    expect(result.current.allEvents.map((e) => e.uid)).toEqual(['e1']);
+  });
+
+  it('shows Deck cards flagged isDeck + readOnly when the setting is on', () => {
+    useCalendarStore.setState({ showDeckCards: true });
+    const { result } = renderHook(() => useCalendarData(new Date()));
+    const deck = result.current.allEvents.find((e) => e.uid === 'card-1');
+    expect(deck).toMatchObject({ isDeck: true, readOnly: true });
+    expect(result.current.allEvents.map((e) => e.uid)).toEqual(['e1', 'card-1']);
   });
 });

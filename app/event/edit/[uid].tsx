@@ -17,6 +17,7 @@ import {
   ViewContainer, Stack, Typography, Button, IconButton, Spinner, ScreenHeader,
 } from '@/ui/components';
 import { goBackOrHome } from '@/utils/navigationGuard';
+import { isDeckCalendar } from '@/utils/calendars';
 import type { CreateEventInput, RecurrenceEditScope } from '@/types';
 
 export default function EditEventScreen() {
@@ -73,7 +74,12 @@ export default function EditEventScreen() {
     );
   }
 
-  if (!event) {
+  const eventCalendar = event
+    ? calendars.find((c) => c.id === event.calendarId)
+    : undefined;
+  const isDeckEvent = !!event?.isDeck || (!!eventCalendar && isDeckCalendar(eventCalendar));
+
+  if (!event || isDeckEvent) {
     return (
       <ViewContainer>
         <Stack flex vAlign="center" hAlign="center" gap={16}>

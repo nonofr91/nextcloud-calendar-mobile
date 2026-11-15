@@ -92,7 +92,8 @@
     "sevenDays": "7D",
     "showCompletedTasks": "Show completed tasks",
     "pendingSync": "{{count}} change(s) pending sync — tap to retry",
-    "drawerTrash": "Recently deleted"
+    "drawerTrash": "Recently deleted",
+    "showDeckCards": "Vis Deck-kort"
   },
   "event": {
     "titleLabel": "Titel *",
@@ -310,7 +311,8 @@
     "statusTentative": "Tentative",
     "statusCancelled": "Cancelled",
     "shareTalkLink": "Share Talk link",
-    "sendLinkToAttendees": "Send to attendees"
+    "sendLinkToAttendees": "Send to attendees",
+    "deckBadge": "Deck"
   },
   "settings": {
     "title": "Indstillinger",

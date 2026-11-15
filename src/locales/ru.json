@@ -92,7 +92,8 @@
     "syncError": "Ошибка синхронизации — нажмите, чтобы повторить",
     "sevenDays": "7д",
     "showCompletedTasks": "Показывать завершённые задачи",
-    "drawerTrash": "Недавно удалённые"
+    "drawerTrash": "Недавно удалённые",
+    "showDeckCards": "Показывать карточки Deck"
   },
   "event": {
     "titleLabel": "Название *",
@@ -310,7 +311,8 @@
     "rsvpAccepted": "Accepted",
     "rsvpTentative": "Maybe",
     "rsvpDeclined": "Declined",
-    "rsvpNoResponse": "No response"
+    "rsvpNoResponse": "No response",
+    "deckBadge": "Deck"
   },
   "settings": {
     "title": "Настройки",

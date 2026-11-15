@@ -10,7 +10,7 @@ import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'expo-router';
-import { Square, SquareCheck } from 'lucide-react-native';
+import { KanbanSquare, Square, SquareCheck } from 'lucide-react-native';
 import type { Theme } from '@/theme';
 import type { CalendarEvent } from '@/types';
 import { useTimeFormat } from '@/hooks/useTimeFormat';
@@ -124,7 +124,12 @@ const EventRow = memo(({ event, theme, showAccountTag, sameHostAccountIds, onPre
       activeOpacity={0.75}
     >
       <View style={[styles.colorBar, { backgroundColor: event.color }]} />
-      {event.isTask && (
+      {event.isDeck && (
+        <View style={styles.taskCheckbox} accessibilityRole="image" accessibilityLabel="Deck">
+          <KanbanSquare size={20} color={event.color} />
+        </View>
+      )}
+      {event.isTask && !event.isDeck && (
         <View
           style={styles.taskCheckbox}
           accessibilityRole="image"

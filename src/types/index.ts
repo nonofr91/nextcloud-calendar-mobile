@@ -173,6 +173,8 @@ export type CalendarEvent = {
     taskPercent?: number;
     taskCompleted?: boolean;
     readOnly?: boolean;
+    /** Deck board card (VTODO) — derived from the calendar, never written. */
+    isDeck?: boolean;
     attachments?: EventAttachment[];
     transp?: EventTransp;
     status?: EventStatus;

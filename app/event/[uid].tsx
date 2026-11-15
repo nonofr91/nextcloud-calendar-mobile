@@ -50,6 +50,7 @@ import {
 } from '@/features/event/utils/attachments';
 import { useEventAttachments } from '@/features/event/hooks/useEventAttachments';
 import { setPendingEditorUrl } from '@/features/event/utils/editorSession';
+import { isDeckCalendar } from '@/utils/calendars';
 import {
   createDirectEditingUrl,
   fetchDirectEditing,
@@ -120,8 +121,10 @@ export default function EventDetailScreen() {
   const attachments = useEventAttachments(eventAccount, event, calendar);
   const duplicateMutation = useDuplicateEvent(eventAccount!, calendars);
 
-  const canEdit = !calendar?.isReadOnly && !calendar?.isSubscribed && !event?.isTask;
-  const canToggleTask = !!event?.isTask && !calendar?.isReadOnly && !calendar?.isSubscribed;
+  const isDeck = !!event?.isDeck || (!!calendar && isDeckCalendar(calendar));
+  const canEdit = !isDeck && !calendar?.isReadOnly && !calendar?.isSubscribed && !event?.isTask;
+  const canToggleTask =
+    !!event?.isTask && !isDeck && !calendar?.isReadOnly && !calendar?.isSubscribed;
   const respondMutation = useUpdateAttendeeStatus(eventAccount);
   const isAttendee =
     !!event &&
@@ -589,6 +592,13 @@ export default function EventDetailScreen() {
                     accounts.length > 1 && eventAccount
                       ? hostnameOf(eventAccount.baseUrl)
                       : undefined
+                  }
+                  trailing={
+                    isDeck ? (
+                      <Chip small rounded testID="event-deck-badge" disabled>
+                        {t('event.deckBadge')}
+                      </Chip>
+                    ) : undefined
                   }
                 />
               )}

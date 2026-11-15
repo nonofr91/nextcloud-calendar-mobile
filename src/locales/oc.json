@@ -92,7 +92,8 @@
     "syncError": "Fracàs de la sincronizacion — tocatz per tornar ensajar",
     "sevenDays": "7J",
     "showCompletedTasks": "Mostrar los prètzfets acabats",
-    "drawerTrash": "Suprimits recentament"
+    "drawerTrash": "Suprimits recentament",
+    "showDeckCards": "Afichar las cartas Deck"
   },
   "event": {
     "titleLabel": "Títol *",
@@ -300,7 +301,8 @@
     "rsvpAccepted": "Accepted",
     "rsvpTentative": "Maybe",
     "rsvpDeclined": "Declined",
-    "rsvpNoResponse": "No response"
+    "rsvpNoResponse": "No response",
+    "deckBadge": "Deck"
   },
   "settings": {
     "title": "Paramètres",

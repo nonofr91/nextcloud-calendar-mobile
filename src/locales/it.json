@@ -92,7 +92,8 @@
     "syncError": "Sincronizzazione non riuscita — tocca per riprovare",
     "sevenDays": "7G",
     "showCompletedTasks": "Mostra attività completate",
-    "drawerTrash": "Eliminati di recente"
+    "drawerTrash": "Eliminati di recente",
+    "showDeckCards": "Mostra schede Deck"
   },
   "event": {
     "titleLabel": "Titolo *",
@@ -310,7 +311,8 @@
     "rsvpAccepted": "Accettato",
     "rsvpTentative": "Forse",
     "rsvpDeclined": "Rifiutato",
-    "rsvpNoResponse": "Nessuna risposta"
+    "rsvpNoResponse": "Nessuna risposta",
+    "deckBadge": "Deck"
   },
   "settings": {
     "title": "Impostazioni",

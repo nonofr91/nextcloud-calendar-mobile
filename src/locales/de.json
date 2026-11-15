@@ -92,7 +92,8 @@
     "syncError": "Synchronisierung fehlgeschlagen — zum Wiederholen tippen",
     "sevenDays": "7T",
     "showCompletedTasks": "Erledigte Aufgaben anzeigen",
-    "drawerTrash": "Zuletzt gelöscht"
+    "drawerTrash": "Zuletzt gelöscht",
+    "showDeckCards": "Deck-Karten anzeigen"
   },
   "event": {
     "titleLabel": "Titel *",
@@ -310,7 +311,8 @@
     "rsvpAccepted": "Angenommen",
     "rsvpTentative": "Vielleicht",
     "rsvpDeclined": "Abgelehnt",
-    "rsvpNoResponse": "Keine Antwort"
+    "rsvpNoResponse": "Keine Antwort",
+    "deckBadge": "Deck"
   },
   "settings": {
     "title": "Einstellungen",

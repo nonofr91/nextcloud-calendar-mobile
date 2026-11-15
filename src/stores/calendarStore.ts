@@ -23,6 +23,8 @@ interface CalendarState {
   availabilityCalendarOverrides: Record<string, boolean>;
   hourRowHeight: number;
   showCompletedTasks: boolean;
+  /** Opt-in: Deck board cards (VTODOs) merged into calendar views. */
+  showDeckCards: boolean;
   setViewMode: (mode: ViewMode) => void;
   setSelectedDate: (date: Date | null) => void;
   toggleCalendarVisibility: (calendarId: string) => void;
@@ -35,6 +37,7 @@ interface CalendarState {
   setMonthWidgetDayTap: (value: MonthWidgetDayTap) => void; setCalendarAvailability: (calendarId: string, value: boolean) => void;
   setHourRowHeight: (h: number) => void;
   toggleShowCompletedTasks: () => void;
+  toggleShowDeckCards: () => void;
 }
 
 function toggleIn(list: string[], id: string): string[] {
@@ -56,6 +59,7 @@ export const useCalendarStore = create<CalendarState>()(
       monthWidgetDayTap: 'calendar',     availabilityCalendarOverrides: {},
       hourRowHeight: 60,
       showCompletedTasks: false,
+      showDeckCards: false,
       setViewMode: (mode) => set({ viewMode: mode }),
       setSelectedDate: (date) => set({ selectedDate: date }),
       toggleCalendarVisibility: (calendarId) =>
@@ -73,13 +77,15 @@ export const useCalendarStore = create<CalendarState>()(
       setHourRowHeight: (h) => set({ hourRowHeight: h }),
       toggleShowCompletedTasks: () =>
         set({ showCompletedTasks: !get().showCompletedTasks }),
+      toggleShowDeckCards: () =>
+        set({ showDeckCards: !get().showDeckCards }),
     }),
     {
       name: 'calendar-store',
       storage: createJSONStorage(() =>
         legacyBackedStorage([
           'viewMode', 'hiddenCalendarIds', 'notifDisabledCalendarIds', 'widgetDisabledCalendarIds', 'hourRowHeight',
-          'showCompletedTasks', 'availabilityCalendarOverrides',
+          'showCompletedTasks', 'showDeckCards', 'availabilityCalendarOverrides',
           'monthWidgetFontSize', 'monthWidgetFontWeight', 'monthWidgetTheme', 'monthWidgetCardStyle', 'monthWidgetDayTap',
         ])
       ),
@@ -96,6 +102,7 @@ export const useCalendarStore = create<CalendarState>()(
         availabilityCalendarOverrides: state.availabilityCalendarOverrides,
         hourRowHeight: state.hourRowHeight,
         showCompletedTasks: state.showCompletedTasks,
+        showDeckCards: state.showDeckCards,
       }),
     }
   )
