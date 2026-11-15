@@ -533,6 +533,14 @@
       "tierNote": "Local commands run on-device; free-form questions use the Nextcloud assistant when the server provides it.",
       "availabilityTitle": "Calendars counting for availability",
       "availabilityHint": "Slot search ignores calendars that are off."
+    },
+    "car": {
+      "notify": "Bil-notifikationer",
+      "notifyHint": "Påmindelser om kommende begivenheder på køretøjets skærm (Android Auto).",
+      "minimal": "Minimalt indhold",
+      "minimalHint": "Kun titel og tidspunkt — stedet vises ikke på den delte skærm.",
+      "window": "Påmindelsesvindue",
+      "windowValue": "{{count}} min før"
     }
   },
   "widget": {

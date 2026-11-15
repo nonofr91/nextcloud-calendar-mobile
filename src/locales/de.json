@@ -533,6 +533,14 @@
       "saveError": "Dieser Ort konnte nicht gespeichert werden.",
       "deleteTitle": "Ort löschen",
       "deleteBody": "„{{name}}“ löschen?"
+    },
+    "car": {
+      "notify": "Auto-Benachrichtigungen",
+      "notifyHint": "Erinnerungen an bevorstehende Termine auf dem Fahrzeugbildschirm (Android Auto).",
+      "minimal": "Minimaler Inhalt",
+      "minimalHint": "Nur Titel und Uhrzeit — der Ort wird nicht auf dem geteilten Bildschirm angezeigt.",
+      "window": "Erinnerungsfenster",
+      "windowValue": "{{count}} Min. vorher"
     }
   },
   "widget": {

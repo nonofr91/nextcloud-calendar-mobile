@@ -533,6 +533,14 @@
       "saveError": "Unable to save this place.",
       "deleteTitle": "Delete place",
       "deleteBody": "Delete \"{{name}}\"?"
+    },
+    "car": {
+      "notify": "Car notifications",
+      "notifyHint": "Reminders of upcoming events on the vehicle screen (Android Auto).",
+      "minimal": "Minimal content",
+      "minimalHint": "Title and time only — the location is not shown on the shared screen.",
+      "window": "Reminder window",
+      "windowValue": "{{count}} min before"
     }
   },
   "widget": {

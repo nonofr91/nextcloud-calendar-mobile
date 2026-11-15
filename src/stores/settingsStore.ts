@@ -30,6 +30,9 @@ export interface SettingsState {
   aiEnabled: boolean;
   defaultCalendarByAccount: Record<string, string>;
   pushNotifications: boolean;
+  carNotificationsEnabled: boolean;
+  carNotifyMinimal: boolean;
+  carNotifyWindowMin: number;
   setThemePreference: (pref: ThemePreference) => void;
   setLanguage: (lang: AppLanguage) => void;
   setWeekStartsOn: (v: 0 | 1) => void;
@@ -47,6 +50,9 @@ export interface SettingsState {
   setAiEnabled: (v: boolean) => void;
   setDefaultCalendar: (accountId: string, calendarId: string | undefined) => void;
   setPushNotifications: (v: boolean) => void;
+  setCarNotificationsEnabled: (v: boolean) => void;
+  setCarNotifyMinimal: (v: boolean) => void;
+  setCarNotifyWindowMin: (v: number) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -69,6 +75,9 @@ export const useSettingsStore = create<SettingsState>()(
       aiEnabled: false,
       defaultCalendarByAccount: {},
       pushNotifications: false,
+      carNotificationsEnabled: true,
+      carNotifyMinimal: false,
+      carNotifyWindowMin: 45,
       setTimedAlerts: (v) => set({ timedAlerts: v }),
       setAllDayAlerts: (v) => set({ allDayAlerts: v }),
       setThemePreference: (pref) => set({ themePreference: pref }),
@@ -101,6 +110,9 @@ export const useSettingsStore = create<SettingsState>()(
           return { defaultCalendarByAccount: next };
         }),
       setPushNotifications: (v) => set({ pushNotifications: v }),
+      setCarNotificationsEnabled: (v) => set({ carNotificationsEnabled: v }),
+      setCarNotifyMinimal: (v) => set({ carNotifyMinimal: v }),
+      setCarNotifyWindowMin: (v) => set({ carNotifyWindowMin: v }),
     }),
     {
       name: 'settings-store',
@@ -155,6 +167,9 @@ export const useSettingsStore = create<SettingsState>()(
         aiEnabled: state.aiEnabled,
         defaultCalendarByAccount: state.defaultCalendarByAccount,
         pushNotifications: state.pushNotifications,
+        carNotificationsEnabled: state.carNotificationsEnabled,
+        carNotifyMinimal: state.carNotifyMinimal,
+        carNotifyWindowMin: state.carNotifyWindowMin,
       }),
     }
   )

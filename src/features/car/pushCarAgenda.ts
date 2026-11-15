@@ -4,6 +4,7 @@ import i18n from 'i18next';
 import { Platform } from 'react-native';
 
 import type { CalendarEvent, CalendarMeta } from '@/types';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 interface NcmCarModule {
   setAgenda(json: string): boolean;
@@ -13,7 +14,7 @@ interface NcmCarModule {
 const NcmCar = requireOptionalNativeModule<NcmCarModule>('NcmCar');
 
 const MAX_ITEMS = 20;
-const NOTIFY_WINDOW_MIN = 45;
+const DEFAULT_NOTIFY_WINDOW_MIN = 45;
 const notifiedUids = new Set<string>();
 
 interface CarAgendaItem {
@@ -83,13 +84,17 @@ export function pushCarAgenda(
   }
 }
 
-/** Posts a car notification for events starting within NOTIFY_WINDOW_MIN (once per uid). */
+/** Posts a car notification for events starting within the configured window (once per uid). */
 function maybeNotify(events: CalendarEvent[], items: CarAgendaItem[], now: dayjs.Dayjs): void {
+  const settings = useSettingsStore.getState();
+  if (!settings.carNotificationsEnabled) return;
+  const windowMin = settings.carNotifyWindowMin || DEFAULT_NOTIFY_WINDOW_MIN;
+  const minimal = settings.carNotifyMinimal;
   const upcoming = events
     .filter((e) => !e.isTask)
     .filter((e) => {
       const start = dayjs(e.dtstart).valueOf();
-      return start >= now.valueOf() && start <= now.add(NOTIFY_WINDOW_MIN, 'minute').valueOf();
+      return start >= now.valueOf() && start <= now.add(windowMin, 'minute').valueOf();
     })
     .sort((a, b) => dayjs(a.dtstart).valueOf() - dayjs(b.dtstart).valueOf());
 
@@ -99,6 +104,7 @@ function maybeNotify(events: CalendarEvent[], items: CarAgendaItem[], now: dayjs
     notifiedUids.add(key);
     const item = items.find((i) => i.title === (e.summary || '(sans titre)'));
     const time = e.allDay ? i18n.t('calendar.allDay') : dayjs(e.dtstart).format('HH:mm');
+    // Minimal mode keeps the HUN text location-free (privacy on shared car screens).
     const geoUri = e.geo
       ? `geo:${e.geo.lat},${e.geo.lon}`
       : e.location
@@ -108,7 +114,7 @@ function maybeNotify(events: CalendarEvent[], items: CarAgendaItem[], now: dayjs
       JSON.stringify({
         notifId: Math.abs(hashCode(key)),
         title: e.summary || '(sans titre)',
-        text: `${time}${e.location ? ` · ${e.location}` : ''}`,
+        text: minimal || !e.location ? time : `${time} · ${e.location}`,
         speakText: `${item?.dayLabel ?? ''} ${item?.timeText ?? ''} : ${e.summary ?? ''}`.trim(),
         geoUri,
       }),

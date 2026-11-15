@@ -533,6 +533,14 @@
       "saveError": "Impossible d'enregistrer ce lieu.",
       "deleteTitle": "Supprimer le lieu",
       "deleteBody": "Supprimer « {{name}} » ?"
+    },
+    "car": {
+      "notify": "Notifications voiture",
+      "notifyHint": "Rappels des événements à venir sur l’écran du véhicule (Android Auto).",
+      "minimal": "Contenu minimal",
+      "minimalHint": "Titre et heure uniquement — le lieu n’apparaît pas sur l’écran partagé.",
+      "window": "Fenêtre de rappel",
+      "windowValue": "{{count}} min avant"
     }
   },
   "widget": {

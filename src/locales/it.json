@@ -533,6 +533,14 @@
       "saveError": "Impossibile salvare questo luogo.",
       "deleteTitle": "Elimina luogo",
       "deleteBody": "Eliminare «{{name}}»?"
+    },
+    "car": {
+      "notify": "Notifiche auto",
+      "notifyHint": "Promemoria degli eventi imminenti sullo schermo del veicolo (Android Auto).",
+      "minimal": "Contenuto minimo",
+      "minimalHint": "Solo titolo e ora — il luogo non viene mostrato sullo schermo condiviso.",
+      "window": "Finestra di promemoria",
+      "windowValue": "{{count}} min prima"
     }
   },
   "widget": {

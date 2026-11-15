@@ -533,6 +533,14 @@
       "saveError": "Não foi possível guardar este lugar.",
       "deleteTitle": "Eliminar lugar",
       "deleteBody": "Eliminar \"{{name}}\"?"
+    },
+    "car": {
+      "notify": "Notificações do carro",
+      "notifyHint": "Lembretes de próximos eventos no ecrã do veículo (Android Auto).",
+      "minimal": "Conteúdo mínimo",
+      "minimalHint": "Apenas título e hora — o local não aparece no ecrã partilhado.",
+      "window": "Janela de lembrete",
+      "windowValue": "{{count}} min antes"
     }
   },
   "widget": {

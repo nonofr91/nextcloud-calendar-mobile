@@ -533,6 +533,14 @@
       "saveError": "Kan deze plaats niet opslaan.",
       "deleteTitle": "Plaats verwijderen",
       "deleteBody": "\"{{name}}\" verwijderen?"
+    },
+    "car": {
+      "notify": "Auto-meldingen",
+      "notifyHint": "Herinneringen aan aankomende afspraken op het voertuigscherm (Android Auto).",
+      "minimal": "Minimale inhoud",
+      "minimalHint": "Alleen titel en tijd — de locatie wordt niet op het gedeelde scherm getoond.",
+      "window": "Herinneringsvenster",
+      "windowValue": "{{count}} min vooraf"
     }
   },
   "widget": {
