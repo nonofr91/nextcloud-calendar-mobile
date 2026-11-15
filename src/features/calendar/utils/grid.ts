@@ -19,10 +19,16 @@ interface PageSpec {
 
 const PAGE_SPECS: Record<CalMode, PageSpec> = {
   week: { columns: 7, step: 7, snapToWeekStart: true, firstColumnFocus: false },
+  workweek: { columns: 5, step: 7, snapToWeekStart: true, firstColumnFocus: false },
   '7days': { columns: 7, step: 1, snapToWeekStart: false, firstColumnFocus: true },
   '3days': { columns: 3, step: 3, snapToWeekStart: false, firstColumnFocus: false },
   day: { columns: 1, step: 1, snapToWeekStart: false, firstColumnFocus: false },
 };
+
+// A workweek is always Monday–Friday — the user's weekStartsOn preference
+// (e.g. Sunday) must not shift its columns to Sun–Thu.
+const specWeekStartsOn = (mode: CalMode, weekStartsOn: 0 | 1): 0 | 1 =>
+  mode === 'workweek' ? 1 : weekStartsOn;
 
 export function daysPerPage(mode: CalMode): number {
   return PAGE_SPECS[mode].columns;
@@ -46,9 +52,10 @@ export function pageDates(
   weekStartsOn: 0 | 1,
 ): Date[] {
   const spec = PAGE_SPECS[mode];
+  const wso = specWeekStartsOn(mode, weekStartsOn);
   const shifted = dayjs(anchor).add(index * spec.step, 'day');
   const first = spec.snapToWeekStart
-    ? shifted.add(weekStartOffset(shifted.day(), weekStartsOn), 'day')
+    ? shifted.add(weekStartOffset(shifted.day(), wso), 'day')
     : shifted;
   return Array.from({ length: spec.columns }, (_, i) => first.add(i, 'day').startOf('day').toDate());
 }
@@ -72,9 +79,10 @@ export function pageIndexForDate(
   weekStartsOn: 0 | 1,
 ): number {
   const spec = PAGE_SPECS[mode];
+  const wso = specWeekStartsOn(mode, weekStartsOn);
   const startOfPage = (d: Date) => {
     const day = dayjs(d).startOf('day');
-    return spec.snapToWeekStart ? day.add(weekStartOffset(day.day(), weekStartsOn), 'day') : day;
+    return spec.snapToWeekStart ? day.add(weekStartOffset(day.day(), wso), 'day') : day;
   };
   const from = startOfPage(anchor);
   const to = startOfPage(target);

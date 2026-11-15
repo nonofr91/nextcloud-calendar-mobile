@@ -216,7 +216,7 @@ export default function CalendarScreen() {
       return `${d.format('D MMM')} – ${d.add(6, 'day').format('D MMM YYYY')}`;
     }
     const monthYear = d.format('MMMM YYYY');
-    if (viewMode === 'week' || viewMode === '3days' || viewMode === 'day') {
+    if (viewMode === 'week' || viewMode === 'workweek' || viewMode === '3days' || viewMode === 'day') {
       return `${monthYear}  ·  ${t('calendar.weekAbbr')}${d.isoWeek()}`;
     }
     return monthYear;

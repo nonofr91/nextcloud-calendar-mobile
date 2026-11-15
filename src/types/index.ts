@@ -271,7 +271,7 @@ export type ServerCapabilities = {
     taskTypes?: Record<string, TaskTypeInfo>;
 };
 
-export type ViewMode = 'month' | 'week' | '7days' | '3days' | 'day' | 'schedule';
+export type ViewMode = 'month' | 'week' | 'workweek' | '7days' | '3days' | 'day' | 'schedule';
 
 export type SuggestedSlot = {
   start: Date;
