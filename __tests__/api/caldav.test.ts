@@ -1,4 +1,4 @@
-import { deleteEvent, moveEvent, syncCollection, fetchEvents, fetchEventsByHrefs, fetchCalendars, validateCredentials, MULTIGET_BATCH } from '../../src/services/nextcloud/caldav';
+import { deleteEvent, moveEvent, updateEvent, syncCollection, fetchEvents, fetchEventsByHrefs, fetchCalendars, validateCredentials, MULTIGET_BATCH } from '../../src/services/nextcloud/caldav';
 import type { Account, CalendarMeta } from '../../src/types';
 
 const account: Account = {
@@ -49,6 +49,51 @@ describe('deleteEvent', () => {
     await expect(
       deleteEvent(account, 'https://cloud.example.com/remote.php/dav/calendars/john/personal/uid-abc.ics')
     ).rejects.toThrow('deleteEvent HTTP 500');
+  });
+
+  it('sends x-nc-scheduling: false when suppressScheduling is set', async () => {
+    mockFetch.mockResolvedValue({ ok: true, status: 204 });
+    await deleteEvent(
+      account,
+      'https://cloud.example.com/remote.php/dav/calendars/john/personal/uid-abc.ics',
+      { suppressScheduling: true },
+    );
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://cloud.example.com/remote.php/dav/calendars/john/personal/uid-abc.ics',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'x-nc-scheduling': 'false' }),
+      }),
+    );
+  });
+
+  it('does not send x-nc-scheduling by default', async () => {
+    mockFetch.mockResolvedValue({ ok: true, status: 204 });
+    await deleteEvent(account, 'https://cloud.example.com/remote.php/dav/calendars/john/personal/uid-abc.ics');
+    const [, init] = mockFetch.mock.calls.at(-1)!;
+    expect(init.headers?.['x-nc-scheduling']).toBeUndefined();
+  });
+});
+
+describe('updateEvent scheduling', () => {
+  const href = 'https://cloud.example.com/remote.php/dav/calendars/john/personal/uid-abc.ics';
+  const ics = 'BEGIN:VCALENDAR\r\nEND:VCALENDAR';
+
+  it('sends x-nc-scheduling: false when suppressScheduling is set (partial-scope deletes are PUTs)', async () => {
+    mockFetch.mockResolvedValue({ ok: true, status: 204 });
+    await updateEvent(account, href, ics, { suppressScheduling: true });
+    expect(mockFetch).toHaveBeenCalledWith(
+      href,
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'x-nc-scheduling': 'false' }),
+      }),
+    );
+  });
+
+  it('does not send x-nc-scheduling by default', async () => {
+    mockFetch.mockResolvedValue({ ok: true, status: 204 });
+    await updateEvent(account, href, ics);
+    const [, init] = mockFetch.mock.calls.at(-1)!;
+    expect(init.headers?.['x-nc-scheduling']).toBeUndefined();
   });
 });
 

@@ -173,6 +173,8 @@
     "deleteAllMsg": "Alle keren van deze terugkerende afspraak verwijderen?",
     "deleteThisAndFollowingMsg": "Deze en alle volgende keren verwijderen?",
     "deleteConfirmMsg": "Weet je zeker dat je deze afspraak wilt verwijderen?",
+    "notifyAttendees": "Deelnemers informeren",
+    "notifyAttendeesHint": "Annuleringsmail sturen",
     "errorCreateFailed": "Aanmaken van afspraak mislukt",
     "errorUpdateFailed": "Bijwerken van afspraak mislukt",
     "errorDeleteFailed": "Verwijderen van afspraak mislukt",

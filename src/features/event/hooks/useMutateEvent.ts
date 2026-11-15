@@ -340,8 +340,8 @@ export function useUpdateEvent(account: Account, calendars: CalendarMeta[]) {
 }
 
 export function useDeleteEvent(account: Account) {
-  return useAction<{ event: CalendarEvent; scope?: RecurrenceEditScope }>(
-    useCallback(async ({ event, scope = 'all' }) => {
+  return useAction<{ event: CalendarEvent; scope?: RecurrenceEditScope; suppressScheduling?: boolean }>(
+    useCallback(async ({ event, scope = 'all', suppressScheduling }) => {
       const base = seriesBaseUid(event.uid);
       let removed: CalendarEvent[];
       if (!event.isRecurring || scope === 'all') {
@@ -357,17 +357,18 @@ export function useDeleteEvent(account: Account) {
       }
 
       try {
+        const schedOpts = suppressScheduling ? { suppressScheduling } : undefined;
         if (!event.isRecurring || scope === 'all') {
-          await deleteEvent(account, event.href);
+          await deleteEvent(account, event.href, schedOpts);
           return;
         }
         const timezone = resolveTimezone(account);
         const masterIcs = await fetchEventIcs(account, event.href);
         if (scope === 'this') {
-          await updateEvent(account, event.href, injectExdate(masterIcs, occurrenceSlot(event), timezone));
+          await updateEvent(account, event.href, injectExdate(masterIcs, occurrenceSlot(event), timezone), schedOpts);
         } else if (scope === 'thisAndFollowing') {
           const oneDayBefore = dayjs(occurrenceSlot(event)).subtract(1, 'day').endOf('day').toDate();
-          await updateEvent(account, event.href, truncateRruleUntil(masterIcs, oneDayBefore));
+          await updateEvent(account, event.href, truncateRruleUntil(masterIcs, oneDayBefore), schedOpts);
         }
       } catch (error) {
         await insertEvents(removed);

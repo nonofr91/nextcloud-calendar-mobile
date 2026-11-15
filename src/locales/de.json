@@ -173,6 +173,8 @@
     "deleteAllMsg": "Alle Vorkommen dieses wiederkehrenden Ereignisses löschen?",
     "deleteThisAndFollowingMsg": "Dieses und alle folgenden Vorkommen löschen?",
     "deleteConfirmMsg": "Möchten Sie dieses Ereignis wirklich löschen?",
+    "notifyAttendees": "Teilnehmer benachrichtigen",
+    "notifyAttendeesHint": "Absage-E-Mail senden",
     "errorCreateFailed": "Ereignis konnte nicht erstellt werden",
     "errorUpdateFailed": "Ereignis konnte nicht aktualisiert werden",
     "errorDeleteFailed": "Ereignis konnte nicht gelöscht werden",

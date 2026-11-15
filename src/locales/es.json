@@ -173,6 +173,8 @@
     "deleteAllMsg": "¿Eliminar todas las ocurrencias de este evento recurrente?",
     "deleteThisAndFollowingMsg": "¿Eliminar esta y todas las siguientes ocurrencias?",
     "deleteConfirmMsg": "¿Estás seguro de que quieres eliminar este evento?",
+    "notifyAttendees": "Notificar a los asistentes",
+    "notifyAttendeesHint": "Enviar un correo de cancelación",
     "errorCreateFailed": "No se pudo crear el evento",
     "errorUpdateFailed": "No se pudo actualizar el evento",
     "errorDeleteFailed": "No se pudo eliminar el evento",

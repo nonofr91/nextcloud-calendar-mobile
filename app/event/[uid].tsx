@@ -26,9 +26,10 @@ import { useTimeFormat } from '@/hooks/useTimeFormat';
 import {
   ViewContainer, Stack, Typography, Button, Chip, Icon, List, Item,
   SectionHeader, Avatar, Spinner, ScreenHeader,
-  IconButton,
+  IconButton, Dialog, Toggle, Divider,
 } from '@/ui/components';
 import type { RecurrenceEditScope } from '@/types';
+import { isOrganizer } from '@/features/event/utils/organizer';
 import { openTalkRoom, promptTalkRoomOpen } from '@/features/event/utils/openTalkRoom';
 import { askRecurrenceScope, type RecurrenceScopeStrings } from '@/features/event/recurrenceScope';
 import { decideMoveEventScope } from '@/features/calendar/utils/moveEventScope';
@@ -121,17 +122,31 @@ export default function EventDetailScreen() {
     });
   }
 
+  const [deleteDialogScope, setDeleteDialogScope] = useState<RecurrenceEditScope | null>(null);
+  const [notifyAttendees, setNotifyAttendees] = useState(true);
+
+  const canSuppressNotify =
+    !!event && (event.attendees?.length ?? 0) > 0 && !!activeAccount && isOrganizer(event, activeAccount);
+
+  const deleteMessage = (scope: RecurrenceEditScope) =>
+    scope === 'all' && event?.isRecurring
+      ? t('event.deleteAllMsg')
+      : scope === 'thisAndFollowing'
+      ? t('event.deleteThisAndFollowingMsg')
+      : t('event.deleteConfirmMsg');
+
   function handleDelete() {
     if (!event) return;
 
     const doDelete = (scope: RecurrenceEditScope) => {
+      if (canSuppressNotify) {
+        setNotifyAttendees(true);
+        setDeleteDialogScope(scope);
+        return;
+      }
       Alert.alert(
         t('event.deleteEvent'),
-        scope === 'all' && event.isRecurring
-          ? t('event.deleteAllMsg')
-          : scope === 'thisAndFollowing'
-          ? t('event.deleteThisAndFollowingMsg')
-          : t('event.deleteConfirmMsg'),
+        deleteMessage(scope),
         [
           { text: t('common.cancel'), style: 'cancel' },
           {
@@ -150,6 +165,13 @@ export default function EventDetailScreen() {
     } else {
       doDelete('all');
     }
+  }
+
+  async function confirmDialogDelete() {
+    const scope = deleteDialogScope ?? 'all';
+    setDeleteDialogScope(null);
+    await deleteMutation.mutateAsync({ event: event!, scope, suppressScheduling: !notifyAttendees });
+    goBackOrHome(router);
   }
 
   const recurrenceLabel = useMemo(() => {
@@ -382,6 +404,42 @@ export default function EventDetailScreen() {
             />
           </Stack>
         )}
+
+        <Dialog visible={deleteDialogScope !== null} onClose={() => setDeleteDialogScope(null)}>
+          <Stack gap={12} style={styles.dialogContent}>
+            <Typography variant="h4">{t('event.deleteEvent')}</Typography>
+            <Typography variant="caption" color="secondary">
+              {deleteDialogScope ? deleteMessage(deleteDialogScope) : ''}
+            </Typography>
+            <Divider />
+            <View style={styles.notifyRow}>
+              <View style={styles.notifyText}>
+                <Typography variant="title">{t('event.notifyAttendees')}</Typography>
+                <Typography variant="caption" color="secondary">
+                  {t('event.notifyAttendeesHint')}
+                </Typography>
+              </View>
+              <Toggle
+                testID="delete-notify-toggle"
+                value={notifyAttendees}
+                onValueChange={setNotifyAttendees}
+              />
+            </View>
+            <Stack gap={8} style={styles.dialogActions}>
+              <Button
+                variant="primary" color="danger"
+                title={t('event.delete')}
+                loading={deleteMutation.isPending}
+                onPress={confirmDialogDelete}
+              />
+              <Button
+                variant="secondary"
+                title={t('common.cancel')}
+                onPress={() => setDeleteDialogScope(null)}
+              />
+            </Stack>
+          </Stack>
+        </Dialog>
       </SafeAreaView>
     </ViewContainer>
   );
@@ -393,4 +451,8 @@ const styles = StyleSheet.create({
   content: { padding: 20 },
   footer: { borderTopWidth: StyleSheet.hairlineWidth },
   link: { textDecorationLine: 'underline' },
+  dialogContent: { width: '100%' },
+  dialogActions: { width: '100%', marginTop: 4 },
+  notifyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  notifyText: { flex: 1 },
 });
