@@ -32,11 +32,13 @@ async function resolve(account: AccountRef, email: string): Promise<string | nul
     const exact = results.find((r) => r.email.toLowerCase() === needle);
     return exact?.photoUrl ?? null;
   })()
-    .catch(() => null)
     .then((url) => {
+      // Only successful resolutions are cached — a failed fetch returns null
+      // for this call but stays retryable on the next mount.
       cache.set(k, url);
       return url;
     })
+    .catch(() => null)
     .finally(() => {
       pending.delete(k);
     });

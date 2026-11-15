@@ -59,6 +59,20 @@ describe('useAttendeePhoto', () => {
     expect(result.current.photoUrl).toBeUndefined();
   });
 
+  it('does not cache fetch errors — a remount retries the lookup', async () => {
+    mockedFetchSharees.mockRejectedValueOnce(new Error('offline'));
+    const first = renderHook(() => useAttendeePhoto(account, 'nobody@example.com'));
+    await waitFor(() => expect(first.result.current.resolving).toBe(false));
+    first.unmount();
+
+    mockedFetchSharees.mockResolvedValue([
+      { id: '1', displayName: 'Someone', email: 'nobody@example.com', source: 'user', photoUrl: 'https://cloud.example.com/x' },
+    ]);
+    const second = renderHook(() => useAttendeePhoto(account, 'nobody@example.com'));
+    await waitFor(() => expect(second.result.current.photoUrl).toBe('https://cloud.example.com/x'));
+    expect(mockedFetchSharees).toHaveBeenCalledTimes(2);
+  });
+
   it('caches per account and email — a second hook does not refetch', async () => {
     mockedFetchSharees.mockResolvedValue([
       { id: '1', displayName: 'Alice', email: 'alice@example.com', source: 'user', photoUrl: 'https://cloud.example.com/a' },
