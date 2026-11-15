@@ -3,6 +3,9 @@ import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, type ViewToken,
   type NativeScrollEvent, type NativeSyntheticEvent,
 } from 'react-native';
+import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
+import { GestureDetector } from 'react-native-gesture-handler';
+import type { GestureType } from 'react-native-gesture-handler';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +23,7 @@ import { AvatarImage } from '@/components/AvatarImage';
 import { ServerIcon } from '@/components/ServerIcon';
 import { isEventPending } from '@/utils/eventPending';
 import { Chip } from '@/ui/components';
+import { useAgendaDrag } from '../hooks/useAgendaDrag';
 
 dayjs.extend(localizedFormat);
 
@@ -29,6 +33,7 @@ interface Props {
   onPressEvent: (event: CalendarEvent) => void;
   onPressCell: (date: Date) => void;
   onVisibleDateChange?: (date: Date) => void;
+  onMoveEventByDays?: (event: CalendarEvent, dayDelta: number) => void;
 }
 
 const HEADER_HEIGHT = 57;
@@ -43,16 +48,21 @@ interface DayHeaderProps {
   hasEvents: boolean;
   theme: Theme;
   onPress: (d: Date) => void;
+  dropTarget?: boolean;
 }
 
-const DayHeader = memo(({ sectionDate, hasEvents, theme, onPress }: DayHeaderProps) => {
+const DayHeader = memo(({ sectionDate, hasEvents, theme, onPress, dropTarget }: DayHeaderProps) => {
   const { t } = useTranslation();
   const d = dayjs(sectionDate);
   const isToday = d.isSame(dayjs(), 'day');
   return (
     <TouchableOpacity
       onPress={() => onPress(sectionDate)}
-      style={[styles.dayHeader, { backgroundColor: theme.colors.background, borderBottomColor: theme.colors.borderSubtle }]}
+      style={[
+        styles.dayHeader,
+        { backgroundColor: theme.colors.background, borderBottomColor: theme.colors.borderSubtle },
+        dropTarget && { backgroundColor: `${theme.colors.primary}22` },
+      ]}
       activeOpacity={0.7}
     >
       <View style={[styles.dayBadge, isToday && { backgroundColor: theme.colors.primary }]}>
@@ -82,9 +92,11 @@ interface EventRowProps {
   // avatar instead.
   sameHostAccountIds: ReadonlySet<string>;
   onPress: (e: CalendarEvent) => void;
+  dragGesture?: GestureType;
+  dimmed?: boolean;
 }
 
-const EventRow = memo(({ event, theme, showAccountTag, sameHostAccountIds, onPress }: EventRowProps) => {
+const EventRow = memo(({ event, theme, showAccountTag, sameHostAccountIds, onPress, dragGesture, dimmed }: EventRowProps) => {
   const { t } = useTranslation();
   const { formatTime } = useTimeFormat();
   const accounts = useAccounts();
@@ -105,9 +117,9 @@ const EventRow = memo(({ event, theme, showAccountTag, sameHostAccountIds, onPre
   const isCancelled = event.status === 'cancelled';
   const isTentative = event.status === 'tentative';
 
-  return (
+  const row = (
     <TouchableOpacity
-      style={[styles.eventRow, { backgroundColor: theme.colors.surface }]}
+      style={[styles.eventRow, { backgroundColor: theme.colors.surface }, dimmed && styles.eventRowDimmed]}
       onPress={() => onPress(event)}
       activeOpacity={0.75}
     >
@@ -167,6 +179,8 @@ const EventRow = memo(({ event, theme, showAccountTag, sameHostAccountIds, onPre
       </View>
     </TouchableOpacity>
   );
+
+  return dragGesture ? <GestureDetector gesture={dragGesture}>{row}</GestureDetector> : row;
 });
 
 export interface AgendaViewHandle {
@@ -178,10 +192,13 @@ type Row =
   | { type: 'item'; key: string; date: Date; event: CalendarEvent };
 
 const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
-  { events, onPressEvent, onPressCell, onVisibleDateChange }, ref
+  { events, onPressEvent, onPressCell, onVisibleDateChange, onMoveEventByDays }, ref
 ) {
   const theme = useTheme();
   const listRef = useRef<FlatList<Row>>(null);
+  const containerRef = useRef<View>(null);
+  const containerTop = useRef(0);
+  const containerHeight = useRef(0);
   const todayKey = dayjs().format('YYYY-MM-DD');
 
   // Tags only earn their space when the merged list actually spans accounts.
@@ -346,19 +363,52 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
     if (row) onVisibleRef.current?.(row.date);
   }, []);
 
+  const handleScrollBy = useCallback((dy: number) => {
+    const next = Math.max(0, scrollYRef.current + dy);
+    listRef.current?.scrollToOffset({ offset: next, animated: false });
+  }, []);
+
+  const { drag, draggingUid, targetKey, ghostY, rowGesture } = useAgendaDrag({
+    offsets,
+    rows,
+    scrollY: scrollYRef,
+    containerTop,
+    containerHeight,
+    onScrollBy: handleScrollBy,
+    onMoveEventByDays: onMoveEventByDays ?? (() => {}),
+  });
+
+  const measureContainer = useCallback(() => {
+    containerRef.current?.measure((_x, _y, w, h, _px, pageY) => {
+      containerTop.current = pageY;
+      containerHeight.current = h;
+    });
+  }, []);
+
   const renderRow = useCallback(({ item }: { item: Row }) => (
     item.type === 'header'
-      ? <DayHeader sectionDate={item.date} hasEvents={item.hasEvents} theme={theme} onPress={onPressCell} />
-      : <EventRow event={item.event} theme={theme} showAccountTag={showAccountTag} sameHostAccountIds={sameHostAccountIds} onPress={onPressEvent} />
-  ), [theme, onPressCell, onPressEvent, showAccountTag, sameHostAccountIds]);
+      ? <DayHeader sectionDate={item.date} hasEvents={item.hasEvents} theme={theme} onPress={onPressCell} dropTarget={targetKey === item.key} />
+      : (
+        <EventRow
+          event={item.event}
+          theme={theme}
+          showAccountTag={showAccountTag}
+          sameHostAccountIds={sameHostAccountIds}
+          onPress={onPressEvent}
+          dragGesture={onMoveEventByDays ? rowGesture(item.event.uid, item.key) : undefined}
+          dimmed={draggingUid === item.event.uid}
+        />
+      )
+  ), [theme, onPressCell, onPressEvent, showAccountTag, sameHostAccountIds, targetKey, onMoveEventByDays, rowGesture, draggingUid]);
 
   const keyExtractor = useCallback((item: Row) => (
     item.type === 'header' ? `h-${item.key}` : agendaRowKey(item.key, item.event)
   ), []);
 
   return (
-    <FlatList<Row>
-      ref={listRef}
+    <View ref={containerRef} style={styles.container} onLayout={measureContainer}>
+      <FlatList<Row>
+        ref={listRef}
       data={rows}
       keyExtractor={keyExtractor}
       renderItem={renderRow}
@@ -380,7 +430,9 @@ const AgendaViewImpl = forwardRef<AgendaViewHandle, Props>(function AgendaView(
       scrollEventThrottle={32}
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig.current}
-    />
+      />
+      {drag && <AgendaDragGhost event={drag.event} ghostY={ghostY} theme={theme} />}
+    </View>
   );
 });
 
@@ -397,7 +449,34 @@ function upperBound(sorted: number[], v: number): number {
 
 export const AgendaView = memo(AgendaViewImpl);
 
+function AgendaDragGhost({ event, ghostY, theme }: {
+  event: CalendarEvent;
+  ghostY: SharedValue<number>;
+  theme: Theme;
+}) {
+  const { formatTime } = useTimeFormat();
+  const style = useAnimatedStyle(() => ({ transform: [{ translateY: ghostY.value }] }));
+  return (
+    <Animated.View
+      testID="agenda-drag-ghost"
+      pointerEvents="none"
+      style={[styles.ghost, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }, style]}
+    >
+      <View style={[styles.colorBar, { backgroundColor: event.color }]} />
+      <View style={styles.ghostContent}>
+        <Text numberOfLines={1} style={[styles.eventTitle, { color: theme.colors.text }]}>
+          {event.summary}
+        </Text>
+        <Text style={[styles.eventTime, { color: theme.colors.textSecondary }]}>
+          {event.allDay ? '' : formatTime(event.dtstart)}
+        </Text>
+      </View>
+    </Animated.View>
+  );
+}
+
 const styles = StyleSheet.create({
+  container: { flex: 1 },
   dayHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -425,6 +504,25 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     height: EVENT_ROW_HEIGHT - 6,
   },
+  eventRowDimmed: { opacity: 0.35 },
+  ghost: {
+    position: 'absolute',
+    top: 0,
+    left: 16,
+    right: 16,
+    height: EVENT_ROW_HEIGHT - 6,
+    flexDirection: 'row',
+    borderRadius: 10,
+    borderWidth: 1,
+    overflow: 'hidden',
+    zIndex: 1000,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  ghostContent: { flex: 1, padding: 10, justifyContent: 'center' },
   colorBar: { width: 4 },
   taskCheckbox: { justifyContent: 'center', paddingHorizontal: 8 },
   eventContent: { flex: 1, padding: 10, justifyContent: 'center' },

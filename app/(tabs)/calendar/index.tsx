@@ -33,6 +33,7 @@ import { CalendarLoadingOverlay } from '@/features/calendar/components/CalendarL
 import { toGridEvents, type GridEvent } from '@/features/calendar/utils/toGridEvents';
 import { eventToInput } from '@/features/calendar/utils/eventToInput';
 import { decideMoveEventScope } from '@/features/calendar/utils/moveEventScope';
+import { shiftEventByDays } from '@/features/calendar/utils/agendaDragMath';
 import { isCalMode, type CalMode } from '@/features/calendar/constants';
 import { CalendarUnavailable } from '@/features/calendar/components/CalendarUnavailable';
 import { useInvitations } from '@/features/invitations/hooks/useInvitations';
@@ -180,9 +181,8 @@ export default function CalendarScreen() {
     [t]
   );
 
-  const handleMoveEvent = useCallback(
-    (gridEvent: GridEvent, nextStart: Date, nextEnd: Date) => {
-      const event = gridEvent._event;
+  const applyMoveEvent = useCallback(
+    (event: CalendarEvent, nextStart: Date, nextEnd: Date) => {
       const owner = accounts.find((a) => a.id === event.accountId);
       if (!owner) return;
       const apply = (scope: RecurrenceEditScope) => {
@@ -201,6 +201,20 @@ export default function CalendarScreen() {
       apply(decision.scope);
     },
     [accounts, mutateAsync, t, recurrenceScopeStrings]
+  );
+
+  const handleMoveEvent = useCallback(
+    (gridEvent: GridEvent, nextStart: Date, nextEnd: Date) =>
+      applyMoveEvent(gridEvent._event, nextStart, nextEnd),
+    [applyMoveEvent]
+  );
+
+  const handleAgendaMoveEvent = useCallback(
+    (event: CalendarEvent, dayDelta: number) => {
+      const { dtstart, dtend } = shiftEventByDays(event, dayDelta);
+      applyMoveEvent(event, dtstart, dtend);
+    },
+    [applyMoveEvent]
   );
 
   const [summaryOpen, setSummaryOpen] = useState(false);
@@ -291,6 +305,7 @@ export default function CalendarScreen() {
               onPressEvent={handlePressEventFromMonth}
               onPressCell={handlePressCell}
               onVisibleDateChange={nav.setAgendaVisibleDate}
+              onMoveEventByDays={handleAgendaMoveEvent}
             />
           )}
         </ViewLayer>
