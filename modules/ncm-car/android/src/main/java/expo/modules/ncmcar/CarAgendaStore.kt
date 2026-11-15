@@ -33,10 +33,15 @@ object CarAgendaStore {
 
   fun setJson(context: Context, json: String) {
     context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-      .edit().putString(KEY_JSON, json).apply()
+      .edit().putString(KEY_JSON, json).putBoolean(KEY_SYNCED, true).apply()
     items = parse(json)
     onChanged?.invoke()
   }
+
+  /** True once the app has pushed an agenda at least once on this install. */
+  fun everSynced(context: Context) =
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+      .getBoolean(KEY_SYNCED, false)
 
   /** Loads the last pushed agenda, dropping events that already ended. */
   fun load(context: Context) {
@@ -75,4 +80,5 @@ object CarAgendaStore {
 
   private const val PREFS = "ncm_car"
   private const val KEY_JSON = "agenda_json"
+  private const val KEY_SYNCED = "agenda_synced"
 }

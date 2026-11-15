@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<uses-permission android:name="androidx.car.app.MAP_TEMPLATES" />
 <application>
   <meta-data
     android:name="com.google.android.gms.car.application"
