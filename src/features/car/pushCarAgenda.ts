@@ -5,6 +5,7 @@ import { Platform } from 'react-native';
 
 import type { CalendarEvent, CalendarMeta } from '@/types';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { storage } from '@/storage';
 
 interface NcmCarModule {
   setAgenda(json: string): boolean;
@@ -15,7 +16,26 @@ const NcmCar = requireOptionalNativeModule<NcmCarModule>('NcmCar');
 
 const MAX_ITEMS = 20;
 const DEFAULT_NOTIFY_WINDOW_MIN = 45;
-const notifiedUids = new Set<string>();
+const NOTIFIED_KEY = 'car_notified_uids_v1';
+const notifiedUids = loadNotified();
+
+/** Persisted so an app restart does not re-fire a reminder that already went out. */
+function loadNotified(): Set<string> {
+  try {
+    return new Set(JSON.parse(storage.getString(NOTIFIED_KEY) ?? '[]') as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function persistNotified(now: dayjs.Dayjs): void {
+  const cutoff = now.subtract(1, 'day').valueOf();
+  const kept = [...notifiedUids].filter((k) => {
+    const ts = Number(k.split('|').pop());
+    return Number.isFinite(ts) && ts >= cutoff;
+  });
+  storage.set(NOTIFIED_KEY, JSON.stringify(kept));
+}
 
 interface CarAgendaItem {
   uid: string;
@@ -110,6 +130,7 @@ function maybeNotify(events: CalendarEvent[], items: CarAgendaItem[], now: dayjs
     const key = `${e.uid}|${dayjs(e.dtstart).valueOf()}`;
     if (notifiedUids.has(key)) continue;
     notifiedUids.add(key);
+    persistNotified(now);
     const item = items.find((i) => i.uid === e.uid);
     const time = e.allDay ? i18n.t('calendar.allDay') : dayjs(e.dtstart).format('HH:mm');
     // A URL "location" (e.g. Talk link) is not a place — no geo-query, no HUN text.
@@ -124,6 +145,7 @@ function maybeNotify(events: CalendarEvent[], items: CarAgendaItem[], now: dayjs
       JSON.stringify({
         notifId: Math.abs(hashCode(key)),
         title: e.summary || '(sans titre)',
+        endTs: dayjs(e.dtend).valueOf(),
         text: minimal || !e.location || locationIsUrl ? time : `${time} · ${e.location}`,
         speakText: `${item?.dayLabel ?? ''} ${item?.timeText ?? ''} : ${e.summary ?? ''}`.trim(),
         geoUri,

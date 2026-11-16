@@ -41,6 +41,11 @@ object CarNotificationHelper {
       .setContentTitle(o.optString("title"))
       .setContentText(o.optString("text"))
       .setCategory(NotificationCompat.CATEGORY_EVENT)
+      // Auto-cancel once the event ends — no stale reminder in the car.
+      .apply {
+        val ttl = o.optLong("endTs") - System.currentTimeMillis()
+        if (ttl > 0) setTimeoutAfter(ttl)
+      }
       .extend(CarAppExtender.Builder().setContentIntent(contentIntent).build())
       .addAction(
         R.drawable.ic_mic_24, "Lire",
