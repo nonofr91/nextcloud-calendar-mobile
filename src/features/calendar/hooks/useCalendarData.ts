@@ -86,7 +86,8 @@ export function useCalendarData(date: Date, agendaEnabled = false) {
   useEffect(() => {
     if (visibleAccounts.length === 0 || calendars.length === 0) return;
     const allowed = new Set(visibleAccounts.map((a) => a.id));
-    if (calendars.some((c) => !allowed.has(c.accountId))) {
+    const syncCalendars = calendars.filter((c) => allowed.has(c.accountId));
+    if (syncCalendars.length === 0) {
       if (__DEV__) {
         console.warn('[useCalendarData] stale calendars for account set, skipping sync', visibleIdsKey);
       }
@@ -101,7 +102,7 @@ export function useCalendarData(date: Date, agendaEnabled = false) {
           visibleAccounts.map((account) =>
             syncVisibleRange(
               account,
-              calendars.filter((c) => c.accountId === account.id),
+              syncCalendars.filter((c) => c.accountId === account.id),
               start,
               end,
             ),

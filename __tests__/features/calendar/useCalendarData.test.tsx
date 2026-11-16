@@ -145,6 +145,25 @@ describe('useCalendarData loading overlay', () => {
     expect(result.current.showFullOverlay).toBe(false);
     expect(syncVisibleRange).not.toHaveBeenCalled();
   });
+
+  it('syncs the visible account when a masked account calendar is still listed', async () => {
+    // Right after masking an account, its calendars can linger in the list:
+    // they must be filtered out, not block the visible accounts' sync.
+    const foreignCal = { ...cal, id: 'masked-cal', accountId: 'masked-account' };
+    mockCalendars([cal, foreignCal]);
+    (syncVisibleRange as jest.Mock).mockResolvedValue({ failedCount: 0 });
+
+    renderHook(() => useCalendarData(new Date()));
+
+    await waitFor(() =>
+      expect(syncVisibleRange).toHaveBeenCalledWith(
+        account,
+        [cal],
+        expect.any(Date),
+        expect.any(Date),
+      ),
+    );
+  });
 });
 
 describe('useCalendarData Deck cards', () => {
