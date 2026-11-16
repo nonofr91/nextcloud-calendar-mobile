@@ -10,6 +10,7 @@ import org.json.JSONArray
  */
 object CarAgendaStore {
   data class Item(
+    val uid: String,
     val title: String,
     val dayKey: String,
     val dayLabel: String,
@@ -59,6 +60,7 @@ object CarAgendaStore {
       val o = arr.getJSONObject(i)
       out.add(
         Item(
+          uid = o.optString("uid"),
           title = o.optString("title"),
           dayKey = o.optString("dayKey"),
           dayLabel = o.optString("dayLabel"),

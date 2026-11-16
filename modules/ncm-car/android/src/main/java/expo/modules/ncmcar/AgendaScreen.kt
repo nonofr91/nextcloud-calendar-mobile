@@ -93,9 +93,13 @@ class AgendaScreen(carContext: CarContext) : Screen(carContext) {
 
     // "Next up" card — the one glance that matters while driving.
     val next = items.first()
+    val nextIsUrl = next.location.startsWith("http://") || next.location.startsWith("https://")
     val nextRow = Row.Builder()
       .setTitle(next.title)
-      .addText(listOf(startsInText(next), next.location).filter { it.isNotEmpty() }.joinToString("  ·  "))
+      .addText(
+        listOf(startsInText(next), if (nextIsUrl) "" else next.location)
+          .filter { it.isNotEmpty() }.joinToString("  ·  ")
+      )
       .setBrowsable(true)
       .setOnClickListener(ParkedOnlyOnClickListener.create {
         screenManager.push(EventDetailScreen(carContext, 0))

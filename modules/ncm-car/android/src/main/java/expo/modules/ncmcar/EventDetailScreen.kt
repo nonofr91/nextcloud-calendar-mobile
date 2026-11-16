@@ -28,7 +28,9 @@ class EventDetailScreen(carContext: CarContext, private val index: Int) : Screen
     val rows = mutableListOf(
       Row.Builder().setTitle("Quand").addText("${item.dayLabel} · ${item.timeText}").build()
     )
-    if (item.location.isNotEmpty()) {
+    // A URL "location" (e.g. Talk link) is a join link, not a place.
+    val locationIsUrl = item.location.startsWith("http://") || item.location.startsWith("https://")
+    if (item.location.isNotEmpty() && !locationIsUrl) {
       rows += Row.Builder().setTitle("Où").addText(item.location).build()
     }
     if (item.departTs > 0) {
@@ -51,7 +53,7 @@ class EventDetailScreen(carContext: CarContext, private val index: Int) : Screen
     val actions = mutableListOf<Action>()
     if (item.geoLat != null && item.geoLon != null) {
       actions += navAction("geo:${item.geoLat},${item.geoLon}")
-    } else if (item.location.isNotEmpty()) {
+    } else if (item.location.isNotEmpty() && !locationIsUrl) {
       actions += navAction("geo:0,0?q=${Uri.encode(item.location)}")
     }
     // The strip allows a single custom-titled action — "Rejoindre" is icon-only.

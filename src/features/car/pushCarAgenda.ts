@@ -18,6 +18,7 @@ const DEFAULT_NOTIFY_WINDOW_MIN = 45;
 const notifiedUids = new Set<string>();
 
 interface CarAgendaItem {
+  uid: string;
   title: string;
   dayKey: string;
   dayLabel: string;
@@ -63,8 +64,10 @@ export function pushCarAgenda(
       .slice(0, MAX_ITEMS)
       .map((e) => {
         const start = dayjs(e.dtstart);
-        const hasPlace = !!(e.location || e.geo);
+        const locationIsUrl = /^https?:\/\//.test(e.location ?? '');
+        const hasPlace = !!((e.location && !locationIsUrl) || e.geo);
         return {
+          uid: e.uid,
           title: e.summary || '(sans titre)',
           dayKey: start.format('YYYY-MM-DD'),
           dayLabel: dayLabel(start, now),
@@ -107,19 +110,21 @@ function maybeNotify(events: CalendarEvent[], items: CarAgendaItem[], now: dayjs
     const key = `${e.uid}|${dayjs(e.dtstart).valueOf()}`;
     if (notifiedUids.has(key)) continue;
     notifiedUids.add(key);
-    const item = items.find((i) => i.title === (e.summary || '(sans titre)'));
+    const item = items.find((i) => i.uid === e.uid);
     const time = e.allDay ? i18n.t('calendar.allDay') : dayjs(e.dtstart).format('HH:mm');
+    // A URL "location" (e.g. Talk link) is not a place — no geo-query, no HUN text.
+    const locationIsUrl = /^https?:\/\//.test(e.location ?? '');
     // Minimal mode keeps the HUN text location-free (privacy on shared car screens).
     const geoUri = e.geo
       ? `geo:${e.geo.lat},${e.geo.lon}`
-      : e.location
+      : e.location && !locationIsUrl
         ? `geo:0,0?q=${encodeURIComponent(e.location)}`
         : '';
     NcmCar?.notifyUpcoming(
       JSON.stringify({
         notifId: Math.abs(hashCode(key)),
         title: e.summary || '(sans titre)',
-        text: minimal || !e.location ? time : `${time} · ${e.location}`,
+        text: minimal || !e.location || locationIsUrl ? time : `${time} · ${e.location}`,
         speakText: `${item?.dayLabel ?? ''} ${item?.timeText ?? ''} : ${e.summary ?? ''}`.trim(),
         geoUri,
       }),
