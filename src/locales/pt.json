@@ -53,7 +53,16 @@
     "qrOpenSettings": "Abrir definições",
     "qrInvalidCode": "Não é um código QR de início de sessão válido do Nextcloud. Tente ler novamente.",
     "qrTryAgain": "Tentar novamente",
-    "qrHint": "Abra o painel do Nextcloud → toque no seu avatar → \"Iniciar sessão via código QR\""
+    "qrHint": "Abra o painel do Nextcloud → toque no seu avatar → \"Iniciar sessão via código QR\"",
+    "loginFlow": {
+      "button": "Aprovar no meu telemóvel",
+      "title": "Iniciar sessão por aprovação",
+      "hint": "Este dispositivo mostra um código QR. Digitalize-o com o seu telemóvel e aprove o início de sessão no Nextcloud — sem password para escrever aqui.",
+      "showQr": "Mostrar código QR",
+      "waiting": "A aguardar aprovação…",
+      "expired": "Este pedido de início de sessão expirou. Recomece para obter um novo código QR.",
+      "startError": "Não foi possível iniciar a sessão. Verifique o URL do servidor."
+    }
   },
   "calendar": {
     "unavailable": {

@@ -53,7 +53,16 @@
     "qrOpenSettings": "Einstellungen öffnen",
     "qrInvalidCode": "Kein gültiger Nextcloud-Login-QR-Code. Bitte erneut scannen.",
     "qrTryAgain": "Erneut versuchen",
-    "qrHint": "Öffnen Sie Ihr Nextcloud-Dashboard → tippen Sie auf Ihren Avatar → „Per QR-Code anmelden“"
+    "qrHint": "Öffnen Sie Ihr Nextcloud-Dashboard → tippen Sie auf Ihren Avatar → „Per QR-Code anmelden“",
+    "loginFlow": {
+      "button": "Auf dem Telefon bestätigen",
+      "title": "Anmeldung per Bestätigung",
+      "hint": "Dieses Gerät zeigt einen QR-Code. Scannen Sie ihn mit Ihrem Telefon und bestätigen Sie die Anmeldung in Nextcloud — hier ist kein Passwort nötig.",
+      "showQr": "QR-Code anzeigen",
+      "waiting": "Warte auf Bestätigung…",
+      "expired": "Diese Anmeldeanfrage ist abgelaufen. Starten Sie neu für einen frischen QR-Code.",
+      "startError": "Anmeldevorgang konnte nicht gestartet werden. Server-URL prüfen."
+    }
   },
   "calendar": {
     "unavailable": {

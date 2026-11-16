@@ -53,7 +53,16 @@
     "qrOpenSettings": "Abrir ajustes",
     "qrInvalidCode": "Código QR de inicio de sesión de Nextcloud no válido. Inténtalo de nuevo.",
     "qrTryAgain": "Intentar de nuevo",
-    "qrHint": "Abre tu panel de Nextcloud → toca tu avatar → «Iniciar sesión mediante código QR»"
+    "qrHint": "Abre tu panel de Nextcloud → toca tu avatar → «Iniciar sesión mediante código QR»",
+    "loginFlow": {
+      "button": "Aprobar en mi teléfono",
+      "title": "Iniciar sesión por aprobación",
+      "hint": "Este dispositivo muestra un código QR. Escanéalo con tu teléfono y aprueba el inicio de sesión en Nextcloud: no hace falta escribir la contraseña aquí.",
+      "showQr": "Mostrar código QR",
+      "waiting": "Esperando la aprobación…",
+      "expired": "Esta solicitud de inicio de sesión ha caducado. Vuelve a empezar para obtener un nuevo código QR.",
+      "startError": "No se pudo iniciar el inicio de sesión. Comprueba la URL del servidor."
+    }
   },
   "calendar": {
     "unavailable": {

@@ -53,7 +53,16 @@
     "qrOpenSettings": "Apri impostazioni",
     "qrInvalidCode": "Codice QR di accesso Nextcloud non valido. Riprova a scansionare.",
     "qrTryAgain": "Riprova",
-    "qrHint": "Apri la dashboard di Nextcloud → tocca il tuo avatar → \"Accedi tramite codice QR\""
+    "qrHint": "Apri la dashboard di Nextcloud → tocca il tuo avatar → \"Accedi tramite codice QR\"",
+    "loginFlow": {
+      "button": "Approva dal mio telefono",
+      "title": "Accesso tramite approvazione",
+      "hint": "Questo dispositivo mostra un codice QR. Inquadrarlo con il telefono e approvare l’accesso in Nextcloud: nessuna password da digitare qui.",
+      "showQr": "Mostra codice QR",
+      "waiting": "In attesa di approvazione…",
+      "expired": "Questa richiesta di accesso è scaduta. Ricomincia per ottenere un nuovo codice QR.",
+      "startError": "Impossibile avviare l’accesso. Controlla l’URL del server."
+    }
   },
   "calendar": {
     "unavailable": {

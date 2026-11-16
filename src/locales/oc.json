@@ -53,7 +53,16 @@
     "qrOpenSettings": "Dobrir los paramètres",
     "qrInvalidCode": "Es pas un còdi QR de connexion Nextcloud valid. Tornatz ensajar de numerizar.",
     "qrTryAgain": "Tornar ensajar",
-    "qrHint": "Dobrir vòstre tablèu de bòrd Nextcloud → picatz sus vòstre avatar → \"Se connectar via còdi QR\""
+    "qrHint": "Dobrir vòstre tablèu de bòrd Nextcloud → picatz sus vòstre avatar → \"Se connectar via còdi QR\"",
+    "loginFlow": {
+      "button": "Aprovar sus mon telefòn",
+      "title": "Connexion per aprovacion",
+      "hint": "Aqueste aparelh mòstra un còdi QR. Escanejatz-lo amb vòstre telefòn e aprovatz la connexion dins Nextcloud — cap de senhal de picar aquí.",
+      "showQr": "Afichar lo còdi QR",
+      "waiting": "En espèra de l’aprovacion…",
+      "expired": "Aquesta demanda de connexion a expirat. Tornatz començar per obténer un còdi QR novèl.",
+      "startError": "Impossible de començar la connexion. Verificatz l’URL del servidor."
+    }
   },
   "calendar": {
     "unavailable": {

@@ -53,7 +53,16 @@
     "qrOpenSettings": "Instellingen openen",
     "qrInvalidCode": "Geen geldige Nextcloud-login-QR-code. Probeer opnieuw te scannen.",
     "qrTryAgain": "Opnieuw proberen",
-    "qrHint": "Open je Nextcloud-dashboard → tik op je avatar → \"Aanmelden via QR-code\""
+    "qrHint": "Open je Nextcloud-dashboard → tik op je avatar → \"Aanmelden via QR-code\"",
+    "loginFlow": {
+      "button": "Goedkeuren op mijn telefoon",
+      "title": "Inloggen via goedkeuring",
+      "hint": "Dit apparaat toont een QR-code. Scan hem met je telefoon en keur de login goed in Nextcloud — hier geen wachtwoord typen.",
+      "showQr": "QR-code tonen",
+      "waiting": "Wachten op goedkeuring…",
+      "expired": "Dit inlogverzoek is verlopen. Begin opnieuw voor een verse QR-code.",
+      "startError": "Inloggen kon niet starten. Controleer de server-URL."
+    }
   },
   "calendar": {
     "unavailable": {

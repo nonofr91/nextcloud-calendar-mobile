@@ -53,7 +53,16 @@
     "qrOpenSettings": "Open Settings",
     "qrInvalidCode": "Not a valid Nextcloud login QR code. Try scanning again.",
     "qrTryAgain": "Try Again",
-    "qrHint": "Open your Nextcloud dashboard → tap your avatar → \"Log in via QR code\""
+    "qrHint": "Open your Nextcloud dashboard → tap your avatar → \"Log in via QR code\"",
+    "loginFlow": {
+      "button": "Approve on my phone",
+      "title": "Log in via approval",
+      "hint": "This device shows a QR code. Scan it with your phone and approve the login in Nextcloud — no password to type here.",
+      "showQr": "Show QR code",
+      "waiting": "Waiting for approval…",
+      "expired": "This login request expired. Start again to get a fresh QR code.",
+      "startError": "Could not start the login flow. Check the server URL."
+    }
   },
   "calendar": {
     "unavailable": {

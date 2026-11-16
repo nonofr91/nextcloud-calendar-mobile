@@ -53,7 +53,16 @@
     "qrOpenSettings": "Åbn Indstillinger",
     "qrInvalidCode": "Det er ikke en gyldig QR-kode til login i Nextcloud. Prøv at scanne igen.",
     "qrTryAgain": "Prøv igen",
-    "qrHint": "Åbn dit Nextcloud-dashboard → tryk på din avatar → »Log ind med QR-kode«"
+    "qrHint": "Åbn dit Nextcloud-dashboard → tryk på din avatar → »Log ind med QR-kode«",
+    "loginFlow": {
+      "button": "Godkend på min telefon",
+      "title": "Log ind via godkendelse",
+      "hint": "Denne enhed viser en QR-kode. Scan den med din telefon og godkend login i Nextcloud — ingen adgangskode at skrive her.",
+      "showQr": "Vis QR-kode",
+      "waiting": "Venter på godkendelse…",
+      "expired": "Denne loginanmodning er udløbet. Start forfra for at få en ny QR-kode.",
+      "startError": "Kunne ikke starte login. Tjek serverens URL."
+    }
   },
   "calendar": {
     "unavailable": {

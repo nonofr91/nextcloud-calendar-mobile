@@ -4,6 +4,7 @@ import { StyleSheet, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { QrCode, Eye, EyeOff } from 'lucide-react-native';
 import { useRouter, useTheme } from 'expo-router';
+import { Smartphone } from 'lucide-react-native';
 import { validateCredentials } from '@/services/nextcloud/caldav';
 import { HttpError, describeMutationError } from '@/services/shared/errors';
 import { refreshAccounts, useAccounts } from '@/hooks/useAccounts';
@@ -12,6 +13,8 @@ import { fetchUserInfo, exchangeOneTimeToken } from '@/services/nextcloud/nextcl
 import { useAccountStore } from '@/stores/accountStore';
 import { QrLoginScanner } from '@/features/account/components/QrLoginScanner';
 import type { NcLoginData } from '@/features/account/components/QrLoginScanner';
+import { LoginFlowSheet } from '@/features/account/components/LoginFlowSheet';
+import type { LoginFlowCredentials } from '@/services/nextcloud/loginFlow';
 import { CertTrustSheet } from '@/features/account/components/CertTrustSheet';
 import { useCertTrust } from '@/features/account/hooks/useCertTrust';
 import { CleartextConsentSheet } from '@/features/account/components/CleartextConsentSheet';
@@ -38,6 +41,7 @@ export default function SetupScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [showLoginFlow, setShowLoginFlow] = useState(false);
 
   const certTrust = useCertTrust();
   const cleartextConsent = useCleartextConsent();
@@ -161,6 +165,14 @@ export default function SetupScreen() {
     connectWith({ baseUrl: data.server, username: data.user, appPassword });
   }
 
+  function handleLoginFlowCredentials(creds: LoginFlowCredentials) {
+    setShowLoginFlow(false);
+    setBaseUrl(creds.server);
+    setUsername(creds.username);
+    setAppPassword(creds.appPassword);
+    connectWith({ baseUrl: creds.server, username: creds.username, appPassword: creds.appPassword });
+  }
+
   return (
     <ViewContainer centered>
       <SafeAreaView style={styles.flex}>
@@ -182,6 +194,15 @@ export default function SetupScreen() {
               icon={<QrCode size={22} color="#fff" />}
               disabled={loading}
               onPress={() => setShowScanner(true)}
+            />
+
+            <Button
+              testID="setup-login-flow"
+              variant="secondary"
+              title={t('setup.loginFlow.button')}
+              icon={<Smartphone size={22} color={theme.colors.primary} />}
+              disabled={loading}
+              onPress={() => setShowLoginFlow(true)}
             />
 
             <Stack direction="horizontal" vAlign="center" hAlign="center" gap={10}>
@@ -255,6 +276,13 @@ export default function SetupScreen() {
         visible={showScanner}
         onClose={() => setShowScanner(false)}
         onScanned={handleQrScanned}
+      />
+
+      <LoginFlowSheet
+        visible={showLoginFlow}
+        initialBaseUrl={baseUrl}
+        onClose={() => setShowLoginFlow(false)}
+        onCredentials={handleLoginFlowCredentials}
       />
 
       <CertTrustSheet

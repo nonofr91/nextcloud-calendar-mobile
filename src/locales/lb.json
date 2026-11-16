@@ -53,7 +53,16 @@
     "qrOpenSettings": "Astellungen opmaachen",
     "qrInvalidCode": "Kee gëltegen Nextcloud-Login-QR-Code. Scann wgl. nach eng Kéier.",
     "qrTryAgain": "Nach eng Kéier probéieren",
-    "qrHint": "Maach däin Nextcloud-Dashboard op → tipp op däin Avatar → „Mat QR-Code umellen“"
+    "qrHint": "Maach däin Nextcloud-Dashboard op → tipp op däin Avatar → „Mat QR-Code umellen“",
+    "loginFlow": {
+      "button": "Op mengem Telefon bestätegen",
+      "title": "Umelleung per Bestätegung",
+      "hint": "Dësen Apparat weist een QR-Code. Scannt en mat ärem Telefon a bestätegt d’Umelleung an Nextcloud — keng Passwuert hei antippen.",
+      "showQr": "QR-Code weisen",
+      "waiting": "Waart op Bestätegung…",
+      "expired": "Dës Umellungsufro ass ofgelaf. Fänkt nei un fir een neie QR-Code.",
+      "startError": "Umelleung konnt net gestart ginn. Server-URL kontrolléieren."
+    }
   },
   "calendar": {
     "unavailable": {

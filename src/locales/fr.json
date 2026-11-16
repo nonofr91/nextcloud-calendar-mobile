@@ -53,7 +53,16 @@
     "qrOpenSettings": "Ouvrir les réglages",
     "qrInvalidCode": "Code QR de connexion Nextcloud invalide. Réessayez de scanner.",
     "qrTryAgain": "Réessayer",
-    "qrHint": "Ouvrez votre tableau de bord Nextcloud → appuyez sur votre avatar → « Se connecter via QR code »"
+    "qrHint": "Ouvrez votre tableau de bord Nextcloud → appuyez sur votre avatar → « Se connecter via QR code »",
+    "loginFlow": {
+      "button": "Approuver depuis mon téléphone",
+      "title": "Connexion par approbation",
+      "hint": "Cet appareil affiche un QR code. Scannez-le avec votre téléphone et approuvez la connexion dans Nextcloud — aucun mot de passe à saisir ici.",
+      "showQr": "Afficher le QR code",
+      "waiting": "En attente de l’approbation…",
+      "expired": "Cette demande de connexion a expiré. Recommencez pour obtenir un nouveau QR code.",
+      "startError": "Impossible de démarrer la connexion. Vérifiez l’URL du serveur."
+    }
   },
   "calendar": {
     "unavailable": {
